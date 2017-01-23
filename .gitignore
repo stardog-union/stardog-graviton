@@ -1,0 +1,7 @@
+*.DS_Store
+.idea
+bin/
+pkg/
+aws/data.go
+data.go
+etc/version

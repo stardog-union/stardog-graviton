@@ -1,0 +1,26 @@
+---
+version: 1
+disable_existing_loggers: False
+formatters:
+    simple:
+        format: "%(levelname)s %(asctime)s [%(name)s] %(filename)s:%(lineno)d %(message)s"
+
+
+handlers:
+   serial_file:
+     class: logging.handlers.RotatingFileHandler
+     level: DEBUG
+     formatter: simple
+     maxBytes: 2097152
+     filename: /var/log/stardog.image_config.log
+
+
+loggers:
+    stardog.cluster:
+        level: DEBUG
+        handlers: [serial_file]
+        propagate: no
+
+root:
+    level: DEBUG
+    handlers: [serial_file]

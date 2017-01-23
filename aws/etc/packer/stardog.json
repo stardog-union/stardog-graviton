@@ -1,0 +1,80 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "stardog_release_file": "",
+    "source_ami": "",
+    "version": "",
+    "region": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "{{user `region`}}",
+    "source_ami": "{{user `source_ami`}}",
+    "instance_type": "c3.2xlarge",
+    "ssh_username": "ubuntu",
+    "ami_name": "stardog {{user `version`}} {{timestamp}}",
+    "ami_description": "stardog graviton virtual appliance base ami {{user `version`}} {{timestamp}}",
+    "tags": {
+      "OS_Version": "Ubuntu",
+      "Release": "{{user `version`}}"
+    }
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "tools",
+      "destination": "/tmp/stardog-tools"
+    },
+    {
+      "type": "file",
+      "source": "{{user `stardog_release_file`}}",
+      "destination": "/tmp/stardog.zip"
+    },
+    {
+      "type": "file",
+      "source": "scripts",
+      "destination": "/tmp/scripts"
+    },
+    {
+      "type": "file",
+      "source": "zookeeper_sv",
+      "destination": "/tmp/zookeeper_sv"
+    },
+    {
+    "type": "shell",
+    "inline": [
+      "chmod 755 /tmp/scripts/*.sh",
+      "/tmp/scripts/build.sh",
+      "sudo mv /tmp/scripts/mount_format.sh /usr/local/mount_format.sh",
+      "sudo mv /tmp/stardog-tools /usr/local/",
+      "ls /usr/local/",
+      "cd /usr/local/stardog-tools/python",
+      "pwd",
+      "sudo -E python3 setup.py install",
+      "sudo mkdir -p /etc/sv/zkmon",
+      "sudo mv /tmp/zookeeper_sv /etc/sv/zkmon/run",
+      "sudo chmod 755 /etc/sv/zkmon/run"
+    ]
+    },
+    {
+      "type": "file",
+      "source": "log4j.properties.zk",
+      "destination": "/usr/local/zookeeper-3.4.9/conf/log4j.properties"
+    },
+    {
+      "type": "file",
+      "source": "ssh_config",
+      "destination": "/home/ubuntu/.ssh/config"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo /tmp/scripts/cleanup.sh",
+        "sudo /tmp/scripts/zerodisk.sh"
+      ]
+    }
+  ]
+}

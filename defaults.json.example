@@ -1,0 +1,15 @@
+{
+    "license_path": "/path/to/license",
+    "private_key": "/path/to/aws/asociated/private/ssh/key",
+    "log_level": "DEBUG",
+    "cloud_type": "aws",
+    "volume_size": 5,
+    "cluster_size": 3,
+    "release_file": "/path/to/stardog/release.zip",
+    "zookeeper_size": 3,
+    "sd_version": "4.2",
+    "cloud_options": {
+        "region": "us-west-1",
+	"aws_key_name": "private key matching aws name"
+    }
+}

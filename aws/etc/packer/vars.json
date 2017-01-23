@@ -1,0 +1,6 @@
+{
+    "stardog_release_file": "/Users/bresnaha/stardog-4.2.zip",
+    "source_ami": "ami-a00840c0",
+    "version": "4.2-buzz2",
+    "region": "us-west-1"
+}

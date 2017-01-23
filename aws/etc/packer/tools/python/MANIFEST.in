@@ -1,0 +1,5 @@
+include README.md
+include MANIFEST.in
+exclude .gitignore
+recursive-include stardog *
+global-exclude *pyc *pyo
