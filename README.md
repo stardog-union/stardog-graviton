@@ -21,8 +21,10 @@ Dependencies:
 ## Quick start
 
 In order to use `stardog-graviton` in its current form the following environment variables must be set.
-- AWS_ACCESS_KEY_ID=&lt;a valid aws access key&gt;
-- AWS_SECRET_ACCESS_KEY=&lt;a valid aws secret key&gt;
+```
+AWS_ACCESS_KEY_ID=<a valid aws access key>
+AWS_SECRET_ACCESS_KEY=<a valid aws secret key>
+```
 
 Both `terraform` and `packer` must be in your system path.
 
@@ -175,12 +177,13 @@ The `stardog-graviton` program logs to the console and to a log file.  To increa
 
 # Build stardog-graviton
 
-go version 1.7.1 is required and must be in your system path in order to build `stardog-graviton` as is the program `make`.  The GOPATH will be set to `<path to checkout>/stardog-graviton`.
+go version 1.7.1 is required and must be in your system path in order to build `stardog-graviton` as is the program `make`.  Make sure that GOPATH is set properly,
+and that graviton is checkout into $GOPATH/src/github.com/stardog-union
 
 ```
 $ make
 ./scripts/build-local.sh
-$ ls -l bin/stardog-graviton
+$ ls -l $GOPATH/bin/stardog-graviton
 -rwxr-xr-x  1 bresnaha  staff  17812772 Nov  9 11:06 bin/stardog-graviton
 ```
 
