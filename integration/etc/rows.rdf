@@ -1,0 +1,463 @@
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:socrata="http://www.socrata.com/rdf/terms#" xmlns:dcat="http://www.w3.org/ns/dcat#" xmlns:ods="http://open-data-standards.github.com/2012/01/open-data-standards#" xmlns:dcterm="http://purl.org/dc/terms/" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:dsbase="http://data.hawaii.gov/resource/" xmlns:ds="http://data.hawaii.gov/resource/usep-nua7/">
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/1">
+    <socrata:rowID>1</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>FINANCIAL ASSISTANCE FOR AGRICULTURE</ds:service>
+    <ds:department>FINANCIAL ASSISTANCE FOR AGRICULTURE</ds:department>
+    <ds:program>AGRICULTURAL LOAN DIVISION</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/2">
+    <socrata:rowID>2</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLES</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/3">
+    <socrata:rowID>3</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/4">
+    <socrata:rowID>4</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/5">
+    <socrata:rowID>5</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>SPORT UTILITY VEHICLE, 4WD</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/6">
+    <socrata:rowID>6</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>SPORT UTILITY VEHICLE, 4WD</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/7">
+    <socrata:rowID>7</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>SPORT UTILITY VEHICLE, 4WD</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/8">
+    <socrata:rowID>8</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VAN</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/9">
+    <socrata:rowID>9</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VAN</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/10">
+    <socrata:rowID>10</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT PEST CONTROL BRANCH - BIOCONTROL</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/11">
+    <socrata:rowID>11</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT PEST CONTROL BRANCH - BIOCONTROL</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>FEDERAL FUNDS</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/12">
+    <socrata:rowID>12</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT PEST CONTROL BRANCH - BIOCONTROL</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/13">
+    <socrata:rowID>13</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PLANT PEST AND DISEASE CONTROL</ds:service>
+    <ds:department>PLANT PEST AND DISEASE CONTROL</ds:department>
+    <ds:program>PLANT PEST CONTROL BRANCH - CHEM / MECH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/14">
+    <socrata:rowID>14</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>ANIMAL QUARANTINE</ds:service>
+    <ds:department>ANIMAL QUARANTINE</ds:department>
+    <ds:program>INSPECTION &amp; QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>CARGO VAN, 1-TON</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/15">
+    <socrata:rowID>15</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>ANIMAL QUARANTINE</ds:service>
+    <ds:department>ANIMAL QUARANTINE</ds:department>
+    <ds:program>INSPECTION &amp; QUARANTINE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>SEDAN, INTERMEDIATE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/16">
+    <socrata:rowID>16</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>ANIMAL DISEASE CONTROL</ds:service>
+    <ds:department>ANIMAL DISEASE CONTROL</ds:department>
+    <ds:program>ANIMAL INDUSTRY DIVISION ADMINISTRATION</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/17">
+    <socrata:rowID>17</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>ANIMAL DISEASE CONTROL</ds:service>
+    <ds:department>ANIMAL DISEASE CONTROL</ds:department>
+    <ds:program>LIVESTOCK DISEASE CONTROL BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/18">
+    <socrata:rowID>18</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>ANIMAL DISEASE CONTROL</ds:service>
+    <ds:department>ANIMAL DISEASE CONTROL</ds:department>
+    <ds:program>LIVESTOCK DISEASE CONTROL BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>FEDERAL FUNDS</ds:fund>
+    <ds:description>MOTOR VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/19">
+    <socrata:rowID>19</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>ANIMAL DISEASE CONTROL</ds:service>
+    <ds:department>ANIMAL DISEASE CONTROL</ds:department>
+    <ds:program>LIVESTOCK DISEASE CONTROL BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>FEDERAL FUNDS</ds:fund>
+    <ds:description>MOTOR VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/20">
+    <socrata:rowID>20</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>ANIMAL DISEASE CONTROL</ds:service>
+    <ds:department>ANIMAL DISEASE CONTROL</ds:department>
+    <ds:program>LIVESTOCK DISEASE CONTROL BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>FEDERAL FUNDS</ds:fund>
+    <ds:description>MOTOR VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/21">
+    <socrata:rowID>21</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>ANIMAL DISEASE CONTROL</ds:service>
+    <ds:department>ANIMAL DISEASE CONTROL</ds:department>
+    <ds:program>LIVESTOCK DISEASE CONTROL BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>FEDERAL FUNDS</ds:fund>
+    <ds:description>MOTOR VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/22">
+    <socrata:rowID>22</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AGRICULTURAL RESOURCE MANAGEMENT</ds:service>
+    <ds:department>AGRICULTURAL RESOURCE MANAGEMENT</ds:department>
+    <ds:program>AGRICULTURAL RESOURCE MANAGEMENT DIVISION</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/23">
+    <socrata:rowID>23</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AGRICULTURAL RESOURCE MANAGEMENT</ds:service>
+    <ds:department>AGRICULTURAL RESOURCE MANAGEMENT</ds:department>
+    <ds:program>AGRICULTURAL RESOURCE MANAGEMENT DIVISION</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/24">
+    <socrata:rowID>24</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AGRICULTURAL RESOURCE MANAGEMENT</ds:service>
+    <ds:department>AGRICULTURAL RESOURCE MANAGEMENT</ds:department>
+    <ds:program>AGRICULTURAL RESOURCE MANAGEMENT DIVISION</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>35000.00</ds:approved_amount>
+    <ds:fund>REVOLVING FUNDS</ds:fund>
+    <ds:description>SUV- 4WD</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/25">
+    <socrata:rowID>25</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AGRICULTURAL RESOURCE MANAGEMENT</ds:service>
+    <ds:department>AGRICULTURAL RESOURCE MANAGEMENT</ds:department>
+    <ds:program>AGRICULTURAL RESOURCE MANAGEMENT DIVISION</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>35000.00</ds:approved_amount>
+    <ds:fund>REVOLVING FUNDS</ds:fund>
+    <ds:description>SUV- 4WD</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/26">
+    <socrata:rowID>26</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>MKG INFO &amp; DISTRIB SYSTEMS IMPROVEMT FOR AGR</ds:service>
+    <ds:department>MKG INFO &amp; DISTRIB SYSTEMS IMPROVEMT FOR AGR</ds:department>
+    <ds:program>COMMODITIES BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLES</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/27">
+    <socrata:rowID>27</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>MKG INFO &amp; DISTRIB SYSTEMS IMPROVEMT FOR AGR</ds:service>
+    <ds:department>MKG INFO &amp; DISTRIB SYSTEMS IMPROVEMT FOR AGR</ds:department>
+    <ds:program>COMMODITIES BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>REVOLVING FUNDS</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/28">
+    <socrata:rowID>28</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>MKG INFO &amp; DISTRIB SYSTEMS IMPROVEMT FOR AGR</ds:service>
+    <ds:department>MKG INFO &amp; DISTRIB SYSTEMS IMPROVEMT FOR AGR</ds:department>
+    <ds:program>COMMODITIES BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>REVOLVING FUNDS</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/29">
+    <socrata:rowID>29</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>MKG INFO &amp; DISTRIB SYSTEMS IMPROVEMT FOR AGR</ds:service>
+    <ds:department>MKG INFO &amp; DISTRIB SYSTEMS IMPROVEMT FOR AGR</ds:department>
+    <ds:program>COMMODITIES BRANCH - MILK CONTROL</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/30">
+    <socrata:rowID>30</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AQUACULTURE DEVELOPMENT</ds:service>
+    <ds:department>AQUACULTURE DEVELOPMENT</ds:department>
+    <ds:program>AQUACULTURE DEVELOPMENT PROGRAM</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/31">
+    <socrata:rowID>31</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AGRIBUSINESS DEVELOPMENT &amp; RESEARCH</ds:service>
+    <ds:department>AGRIBUSINESS DEVELOPMENT &amp; RESEARCH</ds:department>
+    <ds:program>AGRIBUSINESS DEVELOPMENT CORP.</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>REVOLVING FUNDS</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/32">
+    <socrata:rowID>32</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AGRIBUSINESS DEVELOPMENT &amp; RESEARCH</ds:service>
+    <ds:department>AGRIBUSINESS DEVELOPMENT &amp; RESEARCH</ds:department>
+    <ds:program>WAIAHOLE WATER SYSTEM</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>REVOLVING FUNDS</ds:fund>
+    <ds:description>PICK-UP, 4X4</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/33">
+    <socrata:rowID>33</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AGRICULTURAL DEVELOPMENT &amp; MARKETING</ds:service>
+    <ds:department>AGRICULTURAL DEVELOPMENT &amp; MARKETING</ds:department>
+    <ds:program>HAWAII AGRICULTURAL STATISTICAL SERVICES BR.</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/34">
+    <socrata:rowID>34</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>AGRICULTURAL DEVELOPMENT &amp; MARKETING</ds:service>
+    <ds:department>AGRICULTURAL DEVELOPMENT &amp; MARKETING</ds:department>
+    <ds:program>MARKET DEVELOPMENT BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/35">
+    <socrata:rowID>35</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>GENERAL ADMINISTRATION FOR AGR</ds:service>
+    <ds:department>GENERAL ADMINISTRATION FOR AGR</ds:department>
+    <ds:program>DEPARTMENTAL ADMINISTRATION</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/36">
+    <socrata:rowID>36</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>MEASUREMENT STANDARDS</ds:service>
+    <ds:department>MEASUREMENT STANDARDS</ds:department>
+    <ds:program>MEASUREMENT STANDARDS BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>GENERAL FUND</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/37">
+    <socrata:rowID>37</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>MEASUREMENT STANDARDS</ds:service>
+    <ds:department>MEASUREMENT STANDARDS</ds:department>
+    <ds:program>MEASUREMENT STANDARDS BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>25000.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>VAN</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/38">
+    <socrata:rowID>38</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>MEASUREMENT STANDARDS</ds:service>
+    <ds:department>MEASUREMENT STANDARDS</ds:department>
+    <ds:program>MEASUREMENT STANDARDS BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>25000.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>VAN</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/39">
+    <socrata:rowID>39</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>MEASUREMENT STANDARDS</ds:service>
+    <ds:department>MEASUREMENT STANDARDS</ds:department>
+    <ds:program>MEASUREMENT STANDARDS BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>30000.00</ds:approved_amount>
+    <ds:fund>SPECIAL FUND</ds:fund>
+    <ds:description>PICK-UP TRUCK</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/40">
+    <socrata:rowID>40</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PESTICIDES</ds:service>
+    <ds:department>PESTICIDES</ds:department>
+    <ds:program>PESTICIDE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>FEDERAL FUNDS</ds:fund>
+    <ds:description>SEDAN, COMPACT</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/41">
+    <socrata:rowID>41</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PESTICIDES</ds:service>
+    <ds:department>PESTICIDES</ds:department>
+    <ds:program>PESTICIDE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>FEDERAL FUNDS</ds:fund>
+    <ds:description>SPORTS UTILITY, COMPACT</ds:description></dsbase:usep-nua7>
+<dsbase:usep-nua7 rdf:about="http://data.hawaii.gov/resource/usep-nua7/42">
+    <socrata:rowID>42</socrata:rowID>
+    <rdfs:member rdf:resource="http://data.hawaii.gov/resource/usep-nua7"/>
+    <ds:fiscal_year>2015</ds:fiscal_year>
+    <ds:service>PESTICIDES</ds:service>
+    <ds:department>PESTICIDES</ds:department>
+    <ds:program>PESTICIDE BRANCH</ds:program>
+    <ds:expense_category>OTHER CURRENT EXPENSES</ds:expense_category>
+    <ds:approved_amount>0.00</ds:approved_amount>
+    <ds:fund>REVOLVING FUNDS</ds:fund>
+    <ds:description>VEHICLE</ds:description></dsbase:usep-nua7></rdf:RDF>
