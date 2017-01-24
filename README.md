@@ -13,7 +13,11 @@ Features:
 Dependencies:
 - An [AWS](https://aws.amazon.com/) account. 
 - [terraform](https://www.terraform.io/downloads.html) 0.7.9.
+    - [Linux 64](https://releases.hashicorp.com/terraform/0.7.9/terraform_0.7.9_linux_amd64.zip)
+    - [OSX](https://releases.hashicorp.com/terraform/0.7.9/terraform_0.7.9_darwin_amd64.zip)
 - [packer](https://www.packer.io/downloads.html) 0.10.2.
+    - [Linux](https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_linux_amd64.zip)
+    - [OSX](https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_darwin_amd64.zip)
 - A Stardog license.
 - A Stardog release zip file.
 - The `stardog-graviton` single file executable.
@@ -69,7 +73,38 @@ To avoid being asked questions a file name ~/.graviton/default.json can be creat
 
 All of the components needed to run a Stardog cluster are considered part of a deployment.  Every deployment must be given a name that is unique to each cloud account.  In the above example the deployment name is `mystardog2`.
 
-#### Base image
+#### Status
+Once the image has been successfully launched its health can be monitored with the `status` command:
+
+```
+$ stardog-graviton status mystardog2
+Stardog is available here: http://mystardog2sdelb-1562381657.us-west-1.elb.amazonaws.com:5821
+ssh is available here: mystardog2belb-1941074804.us-west-1.elb.amazonaws.com
+The instance is healthy
+Coordinator:
+   10.0.100.110:5821
+Nodes:
+   10.0.101.230:5821
+   10.0.100.33:5821
+Success.
+```
+
+#### Cleanup
+The EC2 charges by the hour for the VMs that Graviton runs thus when the cluster is no longer in use it is important to clean it up with the `destroy` commmand.
+
+```
+$ ./bin/stardog-graviton destroy mystardog2
+Failed to load the default file /Users/bresnaha/.graviton/default.json The file /Users/bresnaha/.graviton/default.json does not exist.
+This will destroy all volumes and instances associated with this deployment.
+Do you really want to destroy? (yes/no): yes
+- Deleting the instance VMs...
+Successfully destroyed the instance.
+\ Calling out to terraform to delete the images...
+Successfully destroyed the volumes.
+Success.
+```
+
+### Base image
 The first time this is done a base image needs to be created.  This image will have Stardog, Zookeeper, and a set of other dependencies needed to run the cluster baked into it.  Even tho this image will be localized to your aws account no secrets (including the license) will be baked into it.  Future launches of the cluster with the same stardog version will not require this step.
 
 To create the base image in a separate step use the following subcommands
@@ -79,7 +114,7 @@ To create the base image in a separate step use the following subcommands
 ```
 
 
-#### Volumes
+### Volumes
 Every cluster needs a backing set of volumes to store the data.  In AWS this data is stored on [elastic block store](https://aws.amazon.com/ebs/) (ebs) volumes.  The launching a new cluster these volumes are created, formated and populated with your stardog license.  The database admin password is set at this time as well.  Because these volumes will contain your data and stardog licenses it is important to keep them secret.
 
 To control the volumes use the following subcommands:
@@ -96,7 +131,7 @@ To control the volumes use the following subcommands:
 ```
 
 
-#### Instances
+### Instances
 Running the stardog cluster requires several virtual machines.  At least 3 zookeeper nodes are needed for it to run safely and at least 2 stardog nodes.  Additionally a *bastion* node is used in order to allow ssh access to all other VMs as well as provide a configured client environment read to use.  AWS charges by the hour for the VMs so it is important to not leave them running.  In a given deployment the VMs can be started and stopped without destroying the data backing them.  The following subcommands can be used to control the VM instances:
 
 ```
@@ -108,19 +143,6 @@ Running the stardog cluster requires several virtual machines.  At least 3 zooke
 
   instance status [<flags>] <deployment>
     Get information about the instance.
-```
-
-### Destroy a cluster.
-```
-$ ./bin/stardog-graviton destroy mystardog2
-Failed to load the default file /Users/bresnaha/.graviton/default.json The file /Users/bresnaha/.graviton/default.json does not exist.
-This will destroy all volumes and instances associated with this deployment.
-Do you really want to destroy? (yes/no): yes
-- Deleting the instance VMs...
-Successfully destroyed the instance.
-\ Calling out to terraform to delete the images...
-Successfully destroyed the volumes.
-Success.
 ```
 
 ### Cluster status
@@ -164,6 +186,8 @@ The output file looks like the following:
 
 ## Troubleshooting
 
+### Logging
+
 The `stardog-graviton` program logs to the console and to a log file.  To increase the level of console logging and `--verbose` to the command line multiple times and --log-level=DEBUG.  While this will provide details much more verbose logging can be found in the log file.  Each deployment will have its own log file located at ` ~/.graviton/deployments/<deployment name>/logs/graviton.log`
 
  ssh access to the cluster is provided via the bastion node.  Its contact point is displayed in the status command.  Once logged into that node the stardog nodes and zookeeper nodes can be access.  The following log files can be helpful in debugging a deployment that is not working:
@@ -173,7 +197,18 @@ The `stardog-graviton` program logs to the console and to a log file.  To increa
  - /mnt/data/stardog-home/stardog.log
  - /mnt/data/stardog-home/zookeeper.log
  - /var/lib/cloud/instance/scripts/part-001
--- /var/log/cloud-init.log
+ - /var/log/cloud-init.log
+
+### SSH Agent
+
+Some of Graviton's features require a running [ssh-agent](https://en.wikipedia.org/wiki/Ssh-agent) loaded with the correct private key.
+
+```
+$ eval $(ssh-agent)
+Agent pid 77228
+$ ssh-add ~/.ssh/stardogbuzztroll
+Identity added: /Users/bresnaha/.ssh/stardogbuzztroll (/Users/bresnaha/.ssh/stardogbuzztroll)
+```
 
 # Build stardog-graviton
 
