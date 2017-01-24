@@ -164,7 +164,7 @@ The output file looks like the following:
 
 ## Troubleshooting
 
-The `stardog-graviton` program logs to the console and to a log file.  To increase the level of console logging and `--verbose` to the command line multiple times.  While this will provide details much more verbose logging can be found in the log file.  Each deployment will have its own log file located at ` ~/.graviton/deployments/<deployment name>/logs/graviton.log`
+The `stardog-graviton` program logs to the console and to a log file.  To increase the level of console logging and `--verbose` to the command line multiple times and --log-level=DEBUG.  While this will provide details much more verbose logging can be found in the log file.  Each deployment will have its own log file located at ` ~/.graviton/deployments/<deployment name>/logs/graviton.log`
 
  ssh access to the cluster is provided via the bastion node.  Its contact point is displayed in the status command.  Once logged into that node the stardog nodes and zookeeper nodes can be access.  The following log files can be helpful in debugging a deployment that is not working:
  

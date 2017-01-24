@@ -69,6 +69,12 @@ func (a *awsPlugin) HaveImage(c sdutils.AppContext) bool {
 }
 
 func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath string, version string) error {
+	neededEnvs := []string{"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"}
+	for _, e := range neededEnvs {
+		if os.Getenv(e) == "" {
+			return fmt.Errorf("The environment variable %s must be set", e)
+		}
+	}
 	dir, err := PlaceAsset(context, context.GetConfigDir(), "etc/packer", true)
 	if err != nil {
 		return err

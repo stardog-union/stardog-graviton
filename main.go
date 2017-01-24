@@ -410,6 +410,13 @@ func (cliContext *CliContext) Logf(level int, format string, v ...interface{}) {
 	cliContext.Logger.Logf(level, format, v...)
 }
 
+func (cliContext *CliContext) nameValidate(a *kingpin.CmdClause) error {
+	if len(cliContext.DeploymentName) > 20 {
+		return fmt.Errorf("Could the deployment name must be less than 20 characters")
+	}
+	return nil
+}
+
 func (cliContext *CliContext) topValidate(a *kingpin.Application) error {
 	var err error
 	// Normalize the options
@@ -537,6 +544,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Arg("name", "The name of the deployment.  It must be unique to this account.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.LaunchCmd.Flag("cidr", "The network mask to which stardog access will be limited.  The default is the IP of this machine.").Default(cliContext.HTTPMask).StringVar(&cliContext.HTTPMask)
 	cmdOpts.LaunchCmd.Action(cliContext.Interactive)
+	cmdOpts.LaunchCmd.Validate(cliContext.nameValidate)
 
 	cmdOpts.DestroyCmd = cli.Command("destroy", "Destroy everything associated with a deployment.")
 	cmdOpts.DestroyCmd.Arg("name", "The name of the deployment to destroy.").Required().StringVar(&cliContext.DeploymentName)
@@ -575,6 +583,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.NewDeploymentCmd.Flag("private-key", "The path to the private key.").Default(cliContext.PrivateKeyPath).StringVar(&cliContext.PrivateKeyPath)
 	cmdOpts.NewDeploymentCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
 	cmdOpts.NewDeploymentCmd.Action(cliContext.NewDeployment)
+	cmdOpts.NewDeploymentCmd.Validate(cliContext.nameValidate)
 
 	cmdOpts.DestroyDeploymentCmd = deployCmd.Command("destroy", "Destroy the deployment.  This will fail if volumes exist or an instance is running.")
 	cmdOpts.DestroyDeploymentCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
