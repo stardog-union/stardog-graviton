@@ -38,9 +38,9 @@ The easiest way to launch a cluster is to run `stardog-graviton` in interactive 
 
 ```
 $ ./bin/stardog-graviton launch mystardog2
-Failed to load the default file /Users/bresnaha/.graviton/default.json The file /Users/bresnaha/.graviton/default.json does not exist.
+Failed to load the default file /Users/stardog/.graviton/default.json The file /Users/stardog/.graviton/default.json does not exist.
 What version of stardog are you launching?: 4.2
-What is the path to the Stardog release?: /Users/bresnaha/stardog-4.2.zip
+What is the path to the Stardog release?: /Users/stardog/stardog-4.2.zip
 There is no base image for version 4.2.
 Do you wish to build one? (yes/no): yes
 | Running packer to build the image...
@@ -48,8 +48,8 @@ done
 AMI Successfully built: ami-0a1d486a
 Creating the new deployment mystardog2
 EC2 keyname (default): stardog
-Private key path: /Users/bresnaha/.ssh/stardog
-What is the path to your Stardog license?: /Users/bresnaha/data/stardog/stardog-license-key.bin
+Private key path: /Users/stardog/.ssh/stardog
+What is the path to your Stardog license?: /Users/stardog/data/stardog/stardog-license-key.bin
 | Calling out to terraform to create the volumes...
 - Calling out to terraform to stop builder instances...
 Successfully created the volumes.
@@ -94,7 +94,7 @@ The EC2 charges by the hour for the VMs that Graviton runs thus when the cluster
 
 ```
 $ ./bin/stardog-graviton destroy mystardog2
-Failed to load the default file /Users/bresnaha/.graviton/default.json The file /Users/bresnaha/.graviton/default.json does not exist.
+Failed to load the default file /Users/stardog/.graviton/default.json The file /Users/stardog/.graviton/default.json does not exist.
 This will destroy all volumes and instances associated with this deployment.
 Do you really want to destroy? (yes/no): yes
 - Deleting the instance VMs...
@@ -149,7 +149,7 @@ Running the stardog cluster requires several virtual machines.  At least 3 zooke
 The status of a give deployment can be checked with the `status` subcommand.  The status can also be written to a json file if the --json-file option is included.  Here is an example session:
 ```
 $ ./bin/stardog-graviton status mystardog2 --json-file=output.json
-Failed to load the default file /Users/bresnaha/.graviton/default.json: The file /Users/bresnaha/.graviton/default.json does not exist.
+Failed to load the default file /Users/stardog/.graviton/default.json: The file /Users/stardog/.graviton/default.json does not exist.
 Stardog is available here: http://mystardog2sdelb-682913646.us-west-1.elb.amazonaws.com:5821
 ssh is available here: mystardog2belb-1558182568.us-west-1.elb.amazonaws.com
 The instance is healthy
@@ -207,7 +207,7 @@ Some of Graviton's features require a running [ssh-agent](https://en.wikipedia.o
 $ eval $(ssh-agent)
 Agent pid 77228
 $ ssh-add ~/.ssh/stardogbuzztroll
-Identity added: /Users/bresnaha/.ssh/stardogbuzztroll (/Users/bresnaha/.ssh/stardogbuzztroll)
+Identity added: /Users/stardog/.ssh/stardogbuzztroll (/Users/stardog/.ssh/stardogbuzztroll)
 ```
 
 # Build stardog-graviton
@@ -219,7 +219,7 @@ and that graviton is checkout into $GOPATH/src/github.com/stardog-union
 $ make
 ./scripts/build-local.sh
 $ ls -l $GOPATH/bin/stardog-graviton
--rwxr-xr-x  1 bresnaha  staff  17812772 Nov  9 11:06 bin/stardog-graviton
+-rwxr-xr-x  1 stardog  staff  17812772 Nov  9 11:06 bin/stardog-graviton
 ```
 
 # AWS architecture
