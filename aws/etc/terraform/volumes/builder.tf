@@ -67,6 +67,12 @@ resource "null_resource" "stardog_data" {
     destination = "/mnt/data/stardog-home/stardog-license-key.bin"
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "sudo umount /mnt/data/"
+    ]
+  }
+
   depends_on = ["aws_volume_attachment.stardog_data"]
 }
 
