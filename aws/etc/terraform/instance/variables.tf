@@ -89,4 +89,16 @@ variable "custom_stardog_properties" {
   default = ""
 }
 
+variable "external_protocol" {
+  type = "string"
+  description = "The protocol to use on the load balancer.  Must be http or https."
+  default = "http"
+}
+
+variable "ssl_cert_arn" {
+  type = "string"
+  description = "The ARN to the cert."
+  default = ""
+}
+
 

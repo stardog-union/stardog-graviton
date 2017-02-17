@@ -56,7 +56,8 @@ type Deployment interface {
 	StatusVolumeSet() error
 	VolumeExists() bool
 
-	CreateInstance(zookeeperSize int, mask string) error
+	CreateInstance(zookeeperSize int) error
+	OpenInstance(zookeeperSize int, mask string) error
 	DeleteInstance() error
 	StatusInstance() error
 	InstanceExists() bool
