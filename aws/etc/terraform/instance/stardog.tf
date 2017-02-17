@@ -194,9 +194,10 @@ resource "aws_elb" "stardog" {
 
   listener {
     instance_port     = 5821
-    instance_protocol = "tcp"
+    instance_protocol = "http"
     lb_port           = 5821
-    lb_protocol       = "tcp"
+    lb_protocol       = "${var.external_protocol}"
+    ssl_certificate_id = "${var.ssl_cert_arn}"
   }
 
   listener {
@@ -229,9 +230,9 @@ resource "aws_elb" "stardoginternal" {
 
   listener {
     instance_port     = 5821
-    instance_protocol = "tcp"
+    instance_protocol = "http"
     lb_port           = 5821
-    lb_protocol       = "tcp"
+    lb_protocol       = "http"
   }
 
   health_check {

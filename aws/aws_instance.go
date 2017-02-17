@@ -78,21 +78,22 @@ func volumeLineScanner(cliContext sdutils.AppContext, line string) *sdutils.Scan
 	return nil
 }
 
-func (awsI *AwsEc2Instance) CreateInstance(zookeeperSize int, mask string) error {
+func (awsI *AwsEc2Instance) runTerraformApply(zookeeperSize int, mask string) error {
+	awsI.ZkSize = fmt.Sprintf("%d", zookeeperSize)
+
 	vol, err := LoadEbsVolume(awsI.Ctx, path.Join(awsI.DeployDir, "etc", "terraform", "volumes"))
 	if err != nil {
 		return err
 	}
 
-	awsI.ZkSize = fmt.Sprintf("%d", zookeeperSize)
 	awsI.SdSize = vol.ClusterSize
 	awsI.HTTPMask = mask
 
 	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")
 	instanceConfPath := path.Join(instanceWorkingDir, "instance.json")
-	if sdutils.PathExists(instanceConfPath) {
+	if sdutils.PathExists(instanceConfPath) && mask == "" {
 		awsI.Ctx.ConsoleLog(1, "The instance already exists.\n")
-		awsI.Ctx.Logf(sdutils.WARN, "The instance already exists.")
+		awsI.Ctx.Logf(sdutils.INFO, "The instance already exists.")
 	}
 	err = sdutils.WriteJSON(awsI, instanceConfPath)
 	if err != nil {
@@ -117,8 +118,26 @@ func (awsI *AwsEc2Instance) CreateInstance(zookeeperSize int, mask string) error
 	if err != nil {
 		return err
 	}
-	awsI.Ctx.ConsoleLog(1, "Successfully created the instance.\n")
+	return nil
+}
 
+func (awsI *AwsEc2Instance) CreateInstance(zookeeperSize int) error {
+	err := awsI.runTerraformApply(zookeeperSize, "0.0.0.0/32")
+	if err != nil {
+		awsI.Ctx.ConsoleLog(1, "Failed to create the instance.\n")
+		return err
+	}
+	awsI.Ctx.ConsoleLog(1, "Successfully created the instance.\n")
+	return nil
+}
+
+func (awsI *AwsEc2Instance) OpenInstance(zookeeperSize int, mask string) error {
+	err := awsI.runTerraformApply(zookeeperSize, mask)
+	if err != nil {
+		awsI.Ctx.ConsoleLog(1, "Failed to open up the instance.\n")
+		return err
+	}
+	awsI.Ctx.ConsoleLog(1, "Successfully opened up the instance.\n")
 	return nil
 }
 

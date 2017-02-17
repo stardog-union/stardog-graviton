@@ -248,7 +248,7 @@ func linePrinter(cliContext AppContext, line string) *ScanResult {
 }
 
 func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, zkSize int, waitMaxTimeSec int, mask string, noWait bool) error {
-	err := dep.CreateInstance(zkSize, mask)
+	err := dep.CreateInstance(zkSize)
 	if err != nil {
 		return err
 	}
@@ -258,11 +258,17 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, z
 	}
 
 	context.ConsoleLog(1, "Waiting for stardog to come up...\n")
-	err = WaitForHealth(context, baseD, dep, waitMaxTimeSec, false)
+	err = WaitForHealth(context, baseD, dep, waitMaxTimeSec, true)
 	if err != nil {
 		return err
 	}
-	return nil
+	newPw := os.Getenv("STARDOG_ADMIN_PASSWORD")
+	if newPw != "" {
+		context.ConsoleLog(1, "Changing the default password...\n")
+		err = runClient(context, baseD, dep, []string{"user", "passwd", "-u", "admin", "-N", newPw, "-p", "admin"})
+	}
+	err = dep.OpenInstance(zkSize, mask)
+	return err
 }
 
 func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, internal bool, outfile string) error {
@@ -288,5 +294,10 @@ func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, inter
 	if os.Getenv("STARDOG_GRAVITON_UNIT_TEST") != "" {
 		return nil
 	}
-	return runClient(context, baseD, dep, []string{"cluster", "info"})
+
+	pw := os.Getenv("STARDOG_ADMIN_PASSWORD")
+	if pw == "" {
+		pw = "admin"
+	}
+	return runClient(context, baseD, dep, []string{"cluster", "info", "-u", "admin", "-p", pw})
 }
