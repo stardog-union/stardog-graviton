@@ -147,7 +147,7 @@ func (cliContext *CliContext) Interactive(c *kingpin.ParseContext) error {
 			return err
 		}
 		cliContext.ConsoleLog(0, "There is no base image for version %s.\n", cliContext.Version)
-		if sdutils.AskUserYesOrNo("Do you wish to build one?") {
+		if !cliContext.Force || sdutils.AskUserYesOrNo("Do you wish to build one?") {
 			err = plugin.BuildImage(cliContext, cliContext.SdReleaseFilePath, cliContext.Version)
 			if err != nil {
 				cliContext.ConsoleLog(0, "Failed to make the stardog base image: %s\n", err.Error())
