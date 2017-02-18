@@ -5,3 +5,6 @@ pkg/
 aws/data.go
 data.go
 etc/version
+release/darwin_amd64
+release/linux_amd64
+release/graviton*

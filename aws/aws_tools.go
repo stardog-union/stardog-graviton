@@ -267,15 +267,19 @@ func loadAmiAmp(cliContext sdutils.AppContext) (map[string]string, error) {
 	amiMapFile := amiFileName(cliContext)
 	cliContext.Logf(sdutils.DEBUG, "Loading the AMI file %s\n", amiMapFile)
 	if _, err := os.Stat(amiMapFile); err == nil {
+		cliContext.Logf(sdutils.DEBUG, "Read AMI file\n")
 		data, err := ioutil.ReadFile(amiMapFile)
 		if err != nil {
 			return nil, err
 		}
+		cliContext.Logf(sdutils.DEBUG, "Unmarshall\n")
+
 		err = json.Unmarshal(data, &amiMap)
 		if err != nil {
 			return nil, err
 		}
 	}
+	cliContext.Logf(sdutils.DEBUG, "Got the ami map %s\n", amiMap)
 	return amiMap, nil
 }
 

@@ -69,16 +69,22 @@ func (a *awsPlugin) HaveImage(c sdutils.AppContext) bool {
 }
 
 func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath string, version string) error {
+	context.Logf(sdutils.DEBUG, "Build AMI image\n")
+
 	neededEnvs := []string{"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"}
 	for _, e := range neededEnvs {
 		if os.Getenv(e) == "" {
 			return fmt.Errorf("The environment variable %s must be set", e)
 		}
 	}
+
+	context.Logf(sdutils.DEBUG, "Place assets\n")
+
 	dir, err := PlaceAsset(context, context.GetConfigDir(), "etc/packer", true)
 	if err != nil {
 		return err
 	}
+	context.Logf(sdutils.DEBUG, "Extracting packer files to: %s\n", dir)
 	context.ConsoleLog(2, "Extracting packer files to: %s\n", dir)
 	defer os.RemoveAll(dir)
 
@@ -107,6 +113,7 @@ func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath str
 		Dir:  workingDir,
 	}
 
+	context.Logf(sdutils.DEBUG, "Start packer")
 	spin := sdutils.NewSpinner(context, 1, "Running packer to build the image")
 	results, err := sdutils.RunCommand(context, cmd, lineScanner, spin)
 	if err != nil {
@@ -121,6 +128,7 @@ func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath str
 
 	context.ConsoleLog(1, "done\n")
 	context.ConsoleLog(0, "AMI Successfully built: %s\n", (*results)[0].Value)
+	context.Logf(sdutils.DEBUG, "AMI Successfully built: %s\n", (*results)[0].Value)
 
 	amiMap, err := loadAmiAmp(context)
 	if err != nil {

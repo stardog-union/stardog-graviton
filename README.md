@@ -19,7 +19,7 @@ Dependencies:
     - [Linux](https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_linux_amd64.zip)
     - [OSX](https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_darwin_amd64.zip)
 - A Stardog license.
-- A Stardog release zip file.
+- A Stardog release zip file (4.2.2 or later).
 - The `stardog-graviton` single file executable.
 
 ## Quick start
