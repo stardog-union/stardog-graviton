@@ -45,7 +45,8 @@ def stop_sd(exe_path, deployment_name):
 def run_basic_query_test(conf_path, sd_dir, sd_url):
     data_file = os.path.join(conf_path, "rows.rdf")
     sd_adim = os.path.join(sd_dir, "bin", "stardog-admin")
-    cmd = "%s --server %s cluster info" % (sd_adim, sd_url)
+    cmd = "%s --server %s cluster info -u admin -p %s" %\
+          (sd_adim, sd_url, os.environ['STARDOG_ADMIN_PASSWORD'])
     p = subprocess.Popen(cmd, shell=True)
     o, e = p.communicate()
     rc = p.wait()
@@ -55,15 +56,16 @@ def run_basic_query_test(conf_path, sd_dir, sd_url):
         print(o)
         raise Exception("Failed to run cluster info")
     db_name = "db%s" % str(uuid.uuid4()).split("-")[4]
-    cmd = "%s --server %s db create --copy-server-side  -n %s %s" %\
-          (sd_adim, sd_url, db_name, data_file)
+    cmd = "%s --server %s db create --copy-server-side -n %s -u admin -p %s %s" %\
+          (sd_adim, sd_url, db_name,
+           os.environ['STARDOG_ADMIN_PASSWORD'], data_file)
     p = subprocess.Popen(cmd, shell=True)
     rc = p.wait()
     if rc != 0:
         raise Exception("Failed to create the database")
 
     sdq = os.path.join(sd_dir, "bin", "stardog")
-    cmd = "%s query %s/%s 'select ?s where {?s ?o ?p}'" % (sdq, sd_url, db_name)
+    cmd = "%s query -u admin -p %s %s/%s 'select ?s where {?s ?o ?p}'" % (sdq, os.environ['STARDOG_ADMIN_PASSWORD'], sd_url, db_name)
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     o, e = p.communicate()
     rc = p.wait()
@@ -143,6 +145,8 @@ def main():
     if len(sys.argv) > 4:
         source_dir = sys.argv[4]
 
+    tmppw = str(uuid.uuid4()).split("-")[4]
+    os.environ['STARDOG_ADMIN_PASSWORD'] = tmppw
     release_full_path = os.path.join(working_dir, release)
     sd_license = os.path.join(working_dir, "stardog-license-key.bin")
     ssh_key_path = os.path.join(working_dir, "ssh_key")
@@ -160,8 +164,8 @@ def main():
         print("Start basic query tests")
         run_basic_query_test(working_dir, sd_dir, sd_url)
         print("Start integration tests")
-        if source_dir is not None:
-            run_integration_tests(source_dir, sd_url)
+        # if source_dir is not None:
+        #     run_integration_tests(source_dir, sd_url)
     except Exception as ex:
         print("Failed: %s" % str(ex))
         raise

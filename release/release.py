@@ -32,7 +32,6 @@ def checkenv(sd_license, release, ssh_key_path):
     for f in file_list:
         if not os.path.exists(f):
             raise Exception("The file %s does not exist" % f)
-    os.unsetenv('STARDOG_ADMIN_PASSWORD')
 
 
 def build_with_gox():
@@ -166,16 +165,14 @@ def main():
                 args=(sd_license, release, ssh_key_path, ssh_key_name))
         threads.append(t)
         t.start()
+        t.join()
 
     t = threading.Thread(
             target=linux_test,
             args=(sd_license, release, ssh_key_path, ssh_key_name))
     threads.append(t)
     t.start()
-
-    print("Started %d tests, waiting for completion..." % len(threads))
-    for t in threads:
-        t.join()
+    t.join()
 
     if len(_g_failed) != 0:
         print("The tests failed %s" % _g_failed)
