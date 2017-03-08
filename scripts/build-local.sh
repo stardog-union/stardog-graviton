@@ -6,7 +6,7 @@ cd $THIS_DIR/..
 BASE_DIR=`pwd`
 BIN_DIR=$BASE_DIR/bin
 
-v=$(git describe --abbrev=0 --tags)
+v=$(git describe --abbrev=0 --tags 2> /dev/null)
 if [ $? -ne 0 ]; then
     v="unknown"
 fi

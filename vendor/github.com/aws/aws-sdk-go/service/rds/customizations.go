@@ -12,6 +12,9 @@ import (
 func init() {
 	ops := []string{
 		opCopyDBSnapshot,
+		opCreateDBInstanceReadReplica,
+		opCopyDBClusterSnapshot,
+		opCreateDBCluster,
 	}
 	initRequest = func(r *request.Request) {
 		for _, operation := range ops {
@@ -24,7 +27,8 @@ func init() {
 
 func fillPresignedURL(r *request.Request) {
 	fns := map[string]func(r *request.Request){
-		opCopyDBSnapshot: copyDBSnapshotPresign,
+		opCopyDBSnapshot:              copyDBSnapshotPresign,
+		opCreateDBInstanceReadReplica: createDBInstanceReadReplicaPresign,
 	}
 	if !r.ParamsFilled() {
 		return
@@ -43,6 +47,18 @@ func copyDBSnapshotPresign(r *request.Request) {
 
 	originParams.DestinationRegion = r.Config.Region
 	newParams := awsutil.CopyOf(r.Params).(*CopyDBSnapshotInput)
+	originParams.PreSignedUrl = presignURL(r, originParams.SourceRegion, newParams)
+}
+
+func createDBInstanceReadReplicaPresign(r *request.Request) {
+	originParams := r.Params.(*CreateDBInstanceReadReplicaInput)
+
+	if originParams.PreSignedUrl != nil || originParams.DestinationRegion != nil {
+		return
+	}
+
+	originParams.DestinationRegion = r.Config.Region
+	newParams := awsutil.CopyOf(r.Params).(*CreateDBInstanceReadReplicaInput)
 	originParams.PreSignedUrl = presignURL(r, originParams.SourceRegion, newParams)
 }
 
