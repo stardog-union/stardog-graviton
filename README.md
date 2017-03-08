@@ -12,12 +12,12 @@ Features:
 
 Dependencies:
 - An [AWS](https://aws.amazon.com/) account. 
-- [terraform](https://www.terraform.io/downloads.html) 0.7.9.
-    - [Linux 64](https://releases.hashicorp.com/terraform/0.7.9/terraform_0.7.9_linux_amd64.zip)
-    - [OSX](https://releases.hashicorp.com/terraform/0.7.9/terraform_0.7.9_darwin_amd64.zip)
-- [packer](https://www.packer.io/downloads.html) 0.10.2.
-    - [Linux](https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_linux_amd64.zip)
-    - [OSX](https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_darwin_amd64.zip)
+- [terraform](https://www.terraform.io/downloads.html) 0.8.8.
+    - [Linux 64](https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_linux_amd64.zip)
+    - [OSX](https://releases.hashicorp.com/terraform/0.8.8/terraform_0.8.8_darwin_amd64.zip)
+- [packer](https://www.packer.io/downloads.html) 0.12.3.
+    - [Linux](https://releases.hashicorp.com/packer/0.12.3/packer_0.12.3_linux_amd64.zip)
+    - [OSX](https://releases.hashicorp.com/packer/0.12.3/packer_0.12.3_darwin_amd64.zip)
 - A Stardog license.
 - A Stardog release zip file (4.2.2 or later).
 - The `stardog-graviton` single file executable.
