@@ -12,3 +12,9 @@ import:
   version: ^1.2.0
 - package: gopkg.in/alecthomas/kingpin.v2
   version: ^2.2.3
+- package: github.com/jteeuwen/go-bindata
+  version: ^3.0.7
+- package: github.com/hashicorp/terraform
+  version: ^0.8.8
+- package: github.com/mitchellh/packer
+  version: ^0.12.3

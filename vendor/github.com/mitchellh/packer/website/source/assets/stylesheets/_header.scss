@@ -1,0 +1,81 @@
+//
+// Header
+// - Project Specific
+// - edits should be made here
+// --------------------------------------------------
+
+#header {
+  flex-direction: row;
+  background-color: $black;
+  .navbar-brand {
+    .logo{
+      width: 110px;
+      height: 42px;
+      line-height: 70px;
+      margin-top: 15px;
+      background: image-url('logo-header.svg') 0 0 no-repeat;
+      font-size: 0;
+
+      &:hover{
+        opacity: .6;
+      }
+    }
+
+    .by-hashicorp{
+      &:hover{
+        svg{
+          .svg-bg-line{
+            opacity: .4;
+          }
+        }
+      }
+    }
+  }
+
+  .buttons{
+    margin-top: 2px; //baseline everything
+
+    .navigation-links{
+        float: right;
+    }
+  }
+
+  .main-links,
+  .external-links {
+    li > a {
+      @include project-a-style();
+    }
+  }
+
+  .main-links {
+    li > a {
+      color: $white;
+
+      &:hover{
+        color: $green;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  #header {
+    .navbar-brand {
+      .logo{
+        margin-left: 18px;
+      }
+    }
+  }
+}
+
+@media (max-width: 414px) {
+  #header {
+    .navbar-brand {
+      .logo{
+        width: 84px;
+        height: 32px;
+        background-size: contain;;
+      }
+    }
+  }
+}
