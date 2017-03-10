@@ -9,7 +9,7 @@ import:
   - service/ec2
   - service/elb
 - package: github.com/fatih/color
-  version: ^1.2.0
+  version: ^1.4.1
 - package: gopkg.in/alecthomas/kingpin.v2
   version: ^2.2.3
 - package: github.com/jteeuwen/go-bindata

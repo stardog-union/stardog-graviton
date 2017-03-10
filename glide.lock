@@ -1,5 +1,5 @@
-hash: b70faa8c6f655b1c0d43a62443105921372fb50ee8adf2bb5102ca9fb21a63b0
-updated: 2017-03-08T09:43:13.628137245-10:00
+hash: 6aba6bf5236457c10c5088dcd826a5782ef887efe4a044ffd8f01f2a8c8297c6
+updated: 2017-03-09T21:57:02.086776759-10:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -8,7 +8,7 @@ imports:
 - name: github.com/alecthomas/units
   version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
 - name: github.com/aws/aws-sdk-go
-  version: fa1a4bc634fffa6ac468d8fb217e05475e063440
+  version: 0484dc540811ee0df1acfee287786cb5b0150ab3
   subpackages:
   - aws
   - aws/awserr
