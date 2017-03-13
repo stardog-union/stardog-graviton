@@ -110,4 +110,10 @@ variable "ssl_cert_arn" {
   default = ""
 }
 
+variable "elb_idle_timeout" {
+  type = "string"
+  description = "The amount of time in seconds that a connection to a stardog load balancer can be idle."
+  default = "300"
+}
+
 

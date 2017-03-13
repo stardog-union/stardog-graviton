@@ -191,6 +191,7 @@ resource "aws_elb" "stardog" {
   name = "${var.deployment_name}sdelb"
   subnets = ["${aws_subnet.stardog.*.id}"]
   security_groups = ["${aws_security_group.stardoglb.id}"]
+  idle_timeout = "${var.elb_idle_timeout}"
 
   listener {
     instance_port     = 5821
@@ -212,7 +213,6 @@ resource "aws_elb" "stardog" {
     unhealthy_threshold = 10
     timeout = 5
     target = "HTTP:5821/admin/healthcheck"
-    #target = "TCP:22"
     interval = 15
   }
 
@@ -221,12 +221,12 @@ resource "aws_elb" "stardog" {
   }
 }
 
-
 resource "aws_elb" "stardoginternal" {
   name = "${var.deployment_name}sdielb"
   subnets = ["${aws_subnet.stardog.*.id}"]
   security_groups = ["${aws_security_group.stardog.id}"]
   internal = true
+  idle_timeout = "${var.elb_idle_timeout}"
 
   listener {
     instance_port     = 5821

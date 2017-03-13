@@ -38,6 +38,7 @@ type AwsEc2Instance struct {
 	AmiID                  string             `json:"baseami,omitempty"`
 	PrivateKey             string             `json:"private_key,omitempty"`
 	HTTPMask               string             `json:"http_subnet,omitempty"`
+	ELBIdleTimeout         string             `json:"elb_idle_timeout,omitempty"`
 	DeployDir              string             `json:"-"`
 	Ctx                    sdutils.AppContext `json:"-"`
 	BastionContact         string             `json:"-"`
@@ -78,8 +79,9 @@ func volumeLineScanner(cliContext sdutils.AppContext, line string) *sdutils.Scan
 	return nil
 }
 
-func (awsI *AwsEc2Instance) runTerraformApply(zookeeperSize int, mask string) error {
+func (awsI *AwsEc2Instance) runTerraformApply(zookeeperSize int, mask string, idleTimeout int) error {
 	awsI.ZkSize = fmt.Sprintf("%d", zookeeperSize)
+	awsI.ELBIdleTimeout = fmt.Sprintf("%d", idleTimeout)
 
 	vol, err := LoadEbsVolume(awsI.Ctx, path.Join(awsI.DeployDir, "etc", "terraform", "volumes"))
 	if err != nil {
@@ -121,8 +123,8 @@ func (awsI *AwsEc2Instance) runTerraformApply(zookeeperSize int, mask string) er
 	return nil
 }
 
-func (awsI *AwsEc2Instance) CreateInstance(zookeeperSize int) error {
-	err := awsI.runTerraformApply(zookeeperSize, "0.0.0.0/32")
+func (awsI *AwsEc2Instance) CreateInstance(zookeeperSize int, idleTimeout int) error {
+	err := awsI.runTerraformApply(zookeeperSize, "0.0.0.0/32", idleTimeout)
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to create the instance.\n")
 		return err
@@ -131,8 +133,8 @@ func (awsI *AwsEc2Instance) CreateInstance(zookeeperSize int) error {
 	return nil
 }
 
-func (awsI *AwsEc2Instance) OpenInstance(zookeeperSize int, mask string) error {
-	err := awsI.runTerraformApply(zookeeperSize, mask)
+func (awsI *AwsEc2Instance) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
+	err := awsI.runTerraformApply(zookeeperSize, mask, idleTimeout)
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to open up the instance.\n")
 		return err

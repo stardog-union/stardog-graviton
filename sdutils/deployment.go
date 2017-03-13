@@ -247,8 +247,8 @@ func linePrinter(cliContext AppContext, line string) *ScanResult {
 	return nil
 }
 
-func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, zkSize int, waitMaxTimeSec int, mask string, noWait bool) error {
-	err := dep.CreateInstance(zkSize)
+func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, zkSize int, waitMaxTimeSec int, timeoutSec int, mask string, noWait bool) error {
+	err := dep.CreateInstance(zkSize, timeoutSec)
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, z
 		context.ConsoleLog(1, "Changing the default password...\n")
 		err = runClient(context, baseD, dep, []string{"user", "passwd", "-u", "admin", "-N", newPw, "-p", "admin"})
 	}
-	err = dep.OpenInstance(zkSize, mask)
+	err = dep.OpenInstance(zkSize, mask, timeoutSec)
 	return err
 }
 

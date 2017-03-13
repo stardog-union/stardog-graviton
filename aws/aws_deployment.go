@@ -138,14 +138,14 @@ func (dd *awsDeploymentDescription) VolumeExists() bool {
 	return vm.VolumeExists()
 }
 
-func (dd *awsDeploymentDescription) CreateInstance(zookeeperSize int) error {
+func (dd *awsDeploymentDescription) CreateInstance(zookeeperSize int, idleTimeout int) error {
 	im := NewEc2Instance(dd.ctx, dd)
-	return im.CreateInstance(zookeeperSize)
+	return im.CreateInstance(zookeeperSize, idleTimeout)
 }
 
-func (dd *awsDeploymentDescription) OpenInstance(zookeeperSize int, mask string) error {
+func (dd *awsDeploymentDescription) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
 	im := NewEc2Instance(dd.ctx, dd)
-	return im.OpenInstance(zookeeperSize, mask)
+	return im.OpenInstance(zookeeperSize, mask, idleTimeout)
 }
 
 func (dd *awsDeploymentDescription) DeleteInstance() error {
