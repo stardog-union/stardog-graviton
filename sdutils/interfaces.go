@@ -28,6 +28,7 @@ type BaseDeployment struct {
 	Version         string      `json:"version,omitempty"`
 	PrivateKey      string      `json:"private_key,omitempty"`
 	CustomPropsFile string      `json:"custom_props,omitempty"`
+	IdleTimeout     int         `json:"idle_timeout,omitempty"`
 	CloudOpts       interface{} `json:"cloud_opts,omitempty"`
 }
 
@@ -56,8 +57,8 @@ type Deployment interface {
 	StatusVolumeSet() error
 	VolumeExists() bool
 
-	CreateInstance(zookeeperSize int) error
-	OpenInstance(zookeeperSize int, mask string) error
+	CreateInstance(zookeeperSize int, idleTimeout int) error
+	OpenInstance(zookeeperSize int, mask string, idleTimeout int) error
 	DeleteInstance() error
 	StatusInstance() error
 	InstanceExists() bool

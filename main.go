@@ -53,6 +53,7 @@ type CliContext struct {
 	CustomSdProps     string                `json:"custom_stardog_properties,omitempty"`
 	OutputFile        string                `json:"output_file,omitempty"`
 	HTTPMask          string                `json:"http_mask,omitempty"`
+	ConnectionTimeout int                   `json:"connection_timeout,omitempty"`
 	CloudOpts         interface{}           `json:"cloud_options"`
 	DeploymentName    string                `json:"-"`
 	CommandList       []string              `json:"-"`
@@ -205,7 +206,7 @@ func (cliContext *CliContext) Interactive(c *kingpin.ParseContext) error {
 	if err != nil {
 		return err
 	}
-	err = sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
+	err = sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
 	if err != nil {
 		return err
 	}
@@ -354,7 +355,7 @@ func (cliContext *CliContext) LaunchInstance(c *kingpin.ParseContext) error {
 		return err
 	}
 
-	return sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
+	return sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
 }
 
 func (cliContext *CliContext) DestroyInstance(c *kingpin.ParseContext) error {
@@ -484,6 +485,7 @@ func loadDefaultCliOptions() *CliContext {
 		Force:             false,
 		NoWaitForHealthy:  false,
 		WaitMaxTimeSec:    600,
+		ConnectionTimeout: 300,
 		HTTPMask:          sdutils.GetLocalOnlyHTTPMask(),
 		highlight:         color.New(color.FgHiWhite, color.Bold).SprintFunc(),
 		green:             color.New(color.FgGreen, color.Bold).SprintFunc(),
@@ -541,6 +543,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
 	cmdOpts.LaunchCmd.Flag("no-wait", "Block until the stardog instance is healthy.").Default(fmt.Sprintf("%t", cliContext.NoWaitForHealthy)).BoolVar(&cliContext.NoWaitForHealthy)
 	cmdOpts.LaunchCmd.Flag("wait-timeout", "The number of seconds to block waiting for the stardog instance to become healthy.").Default(fmt.Sprintf("%d", cliContext.WaitMaxTimeSec)).IntVar(&cliContext.WaitMaxTimeSec)
+	cmdOpts.LaunchCmd.Flag("connection-timeout", "The maximum number of seconds that a connection to Stardog can be idle.").Default(fmt.Sprintf("%d", cliContext.ConnectionTimeout)).IntVar(&cliContext.ConnectionTimeout)
 	cmdOpts.LaunchCmd.Arg("name", "The name of the deployment.  It must be unique to this account.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.LaunchCmd.Flag("cidr", "The network mask to which stardog access will be limited.  The default is the IP of this machine.").Default(cliContext.HTTPMask).StringVar(&cliContext.HTTPMask)
 	cmdOpts.LaunchCmd.Action(cliContext.Interactive)
@@ -616,6 +619,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchInstanceCmd.Arg("zk", "The number of zookeeper nodes.").Required().IntVar(&cliContext.ZkClusterSize)
 	cmdOpts.LaunchInstanceCmd.Flag("no-wait", "Block until the stardog instance is healthy.").Default(fmt.Sprintf("%t", cliContext.NoWaitForHealthy)).BoolVar(&cliContext.NoWaitForHealthy)
 	cmdOpts.LaunchInstanceCmd.Flag("wait-timeout", "The number of seconds to block waiting for the stardog instance to become healthy.").Default(fmt.Sprintf("%d", cliContext.WaitMaxTimeSec)).IntVar(&cliContext.WaitMaxTimeSec)
+	cmdOpts.LaunchInstanceCmd.Flag("connection-timeout", "The maximum number of seconds that a connection to Stardog can be idle.").Default(fmt.Sprintf("%d", cliContext.ConnectionTimeout)).IntVar(&cliContext.ConnectionTimeout)
 	cmdOpts.LaunchInstanceCmd.Flag("cidr", "The network mask to which stardog access will be limited.").StringVar(&cliContext.HTTPMask)
 	cmdOpts.LaunchInstanceCmd.Action(cliContext.LaunchInstance)
 
