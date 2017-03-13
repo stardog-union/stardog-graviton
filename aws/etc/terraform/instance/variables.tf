@@ -58,7 +58,16 @@ variable "aws_az" {
     us-west-2 = [
       "us-west-2a",
       "us-west-2b",
-      "us-west-2c"]
+      "us-west-2c"],
+    eu-central-1 = [
+      "eu-central-1a",
+      "eu-central-1b"
+    ],
+    eu-west-1 = [
+      "eu-west-1a",
+      "eu-west-1b",
+      "eu-west-1c"
+    ]
   }
 }
 

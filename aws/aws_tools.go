@@ -32,7 +32,10 @@ import (
 )
 
 var (
-	ValidRegions = []string{"us-west-1", "us-west-2", "us-east-1", "us-east-2"}
+	ValidRegions = []string{
+		"us-west-1", "us-west-2", "us-east-1",
+		"us-east-2", "eu-central-1", "eu-west-1",
+	}
 )
 
 func hasTag(tags []*ec2.Tag, tagVal string, possibleDelpoyNames *map[string]bool) bool {
