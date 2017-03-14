@@ -108,7 +108,6 @@ func TestDebugLevel(t *testing.T) {
 	sdLog.Logf(ERROR, msg)
 	sdLog.Logf(DEBUG, msg)
 	sdLog.Logf(INFO, msg)
-	sdLog.Logf(TRACE, msg)
 
 	if !strings.Contains(buf.String(), "WARN") {
 		t.Fatalf("A warning should have been found")
@@ -121,40 +120,6 @@ func TestDebugLevel(t *testing.T) {
 	}
 	if !strings.Contains(buf.String(), "INFO") {
 		t.Fatalf("A info should have been found")
-	}
-	if strings.Contains(buf.String(), "TRACE") {
-		t.Fatalf("Trace should not have been found")
-	}
-}
-
-func TestTraceLevel(t *testing.T) {
-	buf := bytes.NewBufferString("")
-	realLogger := log.New(buf, "", log.Ldate|log.Ltime)
-	sdLog, err := NewSdVaLogger(realLogger, "TRACE")
-	if err != nil {
-		t.Fatalf("Failed to load the logger %s", err)
-	}
-	msg := "Just Some message"
-	sdLog.Logf(WARN, msg)
-	sdLog.Logf(ERROR, msg)
-	sdLog.Logf(DEBUG, msg)
-	sdLog.Logf(INFO, msg)
-	sdLog.Logf(TRACE, msg)
-
-	if !strings.Contains(buf.String(), "WARN") {
-		t.Fatalf("A warning should have been found")
-	}
-	if !strings.Contains(buf.String(), "ERROR") {
-		t.Fatalf("A error should have been found")
-	}
-	if !strings.Contains(buf.String(), "DEBUG") {
-		t.Fatalf("A debug should have been found")
-	}
-	if !strings.Contains(buf.String(), "INFO") {
-		t.Fatalf("A info should have been found")
-	}
-	if !strings.Contains(buf.String(), "TRACE") {
-		t.Fatalf("A trace should have been found")
 	}
 }
 

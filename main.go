@@ -27,9 +27,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"github.com/stardog-union/stardog-graviton/aws"
 	"github.com/stardog-union/stardog-graviton/sdutils"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -37,41 +37,41 @@ var (
 	consoleFile *os.File
 )
 
-// This structure is everything that can come into the CLI
+// CliContext is everything that can come into the CLI
 type CliContext struct {
 	// Common options
-	LicensePath       string                `json:"license_path,omitempty"`
-	PrivateKeyPath    string                `json:"private_key,omitempty"`
-	LogLevel          string                `json:"log_level,omitempty"`
-	CloudType         string                `json:"cloud_type,omitempty"`
-	VolumeSize        int                   `json:"volume_size,omitempty"`
-	Quiet             bool                  `json:"quiet,omitempty"`
-	ClusterSize       int                   `json:"cluster_size,omitempty"`
-	SdReleaseFilePath string                `json:"release_file,omitempty"`
-	ZkClusterSize     int                   `json:"zookeeper_size,omitempty"`
-	Version           string                `json:"sd_version,omitempty"`
-	CustomSdProps     string                `json:"custom_stardog_properties,omitempty"`
-	OutputFile        string                `json:"output_file,omitempty"`
-	HTTPMask          string                `json:"http_mask,omitempty"`
-	ConnectionTimeout int                   `json:"connection_timeout,omitempty"`
-	CloudOpts         interface{}           `json:"cloud_options"`
-	DeploymentName    string                `json:"-"`
-	CommandList       []string              `json:"-"`
-	ConfigDir         string                `json:"-"`
-	LogFilePath       string                `json:"-"`
-	VerboseLevel      int                   `json:"-"`
-	ConsoleLevel      int                   `json:"-"`
-	Logger            sdutils.SdVaLogger    `json:"-"`
-	InternalHealth    bool                  `json:"-"`
-	Force             bool                  `json:"-"`
-	Destroy           bool                  `json:"-"`
-	NoWaitForHealthy  bool                  `json:"-"`
-	WaitMaxTimeSec    int                   `json:"-"`
-	ConsoleFile       string                `json:"-"`
-	ConsoleWriter     io.Writer             `json:"-"`
-	highlight         sdutils.ConsoleEffect `json:"-"`
-	red               sdutils.ConsoleEffect `json:"-"`
-	green             sdutils.ConsoleEffect `json:"-"`
+	LicensePath       string             `json:"license_path,omitempty"`
+	PrivateKeyPath    string             `json:"private_key,omitempty"`
+	LogLevel          string             `json:"log_level,omitempty"`
+	CloudType         string             `json:"cloud_type,omitempty"`
+	VolumeSize        int                `json:"volume_size,omitempty"`
+	Quiet             bool               `json:"quiet,omitempty"`
+	ClusterSize       int                `json:"cluster_size,omitempty"`
+	SdReleaseFilePath string             `json:"release_file,omitempty"`
+	ZkClusterSize     int                `json:"zookeeper_size,omitempty"`
+	Version           string             `json:"sd_version,omitempty"`
+	CustomSdProps     string             `json:"custom_stardog_properties,omitempty"`
+	OutputFile        string             `json:"output_file,omitempty"`
+	HTTPMask          string             `json:"http_mask,omitempty"`
+	ConnectionTimeout int                `json:"connection_timeout,omitempty"`
+	CloudOpts         interface{}        `json:"cloud_options"`
+	DeploymentName    string             `json:"-"`
+	CommandList       []string           `json:"-"`
+	ConfigDir         string             `json:"-"`
+	LogFilePath       string             `json:"-"`
+	VerboseLevel      int                `json:"-"`
+	ConsoleLevel      int                `json:"-"`
+	Logger            sdutils.SdVaLogger `json:"-"`
+	InternalHealth    bool               `json:"-"`
+	Force             bool               `json:"-"`
+	Destroy           bool               `json:"-"`
+	NoWaitForHealthy  bool               `json:"-"`
+	WaitMaxTimeSec    int                `json:"-"`
+	ConsoleFile       string             `json:"-"`
+	ConsoleWriter     io.Writer          `json:"-"`
+	highlight         sdutils.ConsoleEffect
+	red               sdutils.ConsoleEffect
+	green             sdutils.ConsoleEffect
 }
 
 func main() {
@@ -90,13 +90,20 @@ func realMain(args []string) int {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s %s\n", app.FailString("Failed:"), err.Error())
+		fmt.Fprintf(os.Stderr, "Please check the log files:\n")
+		baseLog := fmt.Sprintf("%s/logs/graviton.log", app.ConfigDir)
+		fmt.Fprintf(os.Stderr, "\t%s\n", app.FailString(baseLog))
+		if app.DeploymentName != "" {
+			depLog := fmt.Sprintf("%s/deployments/%s/logs/graviton.log", app.ConfigDir, app.DeploymentName)
+			fmt.Fprintf(os.Stderr, "\t%s\n", app.FailString(depLog))
+		}
 		return 1
 	}
 	app.ConsoleLog(1, app.SuccessString("Success.\n"))
 	return 0
 }
 
-func (cliContext *CliContext) SSHIn(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) sshIn(c *kingpin.ParseContext) error {
 	baseD := sdutils.BaseDeployment{
 		Name:            cliContext.DeploymentName,
 		Version:         cliContext.Version,
@@ -112,7 +119,7 @@ func (cliContext *CliContext) SSHIn(c *kingpin.ParseContext) error {
 	return sdutils.RunSSH(cliContext, &baseD, d)
 }
 
-func (cliContext *CliContext) AboutCommand(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) aboutCommand(c *kingpin.ParseContext) error {
 	v, err := Asset("etc/version")
 	if err != nil {
 		return err
@@ -129,7 +136,7 @@ func (cliContext *CliContext) AboutCommand(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func (cliContext *CliContext) Interactive(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 	var err error
 
 	plugin, err := sdutils.GetPlugin(cliContext.CloudType)
@@ -179,7 +186,7 @@ func (cliContext *CliContext) Interactive(c *kingpin.ParseContext) error {
 	dep, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
 		cliContext.ConsoleLog(1, "Creating the new deployment %s\n", cliContext.DeploymentName)
-		dep, err = LoadDepWrapper(cliContext, true)
+		dep, err = loadDepWrapper(cliContext, true)
 		if err != nil {
 			return err
 		}
@@ -213,7 +220,7 @@ func (cliContext *CliContext) Interactive(c *kingpin.ParseContext) error {
 	return sdutils.FullStatus(cliContext, &baseD, dep, false, cliContext.OutputFile)
 }
 
-func (cliContext *CliContext) BaseAmiAction(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) baseAmiAction(c *kingpin.ParseContext) error {
 	p, err := sdutils.GetPlugin(cliContext.CloudType)
 	if err != nil {
 		return err
@@ -227,7 +234,7 @@ func (cliContext *CliContext) BaseAmiAction(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func (cliContext *CliContext) Leaks(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) leaks(c *kingpin.ParseContext) error {
 	p, err := sdutils.GetPlugin(cliContext.CloudType)
 	if err != nil {
 		return err
@@ -235,13 +242,13 @@ func (cliContext *CliContext) Leaks(c *kingpin.ParseContext) error {
 	return p.FindLeaks(cliContext, cliContext.DeploymentName, cliContext.Destroy, cliContext.Force)
 }
 
-func (cliContext *CliContext) NewDeployment(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) newDeployment(c *kingpin.ParseContext) error {
 	// In the future we will check instance types
-	_, err := LoadDepWrapper(cliContext, true)
+	_, err := loadDepWrapper(cliContext, true)
 	return err
 }
 
-func (cliContext *CliContext) DeploymentList(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) deploymentList(c *kingpin.ParseContext) error {
 	depDir := sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName)
 	files, _ := ioutil.ReadDir(depDir)
 	for _, f := range files {
@@ -252,11 +259,11 @@ func (cliContext *CliContext) DeploymentList(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func (cliContext *CliContext) DestroyDeployment(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) destroyDeployment(c *kingpin.ParseContext) error {
 	if !cliContext.Force && !sdutils.AskUserYesOrNo("Do you really want to destroy?") {
 		return nil
 	}
-	d, err := LoadDepWrapper(cliContext, false)
+	d, err := loadDepWrapper(cliContext, false)
 	if err != nil {
 		return err
 	}
@@ -267,11 +274,11 @@ func (cliContext *CliContext) DestroyDeployment(c *kingpin.ParseContext) error {
 		return fmt.Errorf("Volumes exist in this deployment.  Please destroy them before removing the deployment")
 	}
 	cliContext.Force = true
-	err = cliContext.DestroyInstance(c)
+	err = cliContext.destroyInstance(c)
 	if err != nil {
 		cliContext.ConsoleLog(1, "The instance was not destroyed %s\n", err)
 	}
-	err = cliContext.DestroyVolumes(c)
+	err = cliContext.destroyVolumes(c)
 	if err != nil {
 		cliContext.ConsoleLog(1, "The volumes were not destroyed %s\n", err)
 	}
@@ -279,7 +286,7 @@ func (cliContext *CliContext) DestroyDeployment(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func (cliContext *CliContext) FullStatus(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) fullStatus(c *kingpin.ParseContext) error {
 	baseD := sdutils.BaseDeployment{
 		Name:            cliContext.DeploymentName,
 		Version:         cliContext.Version,
@@ -296,17 +303,17 @@ func (cliContext *CliContext) FullStatus(c *kingpin.ParseContext) error {
 	return sdutils.FullStatus(cliContext, &baseD, d, cliContext.InternalHealth, cliContext.OutputFile)
 }
 
-func (cliContext *CliContext) DestroyFullDeployment(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) destroyFullDeployment(c *kingpin.ParseContext) error {
 	cliContext.ConsoleLog(0, "This will destroy all volumes and instances associated with this deployment.\n")
 	if !cliContext.Force && !sdutils.AskUserYesOrNo("Do you really want to destroy?") {
 		return nil
 	}
 	cliContext.Force = true
-	err := cliContext.DestroyInstance(c)
+	err := cliContext.destroyInstance(c)
 	if err != nil {
 		cliContext.ConsoleLog(1, "The instance was not destroyed.  %s\n", err)
 	}
-	err = cliContext.DestroyVolumes(c)
+	err = cliContext.destroyVolumes(c)
 	if err != nil {
 		cliContext.ConsoleLog(1, "The volumes were not destroyed.  %s\n", err)
 	}
@@ -314,34 +321,34 @@ func (cliContext *CliContext) DestroyFullDeployment(c *kingpin.ParseContext) err
 	return nil
 }
 
-func (cliContext *CliContext) NewVolumes(c *kingpin.ParseContext) error {
-	d, err := LoadDepWrapper(cliContext, false)
+func (cliContext *CliContext) newVolumes(c *kingpin.ParseContext) error {
+	d, err := loadDepWrapper(cliContext, false)
 	if err != nil {
 		return err
 	}
 	return d.CreateVolumeSet(cliContext.LicensePath, cliContext.VolumeSize, cliContext.ClusterSize)
 }
 
-func (cliContext *CliContext) DestroyVolumes(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) destroyVolumes(c *kingpin.ParseContext) error {
 	if !cliContext.Force && !sdutils.AskUserYesOrNo("Do you really want to destroy?") {
 		return nil
 	}
-	d, err := LoadDepWrapper(cliContext, false)
+	d, err := loadDepWrapper(cliContext, false)
 	if err != nil {
 		return err
 	}
 	return d.DeleteVolumeSet()
 }
 
-func (cliContext *CliContext) StatusVolumes(c *kingpin.ParseContext) error {
-	d, err := LoadDepWrapper(cliContext, false)
+func (cliContext *CliContext) statusVolumes(c *kingpin.ParseContext) error {
+	d, err := loadDepWrapper(cliContext, false)
 	if err != nil {
 		return err
 	}
 	return d.StatusVolumeSet()
 }
 
-func (cliContext *CliContext) LaunchInstance(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) launchInstance(c *kingpin.ParseContext) error {
 	baseD := sdutils.BaseDeployment{
 		Name:            cliContext.DeploymentName,
 		Version:         cliContext.Version,
@@ -358,25 +365,27 @@ func (cliContext *CliContext) LaunchInstance(c *kingpin.ParseContext) error {
 	return sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
 }
 
-func (cliContext *CliContext) DestroyInstance(c *kingpin.ParseContext) error {
+func (cliContext *CliContext) destroyInstance(c *kingpin.ParseContext) error {
 	if !cliContext.Force && !sdutils.AskUserYesOrNo("Do you really want to destroy?") {
 		return nil
 	}
-	d, err := LoadDepWrapper(cliContext, false)
+	d, err := loadDepWrapper(cliContext, false)
 	if err != nil {
 		return err
 	}
 	return d.DeleteInstance()
 }
 
-func (cliContext *CliContext) StatusInstance(c *kingpin.ParseContext) error {
-	d, err := LoadDepWrapper(cliContext, false)
+func (cliContext *CliContext) statusInstance(c *kingpin.ParseContext) error {
+	d, err := loadDepWrapper(cliContext, false)
 	if err != nil {
 		return err
 	}
 	return d.StatusInstance()
 }
 
+// ConsoleLog will write the formatted string to the console if the user is interested
+// in information at the associated level (regaring --versbose --quiet)
 func (cliContext *CliContext) ConsoleLog(level int, format string, v ...interface{}) {
 	if level > cliContext.ConsoleLevel {
 		return
@@ -387,26 +396,32 @@ func (cliContext *CliContext) ConsoleLog(level int, format string, v ...interfac
 	}
 }
 
+// HighlightString writes the formatted string to the console in a bright display.
 func (cliContext *CliContext) HighlightString(a ...interface{}) string {
 	return cliContext.highlight(a...)
 }
 
+// SuccessString writes the formatted string in green.
 func (cliContext *CliContext) SuccessString(a ...interface{}) string {
 	return cliContext.green(a...)
 }
 
+// FailString writes the formatted string in red.
 func (cliContext *CliContext) FailString(a ...interface{}) string {
 	return cliContext.red(a...)
 }
 
+// GetConfigDir returns the location of the graviton configuration directory.
 func (cliContext *CliContext) GetConfigDir() string {
 	return cliContext.ConfigDir
 }
 
+// GetVersion returns the version of graviton.
 func (cliContext *CliContext) GetVersion() string {
 	return cliContext.Version
 }
 
+// Logf writes a log line to the configured logger.
 func (cliContext *CliContext) Logf(level int, format string, v ...interface{}) {
 	cliContext.Logger.Logf(level, format, v...)
 }
@@ -546,37 +561,37 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("connection-timeout", "The maximum number of seconds that a connection to Stardog can be idle.").Default(fmt.Sprintf("%d", cliContext.ConnectionTimeout)).IntVar(&cliContext.ConnectionTimeout)
 	cmdOpts.LaunchCmd.Arg("name", "The name of the deployment.  It must be unique to this account.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.LaunchCmd.Flag("cidr", "The network mask to which stardog access will be limited.  The default is the IP of this machine.").Default(cliContext.HTTPMask).StringVar(&cliContext.HTTPMask)
-	cmdOpts.LaunchCmd.Action(cliContext.Interactive)
+	cmdOpts.LaunchCmd.Action(cliContext.interactive)
 	cmdOpts.LaunchCmd.Validate(cliContext.nameValidate)
 
 	cmdOpts.DestroyCmd = cli.Command("destroy", "Destroy everything associated with a deployment.")
 	cmdOpts.DestroyCmd.Arg("name", "The name of the deployment to destroy.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.DestroyCmd.Flag("force", "Do not verify with the destruction.").Default("false").BoolVar(&cliContext.Force)
-	cmdOpts.DestroyCmd.Action(cliContext.DestroyFullDeployment)
+	cmdOpts.DestroyCmd.Action(cliContext.destroyFullDeployment)
 
 	cmdOpts.StatusCmd = cli.Command("status", "Check the status of a full deployment.")
 	cmdOpts.StatusCmd.Arg("deployment name", "The name of the deployment to inspect.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.StatusCmd.Flag("json-file", "The path json output file.").StringVar(&cliContext.OutputFile)
 	cmdOpts.StatusCmd.Flag("internal-health", "Do not verify with the destruction.").Default("false").BoolVar(&cliContext.InternalHealth)
-	cmdOpts.StatusCmd.Action(cliContext.FullStatus)
+	cmdOpts.StatusCmd.Action(cliContext.fullStatus)
 
 	cmdOpts.LeaksCmd = cli.Command("leaks", "Check aws services for possible resource leaks.")
 	cmdOpts.LeaksCmd.Flag("destroy", "Destroy any of the resources found.").Default("false").BoolVar(&cliContext.Destroy)
 	cmdOpts.LeaksCmd.Flag("force", "Destroy any of the resources found without first asking.").Default("false").BoolVar(&cliContext.Force)
 	cmdOpts.LeaksCmd.Flag("deployment-name", "Limit the search to a particular deployment name.").StringVar(&cliContext.DeploymentName)
-	cmdOpts.LeaksCmd.Action(cliContext.Leaks)
+	cmdOpts.LeaksCmd.Action(cliContext.leaks)
 
-	cmdOpts.SshCmd = cli.Command("ssh", "ssh into the bastion node.")
-	cmdOpts.SshCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
-	cmdOpts.SshCmd.Action(cliContext.SSHIn)
+	cmdOpts.SSHCmd = cli.Command("ssh", "ssh into the bastion node.")
+	cmdOpts.SSHCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
+	cmdOpts.SSHCmd.Action(cliContext.sshIn)
 
 	cmdOpts.AboutCmd = cli.Command("about", "Display information about this program.")
-	cmdOpts.AboutCmd.Action(cliContext.AboutCommand)
+	cmdOpts.AboutCmd.Action(cliContext.aboutCommand)
 
 	cmdOpts.BuildCmd = cli.Command("baseami", "Create a base ami.")
 	cmdOpts.BuildCmd.Arg("release", "The stardog release file.").Required().StringVar(&cliContext.SdReleaseFilePath)
 	cmdOpts.BuildCmd.Arg("sd-version", "The stardog release version to will be baked into this file.").Required().StringVar(&cliContext.Version)
-	cmdOpts.BuildCmd.Action(cliContext.BaseAmiAction)
+	cmdOpts.BuildCmd.Action(cliContext.baseAmiAction)
 
 	deployCmd := cli.Command("deployment", "Manage and inspect deployments.")
 	cmdOpts.NewDeploymentCmd = deployCmd.Command("new", "Define a new deployment but do not create volumes or launch an instance.")
@@ -585,16 +600,16 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.NewDeploymentCmd.Arg("sd-version", "The stardog version to associate with this deployment.").Required().StringVar(&cliContext.Version)
 	cmdOpts.NewDeploymentCmd.Flag("private-key", "The path to the private key.").Default(cliContext.PrivateKeyPath).StringVar(&cliContext.PrivateKeyPath)
 	cmdOpts.NewDeploymentCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
-	cmdOpts.NewDeploymentCmd.Action(cliContext.NewDeployment)
+	cmdOpts.NewDeploymentCmd.Action(cliContext.newDeployment)
 	cmdOpts.NewDeploymentCmd.Validate(cliContext.nameValidate)
 
 	cmdOpts.DestroyDeploymentCmd = deployCmd.Command("destroy", "Destroy the deployment.  This will fail if volumes exist or an instance is running.")
 	cmdOpts.DestroyDeploymentCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.DestroyDeploymentCmd.Flag("force", "Do not verify with the destruction.").Default("false").BoolVar(&cliContext.Force)
-	cmdOpts.DestroyDeploymentCmd.Action(cliContext.DestroyDeployment)
+	cmdOpts.DestroyDeploymentCmd.Action(cliContext.destroyDeployment)
 
 	cmdOpts.ListDeploymentCmd = deployCmd.Command("list", "List the knwon deployments.")
-	cmdOpts.ListDeploymentCmd.Action(cliContext.DeploymentList)
+	cmdOpts.ListDeploymentCmd.Action(cliContext.deploymentList)
 
 	volumesCmd := cli.Command("volume", "Manage storage volumes.")
 	cmdOpts.NewVolumesCmd = volumesCmd.Command("new", "Create new backing storage.")
@@ -602,16 +617,16 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.NewVolumesCmd.Arg("license", "Path to your stardog license.").Required().StringVar(&cliContext.LicensePath)
 	cmdOpts.NewVolumesCmd.Arg("size", "The size of each storage volume in gigabytes.").Required().IntVar(&cliContext.VolumeSize)
 	cmdOpts.NewVolumesCmd.Arg("count", "The number storage volume.  This will be the size of the stardog cluster.").Required().IntVar(&cliContext.ClusterSize)
-	cmdOpts.NewVolumesCmd.Action(cliContext.NewVolumes)
+	cmdOpts.NewVolumesCmd.Action(cliContext.newVolumes)
 
 	cmdOpts.DestroyVolumesCmd = volumesCmd.Command("destroy", "This will destroy the volumes permanently.")
 	cmdOpts.DestroyVolumesCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.DestroyVolumesCmd.Flag("force", "Do not verify with the destruction.").Default("false").BoolVar(&cliContext.Force)
-	cmdOpts.DestroyVolumesCmd.Action(cliContext.DestroyVolumes)
+	cmdOpts.DestroyVolumesCmd.Action(cliContext.destroyVolumes)
 
 	cmdOpts.StatusVolumesCmd = volumesCmd.Command("status", "Display information about the volumes.")
 	cmdOpts.StatusVolumesCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
-	cmdOpts.StatusVolumesCmd.Action(cliContext.StatusVolumes)
+	cmdOpts.StatusVolumesCmd.Action(cliContext.statusVolumes)
 
 	instanceCmd := cli.Command("instance", "Manage the instance.")
 	cmdOpts.LaunchInstanceCmd = instanceCmd.Command("new", "Create new set of VMs running Stardog.")
@@ -621,16 +636,16 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchInstanceCmd.Flag("wait-timeout", "The number of seconds to block waiting for the stardog instance to become healthy.").Default(fmt.Sprintf("%d", cliContext.WaitMaxTimeSec)).IntVar(&cliContext.WaitMaxTimeSec)
 	cmdOpts.LaunchInstanceCmd.Flag("connection-timeout", "The maximum number of seconds that a connection to Stardog can be idle.").Default(fmt.Sprintf("%d", cliContext.ConnectionTimeout)).IntVar(&cliContext.ConnectionTimeout)
 	cmdOpts.LaunchInstanceCmd.Flag("cidr", "The network mask to which stardog access will be limited.").StringVar(&cliContext.HTTPMask)
-	cmdOpts.LaunchInstanceCmd.Action(cliContext.LaunchInstance)
+	cmdOpts.LaunchInstanceCmd.Action(cliContext.launchInstance)
 
 	cmdOpts.DestroyInstanceCmd = instanceCmd.Command("destroy", "Destroy the instance.")
 	cmdOpts.DestroyInstanceCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.DestroyInstanceCmd.Flag("force", "Do not verify with the destruction.").Default("false").BoolVar(&cliContext.Force)
-	cmdOpts.DestroyInstanceCmd.Action(cliContext.DestroyInstance)
+	cmdOpts.DestroyInstanceCmd.Action(cliContext.destroyInstance)
 
 	cmdOpts.StatusInstanceCmd = instanceCmd.Command("status", "Get information about the instance.")
 	cmdOpts.StatusInstanceCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
-	cmdOpts.StatusInstanceCmd.Action(cliContext.StatusInstance)
+	cmdOpts.StatusInstanceCmd.Action(cliContext.statusInstance)
 
 	// Add all the options for all the plugins
 	for _, p := range pluginsMap {
@@ -646,7 +661,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	return cliContext, nil
 }
 
-func LoadDepWrapper(cliContext *CliContext, new bool) (sdutils.Deployment, error) {
+func loadDepWrapper(cliContext *CliContext, new bool) (sdutils.Deployment, error) {
 	baseD := sdutils.BaseDeployment{
 		Name:            cliContext.DeploymentName,
 		Version:         cliContext.Version,

@@ -28,18 +28,18 @@ import (
 )
 
 type awsDeploymentDescription struct {
-	Region         string             `json:"region,omitempty"`
-	AmiID          string             `json:"ami_id,omitempty"`
-	AwsKeyName     string             `json:"keyname,omitempty"`
-	ZkInstanceType string             `json:"zk_instance,omitempty"`
-	SdInstanceType string             `json:"sd_instance,omitempty"`
-	PrivateKeyPath string             `json:"private_key_path,omitempty"`
-	CustomProps    string             `json:"custom_stardog_properties,omitempty"`
-	HTTPMask       string             `json:"http_mask,omitempty"`
-	Version        string             `json:"-"`
-	Name           string             `json:"-"`
-	deployDir      string             `json:"-"`
-	ctx            sdutils.AppContext `json:"-"`
+	Region         string `json:"region,omitempty"`
+	AmiID          string `json:"ami_id,omitempty"`
+	AwsKeyName     string `json:"keyname,omitempty"`
+	ZkInstanceType string `json:"zk_instance,omitempty"`
+	SdInstanceType string `json:"sd_instance,omitempty"`
+	PrivateKeyPath string `json:"private_key_path,omitempty"`
+	CustomProps    string `json:"custom_stardog_properties,omitempty"`
+	HTTPMask       string `json:"http_mask,omitempty"`
+	Version        string `json:"-"`
+	Name           string `json:"-"`
+	deployDir      string
+	ctx            sdutils.AppContext
 }
 
 func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeployment, a *awsPlugin) (*awsDeploymentDescription, error) {
@@ -49,7 +49,7 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		// If the ami is not specified look it up
 		amiMap, err := loadAmiAmp(c)
 		if err != nil {
-			return nil, fmt.Errorf("Could not load the ami map", err)
+			return nil, fmt.Errorf("Could not load the ami map: %s", err)
 		}
 		ami, ok := amiMap[a.Region]
 		if !ok {
@@ -211,6 +211,7 @@ type awsPlugin struct {
 	BastionType    string `json:"bastion_instance_type,omitempty"`
 }
 
+// GetPlugin returns the plugin interface that this module represents.
 func GetPlugin() sdutils.Plugin {
 	return &awsPlugin{
 		Region:         "us-west-1",
@@ -285,23 +286,22 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 		}
 
 		return awsDD, nil
-	} else {
-		data, err := json.Marshal(baseD.CloudOpts)
-		if err != nil {
-			return nil, err
-		}
-		var dd awsDeploymentDescription
-		err = json.Unmarshal(data, &dd)
-		if err != nil {
-			return nil, err
-		}
-		dd.Name = baseD.Name
-		dd.Version = baseD.Version
-		dd.ctx = context
-		dd.deployDir = sdutils.DeploymentDir(context.GetConfigDir(), baseD.Name)
-
-		return &dd, nil
 	}
+	data, err := json.Marshal(baseD.CloudOpts)
+	if err != nil {
+		return nil, err
+	}
+	var dd awsDeploymentDescription
+	err = json.Unmarshal(data, &dd)
+	if err != nil {
+		return nil, err
+	}
+	dd.Name = baseD.Name
+	dd.Version = baseD.Version
+	dd.ctx = context
+	dd.deployDir = sdutils.DeploymentDir(context.GetConfigDir(), baseD.Name)
+
+	return &dd, nil
 }
 
 func (a *awsPlugin) GetName() string {

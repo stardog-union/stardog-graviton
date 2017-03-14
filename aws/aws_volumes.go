@@ -25,27 +25,32 @@ import (
 	"github.com/stardog-union/stardog-graviton/sdutils"
 )
 
-type AwsVolumeStatusDescription struct {
+// VolumeStatusDescription is an opaque way to pass AWS specific information to
+// the calling code.
+type VolumeStatusDescription struct {
 	VolumeIds []string
 }
 
-type AwsEbsVolumes struct {
-	DeploymentName   string             `json:"deployment_name,omitempty"`
-	Region           string             `json:"aws_region,omitempty"`
-	SizeOfEachVolume string             `json:"storage_size,omitempty"`
-	ClusterSize      string             `json:"cluster_size,omitempty"`
-	AwsKeyName       string             `json:"aws_key_name,omitempty"`
-	KeyPath          string             `json:"key_path,omitempty"`
-	AmiID            string             `json:"ami,omitempty"`
-	InstanceType     string             `json:"instance_type,omitempty"`
-	LicensePath      string             `json:"stardog_license,omitempty"`
-	VolumeDir        string             `json:"-"`
-	appContext       sdutils.AppContext `json:"-"`
+// EbsVolumes describes the disk volumes used by aws to store STARDOG_HOME.
+type EbsVolumes struct {
+	DeploymentName   string `json:"deployment_name,omitempty"`
+	Region           string `json:"aws_region,omitempty"`
+	SizeOfEachVolume string `json:"storage_size,omitempty"`
+	ClusterSize      string `json:"cluster_size,omitempty"`
+	AwsKeyName       string `json:"aws_key_name,omitempty"`
+	KeyPath          string `json:"key_path,omitempty"`
+	AmiID            string `json:"ami,omitempty"`
+	InstanceType     string `json:"instance_type,omitempty"`
+	LicensePath      string `json:"stardog_license,omitempty"`
+	VolumeDir        string `json:"-"`
+	appContext       sdutils.AppContext
 }
 
-func NewAwsEbsVolumeManager(ac sdutils.AppContext, dd *awsDeploymentDescription) *AwsEbsVolumes {
+// NewAwsEbsVolumeManager returns a EbsVolumes structure that will be used by
+// graviton to manage the volumes.
+func NewAwsEbsVolumeManager(ac sdutils.AppContext, dd *awsDeploymentDescription) *EbsVolumes {
 	volumeDir := path.Join(dd.deployDir, "etc", "terraform", "volumes")
-	return &AwsEbsVolumes{
+	return &EbsVolumes{
 		DeploymentName: dd.Name,
 		Region:         dd.Region,
 		AwsKeyName:     dd.AwsKeyName,
@@ -57,8 +62,10 @@ func NewAwsEbsVolumeManager(ac sdutils.AppContext, dd *awsDeploymentDescription)
 	}
 }
 
-func LoadEbsVolume(ac sdutils.AppContext, volDir string) (*AwsEbsVolumes, error) {
-	var ebsC AwsEbsVolumes
+// LoadEbsVolume will inflate a EbsVolumes structure for the information stored in the
+// files under the configuration directory.
+func LoadEbsVolume(ac sdutils.AppContext, volDir string) (*EbsVolumes, error) {
+	var ebsC EbsVolumes
 	confFile := path.Join(volDir, "config.json")
 	err := sdutils.LoadJSON(&ebsC, confFile)
 	if err != nil {
@@ -67,12 +74,15 @@ func LoadEbsVolume(ac sdutils.AppContext, volDir string) (*AwsEbsVolumes, error)
 	return &ebsC, nil
 }
 
-func (v *AwsEbsVolumes) VolumeExists() bool {
+// VolumeExists returns true or false based on whether or not the Volumes already
+// exist.
+func (v *EbsVolumes) VolumeExists() bool {
 	confFile := path.Join(v.VolumeDir, "config.json")
 	return sdutils.PathExists(confFile)
 }
 
-func (v *AwsEbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, clusterSize int) error {
+// CreateSet uses terraform to create and format the EBS volumes in AWS.
+func (v *EbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, clusterSize int) error {
 	// TODO make sure we clean up resources on failure
 	v.appContext.ConsoleLog(2, "Creating an aws volume set in directory %s\n", v.VolumeDir)
 	terraformPath, err := exec.LookPath("terraform")
@@ -118,7 +128,8 @@ func (v *AwsEbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, clus
 	return nil
 }
 
-func (v *AwsEbsVolumes) DeleteSet() error {
+// DeleteSet will delete the EBS volumes from AWS.
+func (v *EbsVolumes) DeleteSet() error {
 	confFile := path.Join(v.VolumeDir, "config.json")
 	terraformPath, err := exec.LookPath("terraform")
 	if err != nil {
@@ -145,7 +156,7 @@ func (v *AwsEbsVolumes) DeleteSet() error {
 	return nil
 }
 
-func (v *AwsEbsVolumes) getStatusInformation() (*AwsVolumeStatusDescription, error) {
+func (v *EbsVolumes) getStatusInformation() (*VolumeStatusDescription, error) {
 	terraformPath, err := exec.LookPath("terraform")
 	if err != nil {
 		return nil, err
@@ -166,7 +177,7 @@ func (v *AwsEbsVolumes) getStatusInformation() (*AwsVolumeStatusDescription, err
 	if err != nil {
 		return nil, err
 	}
-	volStatus := AwsVolumeStatusDescription{}
+	volStatus := VolumeStatusDescription{}
 	volsEnt, ok := try["volumes"]
 	if !ok {
 		return nil, fmt.Errorf("Invalid volume results in terraform output")
@@ -181,7 +192,8 @@ func (v *AwsEbsVolumes) getStatusInformation() (*AwsVolumeStatusDescription, err
 	return &volStatus, nil
 }
 
-func (v *AwsEbsVolumes) Status() error {
+// Status will print out status information about the EBS volumes.
+func (v *EbsVolumes) Status() error {
 	vD, err := v.getStatusInformation()
 	if err != nil {
 		return err

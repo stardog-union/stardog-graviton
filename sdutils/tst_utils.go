@@ -19,6 +19,7 @@ import (
 	"fmt"
 )
 
+// TestContext is used for mocking out a context in many tests
 type TestContext struct {
 	ConfigDir string
 	Version   string
@@ -50,88 +51,88 @@ func (c *TestContext) FailString(a ...interface{}) string {
 	return fmt.Sprint(a...)
 }
 
-type TstPlugin struct {
+type tstPlugin struct {
 	HasImage bool
 	Dep      Deployment
 }
 
-func (tp *TstPlugin) Register(cmdOpts *CommandOpts) error {
+func (tp *tstPlugin) Register(cmdOpts *CommandOpts) error {
 	return nil
 }
 
-func (tp *TstPlugin) DeploymentLoader(context AppContext, baseD *BaseDeployment, new bool) (Deployment, error) {
+func (tp *tstPlugin) DeploymentLoader(context AppContext, baseD *BaseDeployment, new bool) (Deployment, error) {
 	if tp.Dep == nil {
 		return nil, fmt.Errorf("This test plugin loads no deployment")
 	}
 	return tp.Dep, nil
 }
 
-func (tp *TstPlugin) LoadDefaults(defaultCliOpts interface{}) error {
+func (tp *tstPlugin) LoadDefaults(defaultCliOpts interface{}) error {
 	return nil
 }
 
-func (tp *TstPlugin) BuildImage(context AppContext, sdReleaseFilePath string, version string) error {
+func (tp *tstPlugin) BuildImage(context AppContext, sdReleaseFilePath string, version string) error {
 	return nil
 }
 
-func (tp *TstPlugin) GetName() string {
+func (tp *tstPlugin) GetName() string {
 	return "test1loaderror"
 }
 
-func (tp *TstPlugin) FindLeaks(context AppContext, deploymentName string, destroy bool, force bool) error {
+func (tp *tstPlugin) FindLeaks(context AppContext, deploymentName string, destroy bool, force bool) error {
 	return nil
 }
 
-func (tp *TstPlugin) HaveImage(context AppContext) bool {
+func (tp *tstPlugin) HaveImage(context AppContext) bool {
 	return tp.HasImage
 }
 
-type TpDeployment struct {
+type tpDeployment struct {
 	TstInstanceExists bool
 	TstVolumeExists   bool
 	SdDesc            *StardogDescription
 }
 
-func (tstDep *TpDeployment) CreateVolumeSet(licensePath string, sizeOfEachVolume int, clusterSize int) error {
+func (tstDep *tpDeployment) CreateVolumeSet(licensePath string, sizeOfEachVolume int, clusterSize int) error {
 	return nil
 }
 
-func (tstDep *TpDeployment) DeleteVolumeSet() error {
+func (tstDep *tpDeployment) DeleteVolumeSet() error {
 	return nil
 }
 
-func (tstDep *TpDeployment) StatusVolumeSet() error {
+func (tstDep *tpDeployment) StatusVolumeSet() error {
 	return nil
 }
 
-func (tstDep *TpDeployment) VolumeExists() bool {
+func (tstDep *tpDeployment) VolumeExists() bool {
 	return tstDep.TstVolumeExists
 }
 
-func (tstDep *TpDeployment) CreateInstance(zookeeperSize int, idleTimeout int) error {
+func (tstDep *tpDeployment) CreateInstance(zookeeperSize int, idleTimeout int) error {
 	return nil
 }
 
-func (tstDep *TpDeployment) OpenInstance(zookeeperSize int, mask string) error {
+func (tstDep *tpDeployment) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
 	return nil
 }
 
-func (tstDep *TpDeployment) DeleteInstance() error {
+func (tstDep *tpDeployment) DeleteInstance() error {
 	return nil
 }
 
-func (tstDep *TpDeployment) StatusInstance() error {
+func (tstDep *tpDeployment) StatusInstance() error {
 	return nil
 }
 
-func (tstDep *TpDeployment) RunClientInstance(cmdArray []string) error {
+func (tstDep *tpDeployment) RunClientInstance(cmdArray []string) error {
 	return nil
 }
 
-func (tstDep *TpDeployment) InstanceExists() bool {
+func (tstDep *tpDeployment) InstanceExists() bool {
 	return tstDep.TstInstanceExists
 }
 
-func (tstDep *TpDeployment) FullStatus() (*StardogDescription, error) {
+func (tstDep *tpDeployment) FullStatus() (*StardogDescription, error) {
 	return tstDep.SdDesc, nil
 }

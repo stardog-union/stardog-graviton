@@ -28,6 +28,15 @@ import (
 func TestVolumesNotThere(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
+	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
 
 	version := "4.2"
 	app := sdutils.TestContext{
@@ -46,7 +55,7 @@ func TestVolumesNotThere(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    version,
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	dd, err := newAwsDeploymentDescription(&app, &baseD, plugin)
 	if err != nil {
@@ -127,6 +136,15 @@ func TestVolumesNotThere(t *testing.T) {
 func TestVolumesThroughDD(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
+	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
 
 	version := "4.2"
 	app := sdutils.TestContext{
@@ -145,7 +163,7 @@ func TestVolumesThroughDD(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    version,
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	dd, err := newAwsDeploymentDescription(&app, &baseD, plugin)
 	if err != nil {

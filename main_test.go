@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	goodoutput1 string = `{
+	goodoutput1 = `{
     "bastion_contact": {
         "sensitive": false,
         "type": "string",
@@ -76,6 +76,10 @@ func TestAbout(t *testing.T) {
 
 func TestDeploymentList(t *testing.T) {
 	confDir, _ := ioutil.TempDir("", "stardogtests")
+	sshKeyFile := path.Join(confDir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
+
 	defer os.RemoveAll(confDir)
 
 	consoleLog := path.Join(confDir, "output0")
@@ -84,7 +88,7 @@ func TestDeploymentList(t *testing.T) {
 
 	awsKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
 	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyID)
-	os.Setenv("AWS_ACCESS_KEY_ID", "somevalue")
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
 	awsSecretKeyID := os.Getenv("AWS_SECRET_ACCESS_KEY")
 	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyID)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
@@ -106,11 +110,11 @@ func TestDeploymentList(t *testing.T) {
 		t.Fatalf("Failed to make the ami %s", err)
 	}
 
-	rc = realMain([]string{"--quiet", "--config-dir", confDir, "deployment", "new", "--private-key", "/etc/group", "--aws-key-name", "keyname", depname1, "4.2"})
+	rc = realMain([]string{"--quiet", "--config-dir", confDir, "deployment", "new", "--private-key", sshKeyFile, "--aws-key-name", "keyname", depname1, "4.2"})
 	if rc != 0 {
 		t.Fatalf("dep new should return 0")
 	}
-	rc = realMain([]string{"--quiet", "--config-dir", confDir, "deployment", "new", "--private-key", "/etc/group", "--aws-key-name", "keyname", depname2, "4.2"})
+	rc = realMain([]string{"--quiet", "--config-dir", confDir, "deployment", "new", "--private-key", sshKeyFile, "--aws-key-name", "keyname", depname2, "4.2"})
 	if rc != 0 {
 		t.Fatalf("dep new should return 0")
 	}
@@ -176,6 +180,13 @@ func loadAmiFile(filepath string) (map[string]string, error) {
 }
 
 func TestBuildImageTop(t *testing.T) {
+	awsKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyID)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	awsSecretKeyID := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
+
 	confDir, _ := ioutil.TempDir("", "stardogtests")
 	defer os.RemoveAll(confDir)
 
@@ -237,8 +248,18 @@ func TestBuildImageTop(t *testing.T) {
 }
 
 func TestBasicDeploy(t *testing.T) {
+	awsKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyID)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	awsSecretKeyID := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
+
 	confDir, _ := ioutil.TempDir("", "stardogtests")
 	defer os.RemoveAll(confDir)
+	sshKeyFile := path.Join(confDir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
 
 	region := "us-west-1"
 	err := buildImage("ami-deadbeef", confDir, "50.10", "/etc/group", region)
@@ -251,18 +272,11 @@ func TestBasicDeploy(t *testing.T) {
 	exeDir, _, _ := aws.CreateTestExec("terraform", goodoutput1, 0)
 	defer os.RemoveAll(exeDir)
 
-	awsKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
-	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyID)
-	os.Setenv("AWS_ACCESS_KEY_ID", "somevalue")
-	awsSecretKeyID := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyID)
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
-
 	consoleLog := path.Join(confDir, "output2")
 
 	depName := randDeployName()
 	rc := realMain([]string{"--config-dir", confDir, "launch", "--no-wait",
-		"--region", region, "--aws-key-name", "keyname", "--private-key", "/etc/group",
+		"--region", region, "--aws-key-name", "keyname", "--private-key", sshKeyFile,
 		"--sd-version", "50.10", "--license", "/etc/group", depName})
 	if rc != 0 {
 		t.Fatalf("launch failed")
@@ -315,8 +329,18 @@ func TestBasicDeploy(t *testing.T) {
 }
 
 func TestSteppedOutDeploy(t *testing.T) {
+	awsKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyID)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	awsSecretKeyID := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
+
 	confDir, _ := ioutil.TempDir("", "stardogtests")
 	defer os.RemoveAll(confDir)
+	sshKeyFile := path.Join(confDir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
 
 	region := "us-west-1"
 	err := buildImage("ami-deadbeef", confDir, "4.2", "/etc/group", region)
@@ -331,15 +355,8 @@ func TestSteppedOutDeploy(t *testing.T) {
 	sshExeDir, _, _ := aws.CreateTestExec("ssh", "data", 0)
 	defer os.RemoveAll(sshExeDir)
 
-	awsKeyId := os.Getenv("AWS_ACCESS_KEY_ID")
-	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyId)
-	os.Setenv("AWS_ACCESS_KEY_ID", "somevalue")
-	awsSecretKeyId := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyId)
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
-
 	depName := randDeployName()
-	rc := realMain([]string{"--config-dir", confDir, "deployment", "new", "--private-key", "/etc/group", "--aws-key-name", "keyname", "--region", region, depName, "4.2"})
+	rc := realMain([]string{"--config-dir", confDir, "deployment", "new", "--private-key", sshKeyFile, "--aws-key-name", "keyname", "--region", region, depName, "4.2"})
 	if rc != 0 {
 		t.Fatalf("depl new failed")
 	}

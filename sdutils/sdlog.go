@@ -22,21 +22,24 @@ import (
 )
 
 const (
+	// ERROR will only log error level messages
 	ERROR = 1
-	WARN  = 2
-	INFO  = 3
+	// WARN will log ERROR and WARN level messages
+	WARN = 2
+	// INFO is the default level and will log information, warnings and errors
+	INFO = 3
+	// DEBUG is a very verbose log level and should be used only for finding problems
 	DEBUG = 4
-	TRACE = 5
 )
 
 var (
 	// This map is setup to quickly translate from log level to string at log time
 	debugToStringMap = make(map[int]string)
-	LogLevelNames    []string
+	// LogLevelNames is an array of strings that define all the valid log levels
+	LogLevelNames []string
 )
 
 func init() {
-	debugToStringMap[TRACE] = "TRACE"
 	debugToStringMap[DEBUG] = "DEBUG"
 	debugToStringMap[INFO] = "INFO"
 	debugToStringMap[WARN] = "WARN"
@@ -50,6 +53,7 @@ func init() {
 	}
 }
 
+// SdVaLogger is the interface to the Stardog Logger
 type SdVaLogger interface {
 	Logf(level int, format string, v ...interface{})
 }
@@ -59,13 +63,12 @@ type sdLogger struct {
 	logger   *log.Logger
 }
 
+// NewSdVaLogger creates a new Stardog logging object from a system logger
 func NewSdVaLogger(realLogger *log.Logger, logLevel string) (SdVaLogger, error) {
 	var logger sdLogger
 	logLevel = strings.ToUpper(logLevel)
 
 	switch logLevel {
-	case "TRACE":
-		logger.logLevel = TRACE
 	case "DEBUG":
 		logger.logLevel = DEBUG
 	case "INFO":

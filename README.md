@@ -30,6 +30,9 @@ AWS_ACCESS_KEY_ID=<a valid aws access key>
 AWS_SECRET_ACCESS_KEY=<a valid aws secret key>
 ```
 
+The account associated with the access tokens must have the ability to
+ create IAM credentials and full EC2 access.
+
 Both `terraform` and `packer` must be in your system path.
 
 ### Launch a cluster:
