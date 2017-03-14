@@ -130,6 +130,27 @@ func getInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config,
 	return instList
 }
 
+func CheckKeyName(c sdutils.AppContext, a *awsPlugin, keyname string) (bool, error) {
+	conf := aws.Config{Region: aws.String(a.Region)}
+	sess, err := session.NewSession()
+	if err != nil {
+		return false, err
+	}
+
+	svc := ec2.New(sess, &conf)
+	keyOut, err := svc.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
+	if err != nil {
+		return false, err
+	}
+
+	for _, s := range keyOut.KeyPairs {
+		if s.KeyName != nil && *s.KeyName == keyname {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func destroyInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config, instList []*ec2.Instance) error {
 	svc := ec2.New(sess, conf)
 	for _, inst := range instList {
@@ -200,10 +221,10 @@ func destroyLoadBalancers(c sdutils.AppContext, sess *session.Session, conf *aws
 }
 
 func (a *awsPlugin) FindLeaks(c sdutils.AppContext, deploymentName string, destroy bool, force bool) error {
-	possibleDelpoyNames := make(map[string]bool)
+	possibleDeployNames := make(map[string]bool)
 
 	if deploymentName != "" {
-		possibleDelpoyNames[deploymentName] = true
+		possibleDeployNames[deploymentName] = true
 	}
 
 	conf := aws.Config{Region: aws.String(a.Region)}
@@ -214,12 +235,12 @@ func (a *awsPlugin) FindLeaks(c sdutils.AppContext, deploymentName string, destr
 
 	c.ConsoleLog(1, "Looking for AWS resources\n")
 
-	lcList, asgList := getAsgLc(c, sess, &conf, deploymentName, &possibleDelpoyNames)
-	instList := getInstances(c, sess, &conf, deploymentName, &possibleDelpoyNames)
-	sgList := getSecurityGroups(c, sess, &conf, deploymentName, &possibleDelpoyNames)
+	lcList, asgList := getAsgLc(c, sess, &conf, deploymentName, &possibleDeployNames)
+	instList := getInstances(c, sess, &conf, deploymentName, &possibleDeployNames)
+	sgList := getSecurityGroups(c, sess, &conf, deploymentName, &possibleDeployNames)
 
 	elbList := []*elb.LoadBalancerDescription{}
-	for tagName := range possibleDelpoyNames {
+	for tagName := range possibleDeployNames {
 		tmpElbList := getElbs(c, sess, &conf, tagName)
 		elbList = append(elbList, tmpElbList...)
 	}
