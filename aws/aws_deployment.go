@@ -86,6 +86,21 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 			return nil, fmt.Errorf("A path to a private key must be provided")
 		}
 	}
+	// Check the key name and key path
+	fi, err := os.Stat(baseD.PrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("There was an error accessing the private key %s: %s", baseD.PrivateKey, err)
+	}
+	if fi.Mode()&0077 != 0 {
+		return nil, fmt.Errorf("The permissions on the private key %s must only allow for user access", baseD.PrivateKey)
+	}
+	b, err := CheckKeyName(c, a, a.AwsKeyName)
+	if err != nil {
+		return nil, fmt.Errorf("There was an error checking the AWS environment: %s", err)
+	}
+	if !b {
+		return nil, fmt.Errorf("The AWS keyname %s does not exist", a.AwsKeyName)
+	}
 
 	deployDir := sdutils.DeploymentDir(c.GetConfigDir(), baseD.Name)
 	assertDir, err := PlaceAsset(c, deployDir, "etc/terraform", false)
