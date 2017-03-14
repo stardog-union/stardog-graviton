@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/stardog-union/stardog-graviton/sdutils"
@@ -64,6 +65,9 @@ func TestDeploymentLoadDefaults(t *testing.T) {
 func TestDeploymentLoadEnvs(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
 
 	plugin := &awsPlugin{
 		Region:         "us-west-1",
@@ -93,7 +97,7 @@ func TestDeploymentLoadEnvs(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    "4.2",
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	_, err := plugin.DeploymentLoader(&app, &baseD, true)
 	if err == nil {
@@ -109,6 +113,9 @@ func TestDeploymentLoadEnvs(t *testing.T) {
 func TestDeploymentLoadNoExes(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
 
 	plugin := &awsPlugin{
 		Region:         "us-west-1",
@@ -124,7 +131,7 @@ func TestDeploymentLoadNoExes(t *testing.T) {
 
 	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
 	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
-	os.Setenv("AWS_ACCESS_KEY_ID", "somevalue")
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
 	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
 	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
@@ -138,7 +145,7 @@ func TestDeploymentLoadNoExes(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    "4.2",
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	_, err := plugin.DeploymentLoader(&app, &baseD, true)
 	if err == nil {
@@ -149,6 +156,9 @@ func TestDeploymentLoadNoExes(t *testing.T) {
 func TestDeploymentLoadNew(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
 
 	plugin := &awsPlugin{
 		Region:         "us-west-1",
@@ -164,10 +174,10 @@ func TestDeploymentLoadNew(t *testing.T) {
 
 	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
 	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
-	os.Setenv("AWS_ACCESS_KEY_ID", "somevalue")
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
 	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
 	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "gravitontest")
 
 	exedirT, _, err := CreateTestExec("terraform", "data", 0)
 	if err != nil {
@@ -189,7 +199,7 @@ func TestDeploymentLoadNew(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    "4.2",
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	_, err = plugin.DeploymentLoader(&app, &baseD, true)
 	if err != nil {

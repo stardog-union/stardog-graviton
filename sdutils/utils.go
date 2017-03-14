@@ -29,8 +29,11 @@ import (
 	"github.com/fatih/color"
 )
 
-type ValidatorFunc func(key string) (interface{}, error)
+type validatorFunc func(key string) (interface{}, error)
 
+// AskUser prompts a console user to enter input.  prompt is the string
+// that will be displayed to them and defaultValue will be the result if
+// the user just hits enter.
 func AskUser(prompt string, defaultValue string) (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	if defaultValue != "" {
@@ -48,6 +51,9 @@ func AskUser(prompt string, defaultValue string) (string, error) {
 	return resultValue, nil
 }
 
+// AskUserYesOrNo is just a convenience wrapper around AskUser that looks for
+// a yes or no answer.  A case insensitive yes will return true and all other
+// values will return false.
 func AskUserYesOrNo(prompt string) bool {
 	res, err := AskUser(prompt, "yes/no")
 	if err != nil {
@@ -56,7 +62,7 @@ func AskUserYesOrNo(prompt string) bool {
 	return strings.ToLower(res) == "yes"
 }
 
-func AskUserInteractive(prompt string, defaultValue string, skipIfDefault bool, vf ValidatorFunc) (interface{}, error) {
+func askUserInteractive(prompt string, defaultValue string, skipIfDefault bool, vf validatorFunc) (interface{}, error) {
 	if skipIfDefault && defaultValue != "" {
 		return vf(defaultValue)
 	}
@@ -67,8 +73,9 @@ func AskUserInteractive(prompt string, defaultValue string, skipIfDefault bool, 
 	return vf(v)
 }
 
+// AskUserInteractiveInt prompts the user to enter an integer.
 func AskUserInteractiveInt(prompt string, defaultValue int, skipIfDefault bool, val *int) error {
-	v, err := AskUserInteractive(prompt, fmt.Sprintf("%d", defaultValue), skipIfDefault, StringToIntegerValidator)
+	v, err := askUserInteractive(prompt, fmt.Sprintf("%d", defaultValue), skipIfDefault, stringToIntegerValidator)
 	if err != nil {
 		return err
 	}
@@ -76,10 +83,11 @@ func AskUserInteractiveInt(prompt string, defaultValue int, skipIfDefault bool, 
 	return nil
 }
 
+// AskUserInteractiveString prompts the user to enter a string.
 func AskUserInteractiveString(prompt string, defaultValue string, skipIfDefault bool, val *string) error {
 	c := ""
 	for c == "" {
-		v, err := AskUserInteractive(prompt, defaultValue, skipIfDefault, StringToStringValidator)
+		v, err := askUserInteractive(prompt, defaultValue, skipIfDefault, stringToStringValidator)
 		if err != nil {
 			return err
 		}
@@ -92,14 +100,15 @@ func AskUserInteractiveString(prompt string, defaultValue string, skipIfDefault 
 	return nil
 }
 
-func StringToIntegerValidator(key string) (interface{}, error) {
+func stringToIntegerValidator(key string) (interface{}, error) {
 	return strconv.Atoi(key)
 }
 
-func StringToStringValidator(key string) (interface{}, error) {
+func stringToStringValidator(key string) (interface{}, error) {
 	return key, nil
 }
 
+// Spinner is an object used to show progress on the console.
 type Spinner struct {
 	nextMap  map[string]string
 	lastSpin string
@@ -108,6 +117,7 @@ type Spinner struct {
 	context  AppContext
 }
 
+// NewSpinner creates a new spinner object.
 func NewSpinner(context AppContext, level int, message string) *Spinner {
 	s := Spinner{
 		lastSpin: "|",
@@ -124,6 +134,7 @@ func NewSpinner(context AppContext, level int, message string) *Spinner {
 	return &s
 }
 
+// EchoNext prints out the progress character.
 func (s *Spinner) EchoNext() {
 	if color.NoColor {
 		s.context.ConsoleLog(s.level, ".")
@@ -133,17 +144,25 @@ func (s *Spinner) EchoNext() {
 	}
 }
 
+// Close ends the spinner session.
 func (s *Spinner) Close() {
 	s.context.ConsoleLog(s.level, "\n")
 }
 
+// ScanResult is an object returned from a LineScanner.  This allows us to use
+// the uility function RunScanner and return different values from the output
+// based on the specific command.
 type ScanResult struct {
 	Key   string
 	Value string
 }
 
+// LineScanner is a function that will search a line for given values and return
+// results in a ScanResult if it finds something.  It may return nil
 type LineScanner func(cliContext AppContext, line string) *ScanResult
 
+// RunCommand will fork and execute a command in the shell.  The lineScanner object
+// will be used to collect output and return it to the caller.
 func RunCommand(cliContext AppContext, cmd exec.Cmd, lineScanner LineScanner, spinner *Spinner) (*[]ScanResult, error) {
 	cliContext.Logf(DEBUG, "Start the program %s\n", cmd.Args[0])
 
@@ -203,6 +222,8 @@ func RunCommand(cliContext AppContext, cmd exec.Cmd, lineScanner LineScanner, sp
 	return &scanResults, nil
 }
 
+// WriteJSON will take an interface object and serialize it into JSON and store it
+// in a file at the given path.
 func WriteJSON(obj interface{}, path string) error {
 	data, err := json.MarshalIndent(obj, "", "    ")
 	if err != nil {
@@ -215,6 +236,7 @@ func WriteJSON(obj interface{}, path string) error {
 	return nil
 }
 
+// LoadJSON is a convenience function to load a JSON file into an interface object
 func LoadJSON(obj interface{}, path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return fmt.Errorf("The file %s does not exist", path)
@@ -230,6 +252,7 @@ func LoadJSON(obj interface{}, path string) error {
 	return nil
 }
 
+// PathExists is a convenience function to determine if a path path exists.
 func PathExists(filepath string) bool {
 	_, err := os.Stat(filepath)
 	if err == nil {
@@ -238,6 +261,7 @@ func PathExists(filepath string) bool {
 	return !os.IsNotExist(err)
 }
 
+// BbCode converts the bb ascii art information into console colorsMap
 func BbCode(data string) {
 	colorsMap := make(map[string]*color.Color)
 	colorsMap["00aa50"] = color.New(color.FgGreen)
@@ -273,6 +297,7 @@ func BbCode(data string) {
 	}
 }
 
+// GetLocalOnlyHTTPMask uses a network service to guess the external IP of the local host.
 func GetLocalOnlyHTTPMask() string {
 	url := "http://ip.42.pl/raw"
 	response, err := http.Get(url)

@@ -18,6 +18,7 @@ package aws
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/stardog-union/stardog-graviton/sdutils"
@@ -26,6 +27,15 @@ import (
 func TestInstanceNotThere(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
+	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
 
 	version := "4.2"
 	app := sdutils.TestContext{
@@ -44,7 +54,7 @@ func TestInstanceNotThere(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    version,
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	dd, err := newAwsDeploymentDescription(&app, &baseD, plugin)
 	if err != nil {
@@ -67,7 +77,7 @@ func TestInstanceNotThere(t *testing.T) {
 	if err == nil {
 		t.Fatalf("The instance should not exist for client")
 	}
-	err = inst.OpenInstance(1, "0.0.0.0/0")
+	err = inst.OpenInstance(1, "0.0.0.0/0", 60)
 	if err == nil {
 		t.Fatalf("The instance should not exist for client")
 	}
@@ -76,6 +86,15 @@ func TestInstanceNotThere(t *testing.T) {
 func TestInstanceFakeTerraform(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
+	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
 
 	version := "4.2"
 	app := sdutils.TestContext{
@@ -94,7 +113,7 @@ func TestInstanceFakeTerraform(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    version,
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	dd, err := newAwsDeploymentDescription(&app, &baseD, plugin)
 	if err != nil {
@@ -151,7 +170,7 @@ func TestInstanceFakeTerraform(t *testing.T) {
 	if err != nil {
 		t.Fatalf("The instance should exist for client %s", err)
 	}
-	err = inst.OpenInstance(1, "0.0.0.0/0")
+	err = inst.OpenInstance(1, "0.0.0.0/0", 60)
 	if err != nil {
 		t.Fatalf("The instance should exist for client %s", err)
 	}
@@ -168,6 +187,15 @@ func TestInstanceFakeTerraform(t *testing.T) {
 func TestInstanceFakeTerraformThroughDeployment(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
+	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
 
 	version := "4.2"
 	app := sdutils.TestContext{
@@ -186,7 +214,7 @@ func TestInstanceFakeTerraformThroughDeployment(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    version,
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	dd, err := newAwsDeploymentDescription(&app, &baseD, plugin)
 	if err != nil {
@@ -265,6 +293,15 @@ func TestInstanceFakeTerraformThroughDeployment(t *testing.T) {
 func TestInstanceNotThereThroughDd(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
+	sshKeyFile := path.Join(dir, "keyfile")
+	fakeOut := "xxx"
+	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
+	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
 
 	version := "4.2"
 	app := sdutils.TestContext{
@@ -283,7 +320,7 @@ func TestInstanceNotThereThroughDd(t *testing.T) {
 		Name:       "testdep",
 		Directory:  dir,
 		Version:    version,
-		PrivateKey: "/some/path",
+		PrivateKey: sshKeyFile,
 	}
 	dd, err := newAwsDeploymentDescription(&app, &baseD, plugin)
 	if err != nil {

@@ -62,7 +62,7 @@ func TestLoadDeploymentNoLoadPlugin(t *testing.T) {
 		ConfigDir: dir,
 		Version:   "test1",
 	}
-	plugin := &TstPlugin{}
+	plugin := &tstPlugin{}
 	baseD := BaseDeployment{
 		Type: plugin.GetName(),
 		Name: "notreal",
@@ -86,7 +86,7 @@ func TestLoadNewDeploymentFailLoad(t *testing.T) {
 		ConfigDir: dir,
 		Version:   "test1",
 	}
-	plugin := &TstPlugin{}
+	plugin := &tstPlugin{}
 	baseD := BaseDeployment{
 		Type:      plugin.GetName(),
 		Name:      "notreal",
@@ -114,7 +114,7 @@ func TestLoadNewDeploymentGoodLoad(t *testing.T) {
 		ConfigDir: dir,
 		Version:   "test1",
 	}
-	plugin := &TstPlugin{Dep: &TpDeployment{}}
+	plugin := &tstPlugin{Dep: &tpDeployment{}}
 	baseD := BaseDeployment{
 		Type: plugin.GetName(),
 		Name: "notreal",
@@ -149,7 +149,7 @@ func TestLoadExistingDeploymentGoodLoad(t *testing.T) {
 		ConfigDir: dir,
 		Version:   "test1",
 	}
-	plugin := &TstPlugin{Dep: &TpDeployment{}}
+	plugin := &tstPlugin{Dep: &tpDeployment{}}
 	baseD := BaseDeployment{
 		Type:      plugin.GetName(),
 		Name:      "notreal",

@@ -22,6 +22,8 @@ import (
 	"path"
 )
 
+// CreateTestExec writes a file to the system for use as a mock for packer or terraform
+// in testing.
 func CreateTestExec(pgmName string, output string, rc int) (string, string, error) {
 	exedir, err := ioutil.TempDir("/tmp", "stardogtest")
 	if err != nil {

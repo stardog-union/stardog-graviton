@@ -26,7 +26,8 @@ import (
 	"github.com/stardog-union/stardog-graviton/sdutils"
 )
 
-type AwsEc2Instance struct {
+// Ec2Instance represenst an instance of a Stardog service in AWS.
+type Ec2Instance struct {
 	DeploymentName         string             `json:"deployment_name,omitempty"`
 	Region                 string             `json:"aws_region,omitempty"`
 	KeyName                string             `json:"aws_key_name,omitempty"`
@@ -47,12 +48,16 @@ type AwsEc2Instance struct {
 	ZkNodesContact         []string           `json:"-"`
 }
 
-type AwsInstanceStatusDescription struct {
+// InstanceStatusDescription describes details about a running Stardog instance.
+// The zookeeper contact strings are described.
+type InstanceStatusDescription struct {
 	ZkNodesContact []string
 }
 
-func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) *AwsEc2Instance {
-	instance := AwsEc2Instance{
+// NewEc2Instance instanciates a AwsEc2Instance object which will be used to boot or
+// inspect a Stardog ec2 instance.
+func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) *Ec2Instance {
+	instance := Ec2Instance{
 		DeploymentName: dd.Name,
 		Region:         dd.Region,
 		KeyName:        dd.AwsKeyName,
@@ -79,7 +84,7 @@ func volumeLineScanner(cliContext sdutils.AppContext, line string) *sdutils.Scan
 	return nil
 }
 
-func (awsI *AwsEc2Instance) runTerraformApply(zookeeperSize int, mask string, idleTimeout int) error {
+func (awsI *Ec2Instance) runTerraformApply(zookeeperSize int, mask string, idleTimeout int) error {
 	awsI.ZkSize = fmt.Sprintf("%d", zookeeperSize)
 	awsI.ELBIdleTimeout = fmt.Sprintf("%d", idleTimeout)
 
@@ -123,7 +128,8 @@ func (awsI *AwsEc2Instance) runTerraformApply(zookeeperSize int, mask string, id
 	return nil
 }
 
-func (awsI *AwsEc2Instance) CreateInstance(zookeeperSize int, idleTimeout int) error {
+// CreateInstance will bootup a Stardog service in AWS.
+func (awsI *Ec2Instance) CreateInstance(zookeeperSize int, idleTimeout int) error {
 	err := awsI.runTerraformApply(zookeeperSize, "0.0.0.0/32", idleTimeout)
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to create the instance.\n")
@@ -133,7 +139,9 @@ func (awsI *AwsEc2Instance) CreateInstance(zookeeperSize int, idleTimeout int) e
 	return nil
 }
 
-func (awsI *AwsEc2Instance) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
+// OpenInstance will open the firewall to allow incoming traffic to port 5821 from
+// the give CIDR.
+func (awsI *Ec2Instance) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
 	err := awsI.runTerraformApply(zookeeperSize, mask, idleTimeout)
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to open up the instance.\n")
@@ -143,7 +151,8 @@ func (awsI *AwsEc2Instance) OpenInstance(zookeeperSize int, mask string, idleTim
 	return nil
 }
 
-func (awsI *AwsEc2Instance) DeleteInstance() error {
+// DeleteInstance will teardown the Stardog service.
+func (awsI *Ec2Instance) DeleteInstance() error {
 	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")
 	instanceConfPath := path.Join(instanceWorkingDir, "instance.json")
 	if !sdutils.PathExists(instanceConfPath) {
@@ -170,19 +179,24 @@ func (awsI *AwsEc2Instance) DeleteInstance() error {
 	return nil
 }
 
-func (awsI *AwsEc2Instance) InstanceExists() bool {
+// InstanceExists will return a bool if the associated AwsEc2Instance has already been
+// created.
+func (awsI *Ec2Instance) InstanceExists() bool {
 	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")
 	instanceConfPath := path.Join(instanceWorkingDir, "instance.json")
 	return sdutils.PathExists(instanceConfPath)
 }
 
+// OutputEntry allows the plugin to return opaque information and mark it as sensitive
+// or not.  If it is sensitive the base code knows not to print it out or write it to a
+// log.
 type OutputEntry struct {
 	Sensitive bool        `json:"sensitive,omitempty"`
 	Type      string      `json:"type,omitempty"`
 	Value     interface{} `json:"value,omitempty"`
 }
 
-func getInstanceValues(awsI *AwsEc2Instance) (*AwsInstanceStatusDescription, error) {
+func getInstanceValues(awsI *Ec2Instance) (*InstanceStatusDescription, error) {
 	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")
 	instanceConfPath := path.Join(instanceWorkingDir, "instance.json")
 	if !sdutils.PathExists(instanceConfPath) {
@@ -218,14 +232,15 @@ func getInstanceValues(awsI *AwsEc2Instance) (*AwsInstanceStatusDescription, err
 		awsI.ZkNodesContact[ndx] = x.(string)
 	}
 
-	s := AwsInstanceStatusDescription{
+	s := InstanceStatusDescription{
 		ZkNodesContact: awsI.ZkNodesContact,
 	}
 
 	return &s, nil
 }
 
-func (awsI *AwsEc2Instance) Status() error {
+// Status will print the status of the ec2 instance.
+func (awsI *Ec2Instance) Status() error {
 	_, err := getInstanceValues(awsI)
 	if err != nil {
 		return err

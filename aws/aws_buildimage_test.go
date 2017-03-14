@@ -28,6 +28,13 @@ import (
 func TestGoodPacker(t *testing.T) {
 	fakePacker := "#!/usr/bin/env bash\necho amazon-ebs,artifact,0,string,AMIs were created:ami-deadbeef\nexit 0"
 
+	awsKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyID)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	awsSecretKeyID := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
+
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
 
@@ -61,6 +68,13 @@ func TestGoodPacker(t *testing.T) {
 }
 
 func TestBadRcPacker(t *testing.T) {
+	awsKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyID)
+	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
+	awsSecretKeyID := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
+
 	fakePacker := "#!/usr/bin/env bash\necho amazon-ebs,artifact,0,string,AMIs were created:ami-deadbeef\nexit 1"
 
 	dir, _ := ioutil.TempDir("", "stardogtest")

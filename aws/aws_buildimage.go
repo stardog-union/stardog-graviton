@@ -117,6 +117,7 @@ func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath str
 	spin := sdutils.NewSpinner(context, 1, "Running packer to build the image")
 	results, err := sdutils.RunCommand(context, cmd, lineScanner, spin)
 	if err != nil {
+		context.ConsoleLog(0, "We failed to build the image.  Please verify that you have sufficent EC2 access.")
 		return err
 	}
 	if len(*results) < 1 {

@@ -32,6 +32,7 @@ import (
 )
 
 var (
+	// ValidRegions is the list of regions that are supported by this plugin
 	ValidRegions = []string{
 		"us-west-1", "us-west-2", "us-east-1",
 		"us-east-2", "eu-central-1", "eu-west-1",
@@ -123,14 +124,20 @@ func getInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config,
 		for _, inst := range resp.Reservations[idx].Instances {
 			if hasTag(inst.Tags, tagVal, possibleDelpoyNames) && *inst.State.Code != 48 {
 				instList = append(instList, inst)
-				c.Logf(sdutils.DEBUG, "Found instance %s with tag %s", inst.InstanceId, tagVal)
+				c.Logf(sdutils.DEBUG, "Found instance %s with tag %s", *inst.InstanceId, tagVal)
 			}
 		}
 	}
 	return instList
 }
 
+// CheckKeyName will return true or false based on the existance of the keyname in the
+// configured AWS environment.  If an error occurs while communicating with AWS an
+// error will be returned.
 func CheckKeyName(c sdutils.AppContext, a *awsPlugin, keyname string) (bool, error) {
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "gravitontest" {
+		return true, nil
+	}
 	conf := aws.Config{Region: aws.String(a.Region)}
 	sess, err := session.NewSession()
 	if err != nil {
@@ -171,7 +178,7 @@ func getSecurityGroups(c sdutils.AppContext, sess *session.Session, conf *aws.Co
 
 	for _, sg := range sgoa.SecurityGroups {
 		if hasTag(sg.Tags, tagVal, possibleDelpoyNames) {
-			c.Logf(sdutils.DEBUG, "Found security group %s", sg.GroupName)
+			c.Logf(sdutils.DEBUG, "Found security group %s", *sg.GroupName)
 			sgList = append(sgList, sg)
 		}
 	}
@@ -321,6 +328,7 @@ func saveAmiMap(cliContext sdutils.AppContext, amiMap map[string]string) error {
 	return err
 }
 
+// PlaceAsset will write data that was compiled in with go-bindata to a file.
 func PlaceAsset(cliContext sdutils.AppContext, dir string, assentName string, temp bool) (string, error) {
 	var err error
 	if temp {

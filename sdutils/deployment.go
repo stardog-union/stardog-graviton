@@ -32,10 +32,12 @@ var (
 	pluginMap = make(map[string]Plugin)
 )
 
+// AddCloudType will associate a new plugin type  with this graviton instances
 func AddCloudType(p Plugin) {
 	pluginMap[p.GetName()] = p
 }
 
+// GetPlugin returns the plugin assocoiate with the given name
 func GetPlugin(name string) (Plugin, error) {
 	p, ok := pluginMap[name]
 	if !ok {
@@ -44,15 +46,21 @@ func GetPlugin(name string) (Plugin, error) {
 	return p, nil
 }
 
+// DeploymentDir abstracts the location of deployment information files into
+// a function
 func DeploymentDir(confDir string, deploymentName string) string {
 	return path.Join(confDir, "deployments", deploymentName)
 }
 
+// DeleteDeployment will remove all information stored on the local file system that
+// is associated with a deployment.
 func DeleteDeployment(context AppContext, name string) {
 	deploymentDir := DeploymentDir(context.GetConfigDir(), name)
 	os.RemoveAll(deploymentDir)
 }
 
+// LoadDeployment inflates a Deployment object from the information stored in the
+// configuration directory.
 func LoadDeployment(context AppContext, baseD *BaseDeployment, new bool) (Deployment, error) {
 	confPath := path.Join(baseD.Directory, "config.json")
 
@@ -75,14 +83,13 @@ func LoadDeployment(context AppContext, baseD *BaseDeployment, new bool) (Deploy
 		}
 		context.Logf(DEBUG, "Loading the default %s from %s", baseD, confPath)
 		return plugin.DeploymentLoader(context, baseD, new)
-	} else {
-		os.MkdirAll(baseD.Directory, 0755)
-		d, err := plugin.DeploymentLoader(context, baseD, new)
-		if err != nil {
-			os.RemoveAll(baseD.Directory)
-		}
-		return d, err
 	}
+	os.MkdirAll(baseD.Directory, 0755)
+	d, err := plugin.DeploymentLoader(context, baseD, new)
+	if err != nil {
+		os.RemoveAll(baseD.Directory)
+	}
+	return d, err
 }
 
 func runClient(context AppContext, baseD *BaseDeployment, d Deployment, cmdArray []string) error {
@@ -130,20 +137,21 @@ func getSSHCommand(context AppContext, baseD *BaseDeployment, sd *StardogDescrip
 	return sshCmd, nil
 }
 
+// RunSSH will start an ssh session on the bastion node
 func RunSSH(context AppContext, baseD *BaseDeployment, d Deployment) error {
 	sd, err := d.FullStatus()
 	if err != nil {
 		return err
 	}
 
-	baseSsh, err := getSSHCommand(context, baseD, sd)
+	baseSSH, err := getSSHCommand(context, baseD, sd)
 	if err != nil {
 		return nil
 	}
 
 	cmd := exec.Cmd{
-		Path: baseSsh[0],
-		Args: baseSsh,
+		Path: baseSSH[0],
+		Args: baseSSH,
 	}
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -158,6 +166,8 @@ func RunSSH(context AppContext, baseD *BaseDeployment, d Deployment) error {
 	return nil
 }
 
+// IsHealthy checks the deployment to see if the Stardog service is healthy.  if
+// internal is set to true it will test by sshing into the bastion node first.
 func IsHealthy(context AppContext, baseD *BaseDeployment, d Deployment, internal bool) bool {
 	sd, err := d.FullStatus()
 	if err != nil {
@@ -204,19 +214,21 @@ func IsHealthy(context AppContext, baseD *BaseDeployment, d Deployment, internal
 		}
 		return string(b) == "200"
 
-	} else {
-		url := fmt.Sprintf("%s/admin/healthcheck", sd.StardogURL)
-		context.Logf(DEBUG, "Checking health at %s.", url)
-
-		response, err := http.Get(url)
-		if err != nil {
-			context.Logf(DEBUG, "Error getting the health check %s", err)
-			return false
-		}
-		return response.StatusCode == 200
 	}
+	url := fmt.Sprintf("%s/admin/healthcheck", sd.StardogURL)
+	context.Logf(DEBUG, "Checking health at %s.", url)
+
+	response, err := http.Get(url)
+	if err != nil {
+		context.Logf(DEBUG, "Error getting the health check %s", err)
+		return false
+	}
+	return response.StatusCode == 200
 }
 
+// WaitForHealth will block until the deployment is considered healthy or the
+// timeout expires.  If internal is true it will ssh into the bastion node
+// before checking the health URL.
 func WaitForHealth(context AppContext, baseD *BaseDeployment, d Deployment, waitTimeout int, internal bool) error {
 	last := ""
 	pollInterval := 2
@@ -247,6 +259,10 @@ func linePrinter(cliContext AppContext, line string) *ScanResult {
 	return nil
 }
 
+// CreateInstance wraps up the deployment.CreateInstance method and blocks until
+// the deployment is considered healthy.  It will then change the password by
+// sshing into the bastion node.  Once that is complete it will open up the
+// the firewall.
 func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, zkSize int, waitMaxTimeSec int, timeoutSec int, mask string, noWait bool) error {
 	err := dep.CreateInstance(zkSize, timeoutSec)
 	if err != nil {
@@ -271,6 +287,7 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, z
 	return err
 }
 
+// FullStatus inspects the state of a deployment and prints it out to the console.
 func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, internal bool, outfile string) error {
 	sd, err := dep.FullStatus()
 	if err != nil {

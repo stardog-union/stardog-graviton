@@ -19,8 +19,12 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+// ConsoleEffect is a function for writing lines to the console in a
+// visually pleasing way.  For example red text for error messages.
 type ConsoleEffect func(a ...interface{}) string
 
+// BaseDeployment hold information about the deployments and is serialized
+// to JSON.  CloudOpts is defined by the specific plugin in use.
 type BaseDeployment struct {
 	Type            string      `json:"type,omitempty"`
 	Name            string      `json:"name,omitempty"`
@@ -32,6 +36,8 @@ type BaseDeployment struct {
 	CloudOpts       interface{} `json:"cloud_opts,omitempty"`
 }
 
+// AppContext provides and abstraction to logging, console interaction and
+// basic configuration information
 type AppContext interface {
 	ConsoleLog(level int, format string, v ...interface{})
 	Logf(level int, format string, v ...interface{})
@@ -42,6 +48,8 @@ type AppContext interface {
 	FailString(a ...interface{}) string
 }
 
+// StardogDescription represents the state of a Stardog deployment.  It is effectively
+// the output from a status command.
 type StardogDescription struct {
 	StardogURL          string      `json:"stardog_url,omitempty"`
 	StardogInternalURL  string      `json:"stardog_internal_url,omitempty"`
@@ -51,6 +59,7 @@ type StardogDescription struct {
 	InstanceDescription interface{} `json:"instance,omitempty"`
 }
 
+// Deployment is an interface to a plugin that is managing the actual Stardog services.
 type Deployment interface {
 	CreateVolumeSet(licensePath string, sizeOfEachVolume int, clusterSize int) error
 	DeleteVolumeSet() error
@@ -66,6 +75,9 @@ type Deployment interface {
 	FullStatus() (*StardogDescription, error)
 }
 
+// CommandOpts holds all of the CLI parsing information for the system.
+// It is passed to plugins so that each driver can add their own specific
+// flags.
 type CommandOpts struct {
 	Cli                  *kingpin.Application
 	LaunchCmd            *kingpin.CmdClause
@@ -73,7 +85,7 @@ type CommandOpts struct {
 	StatusCmd            *kingpin.CmdClause
 	LeaksCmd             *kingpin.CmdClause
 	ClientCmd            *kingpin.CmdClause
-	SshCmd               *kingpin.CmdClause
+	SSHCmd               *kingpin.CmdClause
 	PasswdCmd            *kingpin.CmdClause
 	AboutCmd             *kingpin.CmdClause
 	BuildCmd             *kingpin.CmdClause
@@ -88,6 +100,7 @@ type CommandOpts struct {
 	StatusInstanceCmd    *kingpin.CmdClause
 }
 
+// Plugin defines the interface for adding drivers to the system
 type Plugin interface {
 	Register(cmdOpts *CommandOpts) error
 	DeploymentLoader(context AppContext, baseD *BaseDeployment, new bool) (Deployment, error)
