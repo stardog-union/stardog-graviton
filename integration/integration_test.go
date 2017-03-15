@@ -44,8 +44,6 @@ func TestBasicUploadQuery(t *testing.T) {
 	}
 	for i, _ := range results {
 		if results[0] != results[i] {
-			fmt.Printf("HERE IS 0 %s", results[0])
-			fmt.Printf("HERE IS %d %s", i, results[i])
 			t.Fatalf("The servers 0 and %d did not agree on the values", i)
 		}
 	}

@@ -34,11 +34,12 @@ type awsDeploymentDescription struct {
 	ZkInstanceType string `json:"zk_instance,omitempty"`
 	SdInstanceType string `json:"sd_instance,omitempty"`
 	PrivateKeyPath string `json:"private_key_path,omitempty"`
-	CustomProps    string `json:"custom_stardog_properties,omitempty"`
 	HTTPMask       string `json:"http_mask,omitempty"`
 	Version        string `json:"-"`
 	Name           string `json:"-"`
 	deployDir      string
+	customPropFile string
+	environment    []string
 	ctx            sdutils.AppContext
 }
 
@@ -108,14 +109,6 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		return nil, err
 	}
 	c.ConsoleLog(2, "Terraform configuration extracted to %s\n", assertDir)
-	customData := ""
-	if baseD.CustomPropsFile != "" {
-		data, err := ioutil.ReadFile(baseD.CustomPropsFile)
-		if err != nil {
-			return nil, err
-		}
-		customData = string(data)
-	}
 
 	dd := awsDeploymentDescription{
 		Region:         a.Region,
@@ -128,7 +121,8 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		PrivateKeyPath: baseD.PrivateKey,
 		ctx:            c,
 		deployDir:      deployDir,
-		CustomProps:    customData,
+		customPropFile: baseD.CustomPropsFile,
+		environment:    baseD.Environment,
 	}
 	return &dd, nil
 }
@@ -154,22 +148,34 @@ func (dd *awsDeploymentDescription) VolumeExists() bool {
 }
 
 func (dd *awsDeploymentDescription) CreateInstance(zookeeperSize int, idleTimeout int) error {
-	im := NewEc2Instance(dd.ctx, dd)
+	im, err := NewEc2Instance(dd.ctx, dd)
+	if err != nil {
+		return err
+	}
 	return im.CreateInstance(zookeeperSize, idleTimeout)
 }
 
 func (dd *awsDeploymentDescription) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
-	im := NewEc2Instance(dd.ctx, dd)
+	im, err := NewEc2Instance(dd.ctx, dd)
+	if err != nil {
+		return err
+	}
 	return im.OpenInstance(zookeeperSize, mask, idleTimeout)
 }
 
 func (dd *awsDeploymentDescription) DeleteInstance() error {
-	im := NewEc2Instance(dd.ctx, dd)
+	im, err := NewEc2Instance(dd.ctx, dd)
+	if err != nil {
+		return err
+	}
 	return im.DeleteInstance()
 }
 
 func (dd *awsDeploymentDescription) StatusInstance() error {
-	im := NewEc2Instance(dd.ctx, dd)
+	im, err := NewEc2Instance(dd.ctx, dd)
+	if err != nil {
+		return err
+	}
 	return im.Status()
 }
 
@@ -180,7 +186,10 @@ func (dd *awsDeploymentDescription) FullStatus() (*sdutils.StardogDescription, e
 		dd.ctx.ConsoleLog(1, "No volume information found.\n")
 	}
 
-	im := NewEc2Instance(dd.ctx, dd)
+	im, err := NewEc2Instance(dd.ctx, dd)
+	if err != nil {
+		return nil, err
+	}
 	instS, err := getInstanceValues(im)
 	if err != nil {
 		dd.ctx.ConsoleLog(1, "No instance information found.\n")
@@ -198,7 +207,10 @@ func (dd *awsDeploymentDescription) FullStatus() (*sdutils.StardogDescription, e
 }
 
 func (dd *awsDeploymentDescription) InstanceExists() bool {
-	im := NewEc2Instance(dd.ctx, dd)
+	im, err := NewEc2Instance(dd.ctx, dd)
+	if err != nil {
+		return false
+	}
 	return im.InstanceExists()
 }
 
@@ -274,6 +286,7 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 		if err != nil {
 			return nil, err
 		}
+		awsDD.environment = baseD.Environment
 		baseD.CloudOpts = awsDD
 		data, err := json.Marshal(baseD)
 		if err != nil {
@@ -284,7 +297,6 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 		if err != nil {
 			return nil, err
 		}
-
 		return awsDD, nil
 	}
 	data, err := json.Marshal(baseD.CloudOpts)
@@ -300,6 +312,7 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 	dd.Version = baseD.Version
 	dd.ctx = context
 	dd.deployDir = sdutils.DeploymentDir(context.GetConfigDir(), baseD.Name)
+	dd.environment = baseD.Environment
 
 	return &dd, nil
 }

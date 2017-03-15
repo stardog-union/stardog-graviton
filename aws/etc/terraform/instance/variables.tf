@@ -116,4 +116,14 @@ variable "elb_idle_timeout" {
   default = "300"
 }
 
+variable "custom_properties_data" {
+  type = "string"
+  description = "The custom data to add to the stardog properties"
+  default = ""
+}
 
+variable "environment_variables" {
+  type = "string"
+  description = "The environment variables to inject into the stardog script"
+  default = ""
+}
