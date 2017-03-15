@@ -33,6 +33,7 @@ type BaseDeployment struct {
 	PrivateKey      string      `json:"private_key,omitempty"`
 	CustomPropsFile string      `json:"custom_props,omitempty"`
 	IdleTimeout     int         `json:"idle_timeout,omitempty"`
+	Environment     []string    `json:"environment,omitempty"`
 	CloudOpts       interface{} `json:"cloud_opts,omitempty"`
 }
 

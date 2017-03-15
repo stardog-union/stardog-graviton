@@ -16,8 +16,10 @@
 package aws
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -40,6 +42,8 @@ type Ec2Instance struct {
 	PrivateKey             string             `json:"private_key,omitempty"`
 	HTTPMask               string             `json:"http_subnet,omitempty"`
 	ELBIdleTimeout         string             `json:"elb_idle_timeout,omitempty"`
+	CustomPropsData        string             `json:"custom_properties_data,omitempty"`
+	Environment            string             `json:"environment_variables,omitempty"`
 	DeployDir              string             `json:"-"`
 	Ctx                    sdutils.AppContext `json:"-"`
 	BastionContact         string             `json:"-"`
@@ -56,20 +60,36 @@ type InstanceStatusDescription struct {
 
 // NewEc2Instance instanciates a AwsEc2Instance object which will be used to boot or
 // inspect a Stardog ec2 instance.
-func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) *Ec2Instance {
-	instance := Ec2Instance{
-		DeploymentName: dd.Name,
-		Region:         dd.Region,
-		KeyName:        dd.AwsKeyName,
-		Version:        dd.Version,
-		ZkInstanceType: dd.ZkInstanceType,
-		SdInstanceType: dd.SdInstanceType,
-		AmiID:          dd.AmiID,
-		PrivateKey:     dd.PrivateKeyPath,
-		DeployDir:      dd.deployDir,
-		Ctx:            ctx,
+func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2Instance, error) {
+
+	customData := ""
+	if dd.customPropFile != "" {
+		data, err := ioutil.ReadFile(dd.customPropFile)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid custom properties file: %s", err)
+		}
+		customData = string(data)
 	}
-	return &instance
+
+	var envBuffer bytes.Buffer
+	for _, env := range dd.environment {
+		envBuffer.WriteString(fmt.Sprintf("export %s\n", env))
+	}
+	instance := Ec2Instance{
+		DeploymentName:  dd.Name,
+		Region:          dd.Region,
+		KeyName:         dd.AwsKeyName,
+		Version:         dd.Version,
+		ZkInstanceType:  dd.ZkInstanceType,
+		SdInstanceType:  dd.SdInstanceType,
+		AmiID:           dd.AmiID,
+		PrivateKey:      dd.PrivateKeyPath,
+		DeployDir:       dd.deployDir,
+		Ctx:             ctx,
+		CustomPropsData: customData,
+		Environment:     envBuffer.String(),
+	}
+	return &instance, nil
 }
 
 func volumeLineScanner(cliContext sdutils.AppContext, line string) *sdutils.ScanResult {

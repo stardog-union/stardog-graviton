@@ -85,6 +85,7 @@ func LoadDeployment(context AppContext, baseD *BaseDeployment, new bool) (Deploy
 		return plugin.DeploymentLoader(context, baseD, new)
 	}
 	os.MkdirAll(baseD.Directory, 0755)
+
 	d, err := plugin.DeploymentLoader(context, baseD, new)
 	if err != nil {
 		os.RemoveAll(baseD.Directory)

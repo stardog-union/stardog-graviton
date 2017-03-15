@@ -10,6 +10,7 @@ data "template_file" "stardog_properties" {
   template = "${var.custom_stardog_properties}\n${file("stardog.properties.tpl")}"
   vars {
     zk_servers = "${join(",", data.template_file.stardog_zk_server.*.rendered)}"
+    custom_data = "${var.custom_properties_data}"
   }
 }
 
@@ -19,6 +20,7 @@ data "template_file" "stardog_userdata" {
     stardog_conf = "${data.template_file.stardog_properties.rendered}"
     deployment_name = "${var.deployment_name}"
     zk_servers = "${join(",", data.template_file.stardog_zk_server.*.rendered)}"
+    environment_variables = "${var.environment_variables}"
   }
 }
 
