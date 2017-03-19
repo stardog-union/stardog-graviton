@@ -7,7 +7,7 @@ resource "aws_vpc" "main" {
   enable_dns_support = true
   enable_dns_hostnames = true
   tags {
-    Name = "stardog virtual appliance VPC ${var.deployment_name}"
+    Name = "graviton instance VPC ${var.deployment_name}"
     Version = "${var.version}"
     DeploymentName = "${var.deployment_name}"
     StardogVirtualAppliance = "${var.deployment_name}"
@@ -17,7 +17,7 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
   tags {
-    Name = "stardog virtual appliance gw ${var.deployment_name}"
+    Name = "graviton gw ${var.deployment_name}"
     Version = "${var.version}"
     DeploymentName = "${var.deployment_name}"
     StardogVirtualAppliance = "${var.deployment_name}"

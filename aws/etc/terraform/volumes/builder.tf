@@ -1,7 +1,35 @@
 
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+  tags {
+    Name = "graviton volume builder ${var.deployment_name}"
+    DeploymentName = "${var.deployment_name}"
+    StardogVirtualAppliance = "${var.deployment_name}"
+  }
+}
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = "${aws_vpc.main.id}"
+  tags {
+    Name = "stardog virtual appliance gw ${var.deployment_name}"
+    DeploymentName = "${var.deployment_name}"
+    StardogVirtualAppliance = "${var.deployment_name}"
+  }
+}
+
+# Grant the VPC internet access on its main route table
+resource "aws_route" "internet_access" {
+  route_table_id         = "${aws_vpc.main.main_route_table_id}"
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = "${aws_internet_gateway.gw.id}"
+}
+
 resource "aws_security_group" "stardog_data" {
   name = "${var.deployment_name}sddsg"
   description = "Allow stardog traffic"
+  vpc_id = "${aws_vpc.main.id}"
 
   tags {
     Name = "stardog data security group"
@@ -17,6 +45,17 @@ resource "aws_security_group" "stardog_data" {
   }
 }
 
+resource "aws_subnet" "stardog" {
+  count = "${var.cluster_size}"
+  vpc_id = "${aws_vpc.main.id}"
+  cidr_block = "${format("10.0.%d.0/24", count.index)}"
+  availability_zone = "${element(var.aws_az[var.aws_region], count.index)}"
+
+  tags {
+    StardogVirtualAppliance = "${var.deployment_name}"
+  }
+}
+
 resource "aws_instance" "stardog_data" {
   availability_zone = "${element(var.aws_az[var.aws_region], count.index % length(var.aws_az[var.aws_region]))}"
   count = "${var.cluster_size}"
@@ -25,10 +64,12 @@ resource "aws_instance" "stardog_data" {
     DeploymentName = "${var.deployment_name}"
     StardogVirtualAppliance = "${var.deployment_name}"
   }
+  associate_public_ip_address = true
   instance_type = "${var.instance_type}"
   ami = "${var.ami}"
   key_name = "${var.aws_key_name}"
-  security_groups = ["${aws_security_group.stardog_data.name}"]
+  security_groups = ["${aws_security_group.stardog_data.id}"]
+  subnet_id = "${element(aws_subnet.stardog.*.id, count.index)}"
   depends_on = ["aws_ebs_volume.stardog_data"]
 }
 
