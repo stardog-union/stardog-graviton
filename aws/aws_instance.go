@@ -28,7 +28,7 @@ import (
 	"github.com/stardog-union/stardog-graviton/sdutils"
 )
 
-// Ec2Instance represenst an instance of a Stardog service in AWS.
+// Ec2Instance represents an instance of a Stardog service in AWS.
 type Ec2Instance struct {
 	DeploymentName         string             `json:"deployment_name,omitempty"`
 	Region                 string             `json:"aws_region,omitempty"`
@@ -104,7 +104,7 @@ func volumeLineScanner(cliContext sdutils.AppContext, line string) *sdutils.Scan
 	return nil
 }
 
-func (awsI *Ec2Instance) runTerraformApply(zookeeperSize int, mask string, idleTimeout int) error {
+func (awsI *Ec2Instance) runTerraformApply(zookeeperSize int, mask string, idleTimeout int, message string) error {
 	awsI.ZkSize = fmt.Sprintf("%d", zookeeperSize)
 	awsI.ELBIdleTimeout = fmt.Sprintf("%d", idleTimeout)
 
@@ -140,7 +140,7 @@ func (awsI *Ec2Instance) runTerraformApply(zookeeperSize int, mask string, idleT
 		Dir:  instanceWorkingDir,
 	}
 	awsI.Ctx.Logf(sdutils.INFO, "Running terraform...\n")
-	spin := sdutils.NewSpinner(awsI.Ctx, 1, "Creating the instance VMs")
+	spin := sdutils.NewSpinner(awsI.Ctx, 1, message)
 	_, err = sdutils.RunCommand(awsI.Ctx, cmd, volumeLineScanner, spin)
 	if err != nil {
 		return err
@@ -148,9 +148,9 @@ func (awsI *Ec2Instance) runTerraformApply(zookeeperSize int, mask string, idleT
 	return nil
 }
 
-// CreateInstance will bootup a Stardog service in AWS.
+// CreateInstance will boot up a Stardog service in AWS.
 func (awsI *Ec2Instance) CreateInstance(zookeeperSize int, idleTimeout int) error {
-	err := awsI.runTerraformApply(zookeeperSize, "0.0.0.0/32", idleTimeout)
+	err := awsI.runTerraformApply(zookeeperSize, "0.0.0.0/32", idleTimeout, "Creating the instance VMs...")
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to create the instance.\n")
 		return err
@@ -162,7 +162,7 @@ func (awsI *Ec2Instance) CreateInstance(zookeeperSize int, idleTimeout int) erro
 // OpenInstance will open the firewall to allow incoming traffic to port 5821 from
 // the give CIDR.
 func (awsI *Ec2Instance) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
-	err := awsI.runTerraformApply(zookeeperSize, mask, idleTimeout)
+	err := awsI.runTerraformApply(zookeeperSize, mask, idleTimeout, "Opening the firewall...")
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to open up the instance.\n")
 		return err
@@ -270,3 +270,4 @@ func (awsI *Ec2Instance) Status() error {
 	awsI.Ctx.ConsoleLog(1, "SSH: %s\n", awsI.BastionContact)
 	return nil
 }
+

@@ -27,6 +27,12 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"crypto/rsa"
+	"crypto/rand"
+	"path/filepath"
+	"encoding/pem"
+	"crypto/x509"
+	"golang.org/x/crypto/ssh"
 )
 
 type validatorFunc func(key string) (interface{}, error)
@@ -310,4 +316,45 @@ func GetLocalOnlyHTTPMask() string {
 	}
 	cidr := fmt.Sprintf("%s/32", string(b))
 	return cidr
+}
+
+func GenerateKey(dir string, keyname string) (string, []byte, error) {
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		return "", nil, err
+	}
+
+	privateKeyFilename := filepath.Join(dir, keyname)
+	pubKeyFilename := privateKeyFilename + ".pub"
+
+	if PathExists(privateKeyFilename) {
+		return "", nil, fmt.Errorf("The private key %s already exists", pubKeyFilename)
+	}
+	if PathExists(pubKeyFilename) {
+		return "", nil, fmt.Errorf("The private key %s already exists", pubKeyFilename)
+	}
+
+	privateKeyFile, err := os.Create(privateKeyFilename)
+	defer privateKeyFile.Close()
+	if err != nil {
+		return "", nil, err
+	}
+
+	pemKey := &pem.Block{
+		Type: "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(rsaKey)}
+	if err := pem.Encode(privateKeyFile, pemKey); err != nil {
+		return "", nil, err
+	}
+	pub, err := ssh.NewPublicKey(&rsaKey.PublicKey)
+	if err != nil {
+		return "", nil, err
+	}
+	pubKeyBytes := ssh.MarshalAuthorizedKey(pub)
+	err = ioutil.WriteFile(pubKeyFilename, pubKeyBytes, 0655)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return privateKeyFilename, pubKeyBytes, nil
 }

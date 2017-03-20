@@ -37,7 +37,7 @@ func AddCloudType(p Plugin) {
 	pluginMap[p.GetName()] = p
 }
 
-// GetPlugin returns the plugin assocoiate with the given name
+// GetPlugin returns the plugin associate with the given name
 func GetPlugin(name string) (Plugin, error) {
 	p, ok := pluginMap[name]
 	if !ok {
@@ -93,12 +93,7 @@ func LoadDeployment(context AppContext, baseD *BaseDeployment, new bool) (Deploy
 	return d, err
 }
 
-func runClient(context AppContext, baseD *BaseDeployment, d Deployment, cmdArray []string) error {
-	sd, err := d.FullStatus()
-	if err != nil {
-		return err
-	}
-
+func runClient(context AppContext, sd *StardogDescription, baseD *BaseDeployment, d Deployment, cmdArray []string) error {
 	baseSSH, err := getSSHCommand(context, baseD, sd)
 	if err != nil {
 		return nil
@@ -214,7 +209,6 @@ func IsHealthy(context AppContext, baseD *BaseDeployment, d Deployment, internal
 			return false
 		}
 		return string(b) == "200"
-
 	}
 	url := fmt.Sprintf("%s/admin/healthcheck", sd.StardogURL)
 	context.Logf(DEBUG, "Checking health at %s.", url)
@@ -254,6 +248,37 @@ func WaitForHealth(context AppContext, baseD *BaseDeployment, d Deployment, wait
 	return nil
 }
 
+func WaitForNClusterNodes(context AppContext, size int, sdURL string, pw string, waitTimeout int) error {
+	pollInterval := 2
+	itCnt := waitTimeout / pollInterval
+
+	client := stardogClientImpl{
+		sdURL: sdURL,
+		logger: context,
+		username: "admin",
+		password: pw,
+	}
+	spinner := NewSpinner(context, 2, "Waiting for the node to be healthy internally")
+	nodes, err := client.GetClusterInfo()
+	if err != nil {
+		return err
+	}
+	for i := 0; len(*nodes) < size; i++ {
+		if i >= itCnt {
+			return fmt.Errorf("Timed out waiting for all the cluster nodes")
+		}
+		spinner.EchoNext()
+		time.Sleep(time.Duration(pollInterval) * time.Second)
+		nodes, err = client.GetClusterInfo()
+		if err != nil {
+			return err
+		}
+	}
+	spinner.Close()
+	context.ConsoleLog(1, "%s\n", context.SuccessString("The instance is healthy"))
+	return nil
+}
+
 func linePrinter(cliContext AppContext, line string) *ScanResult {
 	cliContext.Logf(DEBUG, line)
 	cliContext.ConsoleLog(1, "%s\n", line)
@@ -262,7 +287,7 @@ func linePrinter(cliContext AppContext, line string) *ScanResult {
 
 // CreateInstance wraps up the deployment.CreateInstance method and blocks until
 // the deployment is considered healthy.  It will then change the password by
-// sshing into the bastion node.  Once that is complete it will open up the
+// SSHing into the bastion node.  Once that is complete it will open up the
 // the firewall.
 func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, zkSize int, waitMaxTimeSec int, timeoutSec int, mask string, noWait bool) error {
 	err := dep.CreateInstance(zkSize, timeoutSec)
@@ -279,12 +304,29 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, z
 	if err != nil {
 		return err
 	}
+	sd, err := dep.FullStatus()
+	if err != nil {
+		return err
+	}
+	pw := "admin"
 	newPw := os.Getenv("STARDOG_ADMIN_PASSWORD")
 	if newPw != "" {
 		context.ConsoleLog(1, "Changing the default password...\n")
-		err = runClient(context, baseD, dep, []string{"user", "passwd", "-u", "admin", "-N", newPw, "-p", "admin"})
+		err = runClient(context, sd, baseD, dep, []string{"user", "passwd", "-u", "admin", "-N", newPw, "-p", "admin"})
+		if err != nil {
+			return err
+		}
+		pw = newPw
 	}
 	err = dep.OpenInstance(zkSize, mask, timeoutSec)
+	if err != nil {
+		return err
+	}
+	clusterSize, err := dep.ClusterSize()
+	if err != nil {
+		return err
+	}
+	err = WaitForNClusterNodes(context, clusterSize, sd.StardogURL, pw, waitMaxTimeSec)
 	return err
 }
 
@@ -294,16 +336,9 @@ func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, inter
 	if err != nil {
 		return err
 	}
-	sd.Healthy = IsHealthy(context, baseD, dep, internal)
+	context.ConsoleLog(2, "Checking status...\n")
 
-	context.ConsoleLog(1, "Stardog is available here: %s\n", context.HighlightString(sd.StardogURL))
-	context.ConsoleLog(1, "ssh is available here: %s\n", sd.SSHHost)
-	if outfile != "" {
-		err = WriteJSON(sd, outfile)
-		if err != nil {
-			return err
-		}
-	}
+	sd.Healthy = IsHealthy(context, baseD, dep, internal)
 	if sd.Healthy {
 		context.ConsoleLog(1, "%s\n", context.SuccessString("The instance is healthy"))
 	} else {
@@ -313,9 +348,35 @@ func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, inter
 		return nil
 	}
 
+	context.ConsoleLog(1, "Stardog is available here: %s\n", context.HighlightString(sd.StardogURL))
+	context.ConsoleLog(1, "ssh is available here: %s\n", sd.SSHHost)
+
 	pw := os.Getenv("STARDOG_ADMIN_PASSWORD")
 	if pw == "" {
 		pw = "admin"
 	}
-	return runClient(context, baseD, dep, []string{"cluster", "info", "-u", "admin", "-p", pw})
+
+	client := stardogClientImpl{
+		sdURL: sd.StardogURL,
+		logger: context,
+		username: "admin",
+		password: pw,
+	}
+	nodes, err := client.GetClusterInfo()
+	if err != nil {
+		return err
+	}
+	context.ConsoleLog(1, "Using %d stardog nodes\n", len(*nodes))
+	for _, n := range *nodes {
+		context.ConsoleLog(1, "\t%s\n", n)
+	}
+	sd.StardogNodes = *nodes
+
+	if outfile != "" {
+		err = WriteJSON(sd, outfile)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

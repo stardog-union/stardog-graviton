@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/stardog-union/stardog-graviton/sdutils"
+	"time"
 )
 
 type awsDeploymentDescription struct {
@@ -34,6 +35,7 @@ type awsDeploymentDescription struct {
 	ZkInstanceType string `json:"zk_instance,omitempty"`
 	SdInstanceType string `json:"sd_instance,omitempty"`
 	PrivateKeyPath string `json:"private_key_path,omitempty"`
+	CreatedKey     bool   `json:"created_key,omitempty"`
 	HTTPMask       string `json:"http_mask,omitempty"`
 	Version        string `json:"-"`
 	Name           string `json:"-"`
@@ -45,6 +47,7 @@ type awsDeploymentDescription struct {
 
 func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeployment, a *awsPlugin) (*awsDeploymentDescription, error) {
 	var err error
+	createdKey := false
 
 	if a.AmiID == "" {
 		// If the ami is not specified look it up
@@ -66,14 +69,28 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		}
 		a.AmiID = ami
 	}
-	if a.AwsKeyName == "" {
-		a.AwsKeyName, err = sdutils.AskUser("EC2 keyname", "default")
+	if a.Region == "" {
+		a.AwsKeyName, err = sdutils.AskUser("Region", "us-west-1")
 		if err != nil {
 			return nil, err
 		}
 	}
-	if a.Region == "" {
-		a.AwsKeyName, err = sdutils.AskUser("Region", "us-west-1")
+	if a.AwsKeyName == "" && baseD.PrivateKey == "" {
+		if sdutils.AskUserYesOrNo("Would you like to create an SSH key pair?") {
+			newKeyName := baseD.Name + "key"
+			keyName, public, err := sdutils.GenerateKey(baseD.Directory, newKeyName)
+			if err != nil {
+				return nil, err
+			}
+			err = ImportKeyName(c, a, keyName, public)
+			if err != nil {
+				return nil, err
+			}
+			createdKey = true
+		}
+	}
+	if a.AwsKeyName == "" {
+		a.AwsKeyName, err = sdutils.AskUser("EC2 keyname", "default")
 		if err != nil {
 			return nil, err
 		}
@@ -123,6 +140,7 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		deployDir:      deployDir,
 		customPropFile: baseD.CustomPropsFile,
 		environment:    baseD.Environment,
+		CreatedKey:     createdKey,
 	}
 	return &dd, nil
 }
@@ -134,11 +152,37 @@ func (dd *awsDeploymentDescription) CreateVolumeSet(licensePath string, sizeOfEa
 
 func (dd *awsDeploymentDescription) DeleteVolumeSet() error {
 	vm := NewAwsEbsVolumeManager(dd.ctx, dd)
+	if !vm.VolumeExists() {
+		return fmt.Errorf("No volume information exists for %s", dd.Name)
+	}
 	return vm.DeleteSet()
+}
+
+func (dd *awsDeploymentDescription) ClusterSize() (int, error) {
+	vm := NewAwsEbsVolumeManager(dd.ctx, dd)
+	if !vm.VolumeExists() {
+		return -1, fmt.Errorf("No volume information exists for %s", dd.Name)
+	}
+	vols, err := LoadEbsVolume(dd.ctx, vm.VolumeDir)
+	if err != nil {
+		return -1, err
+	}
+	var size int
+	c, err := fmt.Sscanf(vols.ClusterSize, "%d", &size)
+	if err != nil {
+		return -1, err
+	}
+	if c != 1 {
+		return -1, fmt.Errorf("Internal error: the cluster size is not coherent")
+	}
+	return size, nil
 }
 
 func (dd *awsDeploymentDescription) StatusVolumeSet() error {
 	vm := NewAwsEbsVolumeManager(dd.ctx, dd)
+	if !vm.VolumeExists() {
+		return fmt.Errorf("No volume information exists for %s", dd.Name)
+	}
 	return vm.Status()
 }
 
@@ -201,6 +245,7 @@ func (dd *awsDeploymentDescription) FullStatus() (*sdutils.StardogDescription, e
 		StardogInternalURL:  fmt.Sprintf("http://%s:5821", im.StardogInternalContact),
 		VolumeDescription:   volumeStatus,
 		InstanceDescription: instS,
+		TimeStamp:           time.Now(),
 	}
 
 	return &sD, nil

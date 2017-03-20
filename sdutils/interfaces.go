@@ -17,6 +17,7 @@ package sdutils
 
 import (
 	"gopkg.in/alecthomas/kingpin.v2"
+	"time"
 )
 
 // ConsoleEffect is a function for writing lines to the console in a
@@ -54,8 +55,10 @@ type AppContext interface {
 type StardogDescription struct {
 	StardogURL          string      `json:"stardog_url,omitempty"`
 	StardogInternalURL  string      `json:"stardog_internal_url,omitempty"`
+	StardogNodes        []string    `json:"stardog_nodes,omitempty"`
 	SSHHost             string      `json:"ssh_host,omitempty"`
 	Healthy             bool        `json:"healthy,omitempty"`
+	TimeStamp           time.Time   `json:"timestamp,omitempty"`
 	VolumeDescription   interface{} `json:"volume,omitempty"`
 	InstanceDescription interface{} `json:"instance,omitempty"`
 }
@@ -66,6 +69,7 @@ type Deployment interface {
 	DeleteVolumeSet() error
 	StatusVolumeSet() error
 	VolumeExists() bool
+	ClusterSize() (int, error)
 
 	CreateInstance(zookeeperSize int, idleTimeout int) error
 	OpenInstance(zookeeperSize int, mask string, idleTimeout int) error
