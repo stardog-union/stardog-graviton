@@ -158,6 +158,46 @@ func CheckKeyName(c sdutils.AppContext, a *awsPlugin, keyname string) (bool, err
 	return false, nil
 }
 
+func ImportKeyName(c sdutils.AppContext, a *awsPlugin, keyname string, publickey []byte) error {
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "gravitontest" {
+		return nil
+	}
+	conf := aws.Config{Region: aws.String(a.Region)}
+	sess, err := session.NewSession()
+	if err != nil {
+		return err
+	}
+
+	svc := ec2.New(sess, &conf)
+
+	keyInput := ec2.ImportKeyPairInput{
+		KeyName:  &keyname,
+		PublicKeyMaterial: publickey,
+	}
+	_, err = svc.ImportKeyPair(&keyInput)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteKeyPair(c sdutils.AppContext, a *awsPlugin, keyname string) error {
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "gravitontest" {
+		return nil
+	}
+	conf := aws.Config{Region: aws.String(a.Region)}
+	sess, err := session.NewSession()
+	if err != nil {
+		return err
+	}
+	svc := ec2.New(sess, &conf)
+	_, err = svc.DeleteKeyPair(&ec2.DeleteKeyPairInput{KeyName: &keyname,})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func destroyInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config, instList []*ec2.Instance) error {
 	svc := ec2.New(sess, conf)
 	for _, inst := range instList {

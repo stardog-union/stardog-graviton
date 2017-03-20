@@ -136,3 +136,7 @@ func (tstDep *tpDeployment) InstanceExists() bool {
 func (tstDep *tpDeployment) FullStatus() (*StardogDescription, error) {
 	return tstDep.SdDesc, nil
 }
+
+func (tstDep *tpDeployment) ClusterSize() (int, error) {
+	return 1, nil
+}
