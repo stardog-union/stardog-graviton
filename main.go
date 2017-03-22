@@ -54,6 +54,7 @@ type CliContext struct {
 	OutputFile        string             `json:"output_file,omitempty"`
 	HTTPMask          string             `json:"http_mask,omitempty"`
 	ConnectionTimeout int                `json:"connection_timeout,omitempty"`
+	Memory            string             `json:"memory,omitempty"`
 	CloudOpts         interface{}        `json:"cloud_options"`
 	DeploymentName    string             `json:"-"`
 	CommandList       []string           `json:"-"`
@@ -137,8 +138,38 @@ func (cliContext *CliContext) aboutCommand(c *kingpin.ParseContext) error {
 	return nil
 }
 
+
+func envNormalize(cliContext *CliContext) error {
+	found := false
+	for ndx, env := range cliContext.EnvList {
+		i := strings.Index(env, "=")
+		if i < 1 || i > len(env)-2 {
+			return fmt.Errorf("The environment variable must have the form 'key=value'")
+		}
+		kvArray := strings.Split(env, "=")
+		if kvArray[1][0] != '\'' && kvArray[1][0] != '"' {
+			cliContext.EnvList[ndx] = fmt.Sprintf("%s=\"%s\"", kvArray[0], kvArray[1])
+		}
+		if kvArray[0] == "STARDOG_JAVA_ARGS" {
+			found = true
+		}
+
+	}
+	if !found {
+		cliContext.EnvList = append(cliContext.EnvList, fmt.Sprintf("STARDOG_JAVA_ARGS=\"-Xmx%s -Xms%s -XX:MaxDirectMemorySize=%s\"", cliContext.Memory, cliContext.Memory, cliContext.Memory))
+	}
+
+	return nil
+}
+
+
 func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 	var err error
+
+	err = envNormalize(cliContext)
+	if err != nil {
+		return err
+	}
 
 	plugin, err := sdutils.GetPlugin(cliContext.CloudType)
 	if err != nil {
@@ -244,6 +275,11 @@ func (cliContext *CliContext) leaks(c *kingpin.ParseContext) error {
 }
 
 func (cliContext *CliContext) newDeployment(c *kingpin.ParseContext) error {
+	err := envNormalize(cliContext)
+	if err != nil {
+		return err
+	}
+
 	// In the future we will check instance types
 	baseD := sdutils.BaseDeployment{
 		Name:            cliContext.DeploymentName,
@@ -254,7 +290,7 @@ func (cliContext *CliContext) newDeployment(c *kingpin.ParseContext) error {
 		CustomPropsFile: cliContext.CustomSdProps,
 		Environment:     cliContext.EnvList,
 	}
-	_, err := sdutils.LoadDeployment(cliContext, &baseD, true)
+	_, err = sdutils.LoadDeployment(cliContext, &baseD, true)
 	return err
 }
 
@@ -292,6 +328,11 @@ func (cliContext *CliContext) destroyDeployment(c *kingpin.ParseContext) error {
 	if err != nil {
 		cliContext.ConsoleLog(1, "The volumes were not destroyed %s\n", err)
 	}
+	err = d.DestroyDeployment()
+	if err != nil {
+		cliContext.ConsoleLog(1, "Failed to destroy the deployment %s\n", err)
+		return err
+	}
 	sdutils.DeleteDeployment(cliContext, cliContext.DeploymentName)
 	return nil
 }
@@ -313,18 +354,27 @@ func (cliContext *CliContext) fullStatus(c *kingpin.ParseContext) error {
 }
 
 func (cliContext *CliContext) destroyFullDeployment(c *kingpin.ParseContext) error {
+	d, err := loadDepWrapper(cliContext, false)
+	if err != nil {
+		return err
+	}
 	cliContext.ConsoleLog(0, "This will destroy all volumes and instances associated with this deployment.\n")
 	if !cliContext.Force && !sdutils.AskUserYesOrNo("Do you really want to destroy?") {
 		return nil
 	}
 	cliContext.Force = true
-	err := cliContext.destroyInstance(c)
+	err = cliContext.destroyInstance(c)
 	if err != nil {
 		cliContext.ConsoleLog(1, "The instance was not destroyed.  %s\n", err)
 	}
 	err = cliContext.destroyVolumes(c)
 	if err != nil {
 		cliContext.ConsoleLog(1, "The volumes were not destroyed.  %s\n", err)
+	}
+	err = d.DestroyDeployment()
+	if err != nil {
+		cliContext.ConsoleLog(1, "Failed to destroy the deployment %s\n", err)
+		return err
 	}
 	sdutils.DeleteDeployment(cliContext, cliContext.DeploymentName)
 	return nil
@@ -453,6 +503,7 @@ func (cliContext *CliContext) envValidate(a *kingpin.CmdClause) error {
 			return fmt.Errorf("The environment variable must have the form 'key=value'")
 		}
 	}
+
 	return nil
 }
 
@@ -525,6 +576,7 @@ func loadDefaultCliOptions() *CliContext {
 		WaitMaxTimeSec:    600,
 		ConnectionTimeout: 300,
 		HTTPMask:          sdutils.GetLocalOnlyHTTPMask(),
+		Memory:            "2g",
 		highlight:         color.New(color.FgHiWhite, color.Bold).SprintFunc(),
 		green:             color.New(color.FgGreen, color.Bold).SprintFunc(),
 		red:               color.New(color.FgRed, color.Bold).SprintFunc(),
@@ -585,8 +637,9 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("env", "Set an environment variable before running Stardog.  The format should be key=value.  This option can be used multiple times. Advanced feature.").StringsVar(&cliContext.EnvList)
 	cmdOpts.LaunchCmd.Arg("name", "The name of the deployment.  It must be unique to this account.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.LaunchCmd.Flag("cidr", "The network mask to which stardog access will be limited.  The default is the IP of this machine.").Default(cliContext.HTTPMask).StringVar(&cliContext.HTTPMask)
-	cmdOpts.LaunchCmd.Action(cliContext.interactive)
+	cmdOpts.LaunchCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
 	cmdOpts.LaunchCmd.Validate(cliContext.envValidate)
+	cmdOpts.LaunchCmd.Action(cliContext.interactive)
 
 	cmdOpts.DestroyCmd = cli.Command("destroy", "Destroy everything associated with a deployment.")
 	cmdOpts.DestroyCmd.Arg("name", "The name of the deployment to destroy.").Required().StringVar(&cliContext.DeploymentName)
@@ -625,6 +678,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.NewDeploymentCmd.Flag("private-key", "The path to the private key.").Default(cliContext.PrivateKeyPath).StringVar(&cliContext.PrivateKeyPath)
 	cmdOpts.NewDeploymentCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
 	cmdOpts.NewDeploymentCmd.Flag("env", "Set an environment variable before running Stardog.  The format should be key=value.  This option can be used multiple times. Advanced feature.").StringsVar(&cliContext.EnvList)
+	cmdOpts.NewDeploymentCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
 	cmdOpts.NewDeploymentCmd.Action(cliContext.newDeployment)
 	cmdOpts.NewDeploymentCmd.Validate(cliContext.envValidate)
 

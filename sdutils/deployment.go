@@ -249,6 +249,7 @@ func WaitForHealth(context AppContext, baseD *BaseDeployment, d Deployment, wait
 }
 
 func WaitForNClusterNodes(context AppContext, size int, sdURL string, pw string, waitTimeout int) error {
+	var err error
 	pollInterval := 2
 	itCnt := waitTimeout / pollInterval
 
@@ -259,11 +260,9 @@ func WaitForNClusterNodes(context AppContext, size int, sdURL string, pw string,
 		password: pw,
 	}
 	spinner := NewSpinner(context, 2, "Waiting for the node to be healthy internally")
-	nodes, err := client.GetClusterInfo()
-	if err != nil {
-		return err
-	}
+	nodes := &[]string{}
 	for i := 0; len(*nodes) < size; i++ {
+		context.ConsoleLog(2, "%d nodes waiting for %d\n", len(*nodes), size)
 		if i >= itCnt {
 			return fmt.Errorf("Timed out waiting for all the cluster nodes")
 		}
@@ -271,7 +270,8 @@ func WaitForNClusterNodes(context AppContext, size int, sdURL string, pw string,
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 		nodes, err = client.GetClusterInfo()
 		if err != nil {
-			return err
+			context.Logf(WARN, "Cluster info failed: %s", err)
+			nodes = &[]string{}
 		}
 	}
 	spinner.Close()

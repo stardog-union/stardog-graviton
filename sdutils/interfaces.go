@@ -78,6 +78,8 @@ type Deployment interface {
 	InstanceExists() bool
 
 	FullStatus() (*StardogDescription, error)
+
+	DestroyDeployment() error
 }
 
 // CommandOpts holds all of the CLI parsing information for the system.

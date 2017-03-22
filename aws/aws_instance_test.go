@@ -61,7 +61,7 @@ func TestInstanceNotThere(t *testing.T) {
 		t.Fatalf("Failed to make the deployment manager %s", err)
 	}
 
-	inst := NewEc2Instance(&app, dd)
+	inst, err := NewEc2Instance(&app, dd)
 	if inst.InstanceExists() {
 		t.Fatalf("The instance should not exist")
 	}
@@ -120,7 +120,7 @@ func TestInstanceFakeTerraform(t *testing.T) {
 		t.Fatalf("Failed to make the deployment manager %s", err)
 	}
 
-	inst := NewEc2Instance(&app, dd)
+	inst, err := NewEc2Instance(&app, dd)
 	if inst.InstanceExists() {
 		t.Fatalf("The instance should not exist")
 	}
