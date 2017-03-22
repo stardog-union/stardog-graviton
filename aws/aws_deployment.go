@@ -43,6 +43,7 @@ type awsDeploymentDescription struct {
 	customPropFile string
 	environment    []string
 	ctx            sdutils.AppContext
+	plugin         *awsPlugin
 }
 
 func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeployment, a *awsPlugin) (*awsDeploymentDescription, error) {
@@ -143,6 +144,14 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		CreatedKey:     createdKey,
 	}
 	return &dd, nil
+}
+
+func (dd *awsDeploymentDescription) DestroyDeployment() error {
+	if dd.CreatedKey {
+		err := DeleteKeyPair(dd.ctx, dd.plugin, dd.AwsKeyName)
+		return err
+	}
+	return nil
 }
 
 func (dd *awsDeploymentDescription) CreateVolumeSet(licensePath string, sizeOfEachVolume int, clusterSize int) error {
@@ -342,6 +351,7 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 		if err != nil {
 			return nil, err
 		}
+		awsDD.plugin = a
 		return awsDD, nil
 	}
 	data, err := json.Marshal(baseD.CloudOpts)
@@ -358,6 +368,7 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 	dd.ctx = context
 	dd.deployDir = sdutils.DeploymentDir(context.GetConfigDir(), baseD.Name)
 	dd.environment = baseD.Environment
+	dd.plugin = a
 
 	return &dd, nil
 }

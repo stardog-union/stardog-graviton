@@ -140,3 +140,8 @@ func (tstDep *tpDeployment) FullStatus() (*StardogDescription, error) {
 func (tstDep *tpDeployment) ClusterSize() (int, error) {
 	return 1, nil
 }
+
+func (tstDep *tpDeployment) DestroyDeployment() error {
+	return nil
+}
+
