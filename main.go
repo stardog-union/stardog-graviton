@@ -162,7 +162,6 @@ func envNormalize(cliContext *CliContext) error {
 	return nil
 }
 
-
 func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 	var err error
 
@@ -552,6 +551,8 @@ func (cliContext *CliContext) topValidate(a *kingpin.Application) error {
 }
 
 func loadDefaultCliOptions() *CliContext {
+	var err error
+
 	usr, _ := user.Current()
 	confDir := os.Getenv("STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR")
 	if confDir == "" {
@@ -584,11 +585,17 @@ func loadDefaultCliOptions() *CliContext {
 	defaultFile := filepath.Join(confDir, "default.json")
 
 	if os.Getenv("STARDOG_GRAVITON_UNIT_TEST") == "" {
-		sdutils.LoadJSON(&cliContext, defaultFile)
+		if sdutils.PathExists(defaultFile) {
+			err = sdutils.LoadJSON(&cliContext, defaultFile)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "There was an error loading the defaults file %s: %s\n", defaultFile, err)
+			}
+		}
+
 	}
 	p, ok := pluginsMap[cliContext.CloudType]
 	if ok && cliContext.CloudType != "" {
-		err := p.LoadDefaults(cliContext.CloudOpts)
+		err = p.LoadDefaults(cliContext.CloudOpts)
 		if err != nil {
 			fmt.Printf("Failed to load the default cloud opts: %s\n", err)
 		}
