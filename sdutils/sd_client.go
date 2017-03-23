@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"bytes"
 	"encoding/json"
+	"time"
 )
 
 type stardogClientImpl struct {
@@ -17,14 +18,14 @@ type stardogClientImpl struct {
 }
 
 
-func (s *stardogClientImpl) doRequest(method, urlStr string, body io.Reader, contentType string, expectedCode int) ([]byte, error) {
+func (s *stardogClientImpl) doRequest(method, urlStr string, body io.Reader, contentType string, expectedCode int) ([]byte, int, error) {
 	return s.doRequestWithAccept(method, urlStr, body, contentType, contentType, expectedCode)
 }
 
-func (s *stardogClientImpl) doRequestWithAccept(method, urlStr string, body io.Reader, contentType string, accept string, expectedCode int) ([]byte, error) {
+func (s *stardogClientImpl) doRequestWithAccept(method, urlStr string, body io.Reader, contentType string, accept string, expectedCode int) ([]byte, int, error) {
 	req, err := http.NewRequest(method, urlStr, body)
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
 	req.SetBasicAuth(s.username, s.password)
 	client := &http.Client{}
@@ -34,15 +35,15 @@ func (s *stardogClientImpl) doRequestWithAccept(method, urlStr string, body io.R
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Failed do the post %s", err)
+		return nil, -1, fmt.Errorf("Failed do the post %s", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != expectedCode {
-		return nil, fmt.Errorf("Expected %d but got %d when %s to %s", expectedCode, resp.StatusCode, method, urlStr)
+		return nil, resp.StatusCode, fmt.Errorf("Expected %d but got %d when %s to %s", expectedCode, resp.StatusCode, method, urlStr)
 	}
 	content, err := ioutil.ReadAll(resp.Body)
 	s.logger.Logf(DEBUG, "Completed %s to %s", method, urlStr)
-	return content, nil
+	return content, resp.StatusCode, nil
 }
 
 func (s *stardogClientImpl) GetClusterInfo() (*[]string, error) {
@@ -50,7 +51,15 @@ func (s *stardogClientImpl) GetClusterInfo() (*[]string, error) {
 
 	dbURL := fmt.Sprintf("%s/admin/cluster", s.sdURL)
 	bodyBuf := &bytes.Buffer{}
-	content, err := s.doRequest("GET", dbURL, bodyBuf, "application/json", 200)
+	content, code, err := s.doRequest("GET", dbURL, bodyBuf, "application/json", 200)
+	for i := 0; code == 503; i++ {
+		if i > 10 {
+			return nil, err
+		}
+		s.logger.Logf(WARN, "The first request to admin/cluster failed")
+		time.Sleep(2 * time.Second)
+		content, _, err = s.doRequest("GET", dbURL, bodyBuf, "application/json", 200)
+	}
 	if err != nil {
 		return nil, err
 	}
