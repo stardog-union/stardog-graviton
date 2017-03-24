@@ -21,6 +21,7 @@ data "template_file" "stardog_userdata" {
     deployment_name = "${var.deployment_name}"
     zk_servers = "${join(",", data.template_file.stardog_zk_server.*.rendered)}"
     environment_variables = "${var.environment_variables}"
+    server_opts = "${var.stardog_start_opts}"
   }
 }
 

@@ -127,3 +127,9 @@ variable "environment_variables" {
   description = "The environment variables to inject into the stardog script"
   default = ""
 }
+
+variable "stardog_start_opts" {
+  type = "string"
+  description = "Options passed to stardog-admin server start"
+  default = ""
+}

@@ -24,7 +24,7 @@ while [ $rc -ne 0 ]; do
 	fi
 	sleep 30
 	rm -f /mnt/data/stardog-home/system.lock
-    /usr/local/bin/stardog-admin server start --home $STARDOG_HOME --port 5821
+    /usr/local/bin/stardog-admin server start ${server_opts} --home $STARDOG_HOME --port 5821
     /usr/local/bin/stardog-wait-for-socket 2 localhost:5821
     rc=$?
 done
