@@ -44,6 +44,7 @@ type Ec2Instance struct {
 	ELBIdleTimeout         string             `json:"elb_idle_timeout,omitempty"`
 	CustomPropsData        string             `json:"custom_properties_data,omitempty"`
 	Environment            string             `json:"environment_variables,omitempty"`
+	StartOpts              string             `json:"stardog_start_opts,omitempty"`
 	DeployDir              string             `json:"-"`
 	Ctx                    sdutils.AppContext `json:"-"`
 	BastionContact         string             `json:"-"`
@@ -88,6 +89,9 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		Ctx:             ctx,
 		CustomPropsData: customData,
 		Environment:     envBuffer.String(),
+	}
+	if dd.disableSecurity {
+		instance.StartOpts = "--disable-security"
 	}
 	return &instance, nil
 }

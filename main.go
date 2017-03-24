@@ -55,6 +55,7 @@ type CliContext struct {
 	HTTPMask          string             `json:"http_mask,omitempty"`
 	ConnectionTimeout int                `json:"connection_timeout,omitempty"`
 	Memory            string             `json:"memory,omitempty"`
+	DisableSecurity   bool               `json:"disable_security,omitempty"`
 	CloudOpts         interface{}        `json:"cloud_options"`
 	DeploymentName    string             `json:"-"`
 	CommandList       []string           `json:"-"`
@@ -213,6 +214,7 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
 		Environment:     cliContext.EnvList,
+		DisableSecurity: cliContext.DisableSecurity,
 	}
 	dep, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
@@ -288,6 +290,7 @@ func (cliContext *CliContext) newDeployment(c *kingpin.ParseContext) error {
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
 		Environment:     cliContext.EnvList,
+		DisableSecurity: cliContext.DisableSecurity,
 	}
 	_, err = sdutils.LoadDeployment(cliContext, &baseD, true)
 	return err
@@ -645,6 +648,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Arg("name", "The name of the deployment.  It must be unique to this account.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.LaunchCmd.Flag("cidr", "The network mask to which stardog access will be limited.  The default is the IP of this machine.").Default(cliContext.HTTPMask).StringVar(&cliContext.HTTPMask)
 	cmdOpts.LaunchCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
+	cmdOpts.LaunchCmd.Flag("disable-security", "Run the Stardog servers without security.").Default(fmt.Sprintf("%t", cliContext.DisableSecurity)).BoolVar(&cliContext.DisableSecurity)
 	cmdOpts.LaunchCmd.Validate(cliContext.envValidate)
 	cmdOpts.LaunchCmd.Action(cliContext.interactive)
 
@@ -686,6 +690,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.NewDeploymentCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
 	cmdOpts.NewDeploymentCmd.Flag("env", "Set an environment variable before running Stardog.  The format should be key=value.  This option can be used multiple times. Advanced feature.").StringsVar(&cliContext.EnvList)
 	cmdOpts.NewDeploymentCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
+	cmdOpts.NewDeploymentCmd.Flag("disable-security", "Run the Stardog servers without security.").Default(fmt.Sprintf("%t", cliContext.DisableSecurity)).BoolVar(&cliContext.DisableSecurity)
 	cmdOpts.NewDeploymentCmd.Action(cliContext.newDeployment)
 	cmdOpts.NewDeploymentCmd.Validate(cliContext.envValidate)
 

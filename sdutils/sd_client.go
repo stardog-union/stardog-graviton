@@ -54,11 +54,11 @@ func (s *stardogClientImpl) GetClusterInfo() (*[]string, error) {
 	content, code, err := s.doRequest("GET", dbURL, bodyBuf, "application/json", 200)
 	for i := 0; code == 503; i++ {
 		if i > 10 {
-			return nil, err
+			return nil, fmt.Errorf("timeout waiting to get cluster information")
 		}
 		s.logger.Logf(WARN, "The first request to admin/cluster failed")
 		time.Sleep(2 * time.Second)
-		content, _, err = s.doRequest("GET", dbURL, bodyBuf, "application/json", 200)
+		content, code, err = s.doRequest("GET", dbURL, bodyBuf, "application/json", 200)
 	}
 	if err != nil {
 		return nil, err

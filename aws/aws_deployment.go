@@ -42,6 +42,7 @@ type awsDeploymentDescription struct {
 	deployDir      string
 	customPropFile string
 	environment    []string
+	disableSecurity bool
 	ctx            sdutils.AppContext
 	plugin         *awsPlugin
 }
@@ -141,6 +142,7 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		deployDir:      deployDir,
 		customPropFile: baseD.CustomPropsFile,
 		environment:    baseD.Environment,
+		disableSecurity: baseD.DisableSecurity,
 		CreatedKey:     createdKey,
 	}
 	return &dd, nil
@@ -341,6 +343,7 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 			return nil, err
 		}
 		awsDD.environment = baseD.Environment
+		awsDD.disableSecurity = baseD.DisableSecurity
 		baseD.CloudOpts = awsDD
 		data, err := json.Marshal(baseD)
 		if err != nil {
@@ -368,6 +371,7 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 	dd.ctx = context
 	dd.deployDir = sdutils.DeploymentDir(context.GetConfigDir(), baseD.Name)
 	dd.environment = baseD.Environment
+	dd.disableSecurity = baseD.DisableSecurity
 	dd.plugin = a
 
 	return &dd, nil
