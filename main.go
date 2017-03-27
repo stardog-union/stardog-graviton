@@ -339,6 +339,22 @@ func (cliContext *CliContext) destroyDeployment(c *kingpin.ParseContext) error {
 	return nil
 }
 
+func (cliContext *CliContext) gatherLogs(c *kingpin.ParseContext) error {
+	baseD := sdutils.BaseDeployment{
+		Name:            cliContext.DeploymentName,
+		Version:         cliContext.Version,
+		Type:            strings.ToLower(cliContext.CloudType),
+		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
+		PrivateKey:      cliContext.PrivateKeyPath,
+		CustomPropsFile: cliContext.CustomSdProps,
+	}
+	d, err := sdutils.LoadDeployment(cliContext, &baseD, false)
+	if err != nil {
+		return err
+	}
+	return sdutils.GatherLogs(cliContext, &baseD, d, cliContext.OutputFile)
+}
+
 func (cliContext *CliContext) fullStatus(c *kingpin.ParseContext) error {
 	baseD := sdutils.BaseDeployment{
 		Name:            cliContext.DeploymentName,
@@ -659,9 +675,14 @@ func parseParameters(args []string) (*CliContext, error) {
 
 	cmdOpts.StatusCmd = cli.Command("status", "Check the status of a full deployment.")
 	cmdOpts.StatusCmd.Arg("deployment name", "The name of the deployment to inspect.").Required().StringVar(&cliContext.DeploymentName)
-	cmdOpts.StatusCmd.Flag("json-file", "The path json output file.").StringVar(&cliContext.OutputFile)
+	cmdOpts.StatusCmd.Flag("json-file", "The path to the json output file.").StringVar(&cliContext.OutputFile)
 	cmdOpts.StatusCmd.Flag("internal-health", "Do not verify with the destruction.").Default("false").BoolVar(&cliContext.InternalHealth)
 	cmdOpts.StatusCmd.Action(cliContext.fullStatus)
+
+	cmdOpts.StatusCmd = cli.Command("logs", "Gather the logs of all the Stardog nodes.")
+	cmdOpts.StatusCmd.Arg("deployment name", "The name of the deployment to inspect.").Required().StringVar(&cliContext.DeploymentName)
+	cmdOpts.StatusCmd.Flag("output-file", "The path to the output file.").StringVar(&cliContext.OutputFile)
+	cmdOpts.StatusCmd.Action(cliContext.gatherLogs)
 
 	cmdOpts.LeaksCmd = cli.Command("leaks", "Check aws services for possible resource leaks.")
 	cmdOpts.LeaksCmd.Flag("destroy", "Destroy any of the resources found.").Default("false").BoolVar(&cliContext.Destroy)

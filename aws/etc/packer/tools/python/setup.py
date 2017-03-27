@@ -19,10 +19,11 @@ setuptools.setup(name='stardog-cluster-utils',
               "stardog-find-volume=stardog.cluster.find_volume:main",
               "stardog-wait-for-socket=stardog.cluster.wait_for_socket:main",
               "stardog-wait-for-pgm=stardog.cluster.test_program:main",
+              "stardog-gather-logs=stardog.cluster.gather_log:main",
               "stardog-monitor-zk=stardog.cluster.monitor_zk:main"
           ],
       },
-      install_requires=["pyyaml == 3.10"],
+      install_requires=["pyyaml == 3.10", "requests == 2.13.0"],
 
       package_data={"stardog.cluster": ["stardog/cluster/*"]},
 

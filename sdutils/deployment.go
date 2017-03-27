@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"math/rand"
 )
 
 var (
@@ -124,6 +125,7 @@ func getSSHCommand(context AppContext, baseD *BaseDeployment, sd *StardogDescrip
 
 	sshCmd := []string{sshPath,
 		"-t", "-t",
+		"-A",
 		"-i", baseD.PrivateKey,
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "UserKnownHostsFile=/dev/null",
@@ -131,6 +133,47 @@ func getSSHCommand(context AppContext, baseD *BaseDeployment, sd *StardogDescrip
 	}
 
 	return sshCmd, nil
+}
+
+func runSCPCommand(context AppContext, baseD *BaseDeployment, sd *StardogDescription, local string, remote string, upload bool) error {
+	context.Logf(DEBUG, "sshing to %s to run the stardog client\n", sd.SSHHost)
+
+	scpPath, err := exec.LookPath("scp")
+	if err != nil {
+		return err
+	}
+
+	var scpStrA []string
+	remoteTarget := fmt.Sprintf("%s@%s:%s", "ubuntu", sd.SSHHost, remote)
+	if upload {
+		scpStrA = []string{scpPath,
+			"-v",
+			"-i", baseD.PrivateKey,
+			"-o", "StrictHostKeyChecking=no",
+			"-o", "UserKnownHostsFile=/dev/null",
+			local,
+			remoteTarget,
+		}
+	} else {
+		scpStrA = []string{scpPath,
+			"-v",
+			"-i", baseD.PrivateKey,
+			"-o", "StrictHostKeyChecking=no",
+			"-o", "UserKnownHostsFile=/dev/null",
+			remoteTarget,
+			local,
+		}
+	}
+	scpCmd := exec.Cmd{
+		Path: scpStrA[0],
+		Args: scpStrA,
+	}
+	o, err := scpCmd.CombinedOutput()
+	if err != nil {
+		context.Logf(ERROR, "scp error: %s.  %s", err, string(o))
+		return err
+	}
+	return nil
 }
 
 // RunSSH will start an ssh session on the bastion node
@@ -330,13 +373,48 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, z
 	return err
 }
 
-// FullStatus inspects the state of a deployment and prints it out to the console.
-func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, internal bool, outfile string) error {
+func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfile string) error {
+	context.ConsoleLog(2, "Gathering logs...\n")
 	sd, err := dep.FullStatus()
 	if err != nil {
 		return err
 	}
+
+	sshBase, err := getSSHCommand(context, baseD, sd)
+	if err != nil {
+		return err
+	}
+	dst_log_file := fmt.Sprintf("/tmp/stardog%d.tar.gz", rand.Int())
+	sshCmd := append(sshBase, []string{
+		"/usr/local/bin/stardog-garther-logs",
+		sd.StardogInternalURL,
+		dst_log_file,
+	}...)
+	cmd := exec.Cmd{
+		Path: sshCmd[0],
+		Args: sshCmd,
+	}
+	o, err := cmd.Output()
+	if err != nil {
+		context.Logf(ERROR, "Failed to get the logs: %s", string(o))
+		context.Logf(ERROR, "Error getting the logs: %s", err)
+		return err
+	}
+	context.Logf(INFO, "Successfully gathered the logs on the bastion node at %s", dst_log_file)
+	outfile = strings.TrimSpace(outfile)
+	if outfile == "" {
+		outfile = "stardoglogs.tar.gz"
+	}
+	return runSCPCommand(context, baseD, sd, outfile, dst_log_file, false)
+}
+
+// FullStatus inspects the state of a deployment and prints it out to the console.
+func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, internal bool, outfile string) error {
 	context.ConsoleLog(2, "Checking status...\n")
+	sd, err := dep.FullStatus()
+	if err != nil {
+		return err
+	}
 
 	sd.Healthy = IsHealthy(context, baseD, dep, internal)
 	if sd.Healthy {
@@ -379,4 +457,8 @@ func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, inter
 		}
 	}
 	return nil
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
