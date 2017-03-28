@@ -386,7 +386,7 @@ func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfi
 	}
 	dst_log_file := fmt.Sprintf("/tmp/stardog%d.tar.gz", rand.Int())
 	sshCmd := append(sshBase, []string{
-		"/usr/local/bin/stardog-garther-logs",
+		"/usr/local/bin/stardog-gather-logs",
 		sd.StardogInternalURL,
 		dst_log_file,
 	}...)
