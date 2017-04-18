@@ -18,17 +18,17 @@ resource "ns1_zone" "tld" {
 }
 
 resource "ns1_record" "www" {
-  zone   = "${ns1_zone.tld.id}"
+  zone   = "${ns1_zone.tld.zone}"
   domain = "www.${ns1_zone.tld.zone}"
   type   = "CNAME"
   ttl    = 60
 
   answers = {
-    answer = ["sub1.${ns1_zone.tld.zone}"]
+    answer = "sub1.${ns1_zone.tld.zone}"
   }
 
-  answer = {
-    answer = ["sub2.${ns1_zone.tld.zone}"]
+  answers = {
+    answer = "sub2.${ns1_zone.tld.zone}"
   }
 
   filters = {

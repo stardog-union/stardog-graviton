@@ -17,8 +17,8 @@ func TestInit(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -54,8 +54,8 @@ func TestInit_cwd(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -81,8 +81,8 @@ func TestInit_empty(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -96,8 +96,8 @@ func TestInit_multipleArgs(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -134,8 +134,8 @@ func TestInit_dstInSrc(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -162,8 +162,8 @@ func TestInit_get(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -189,8 +189,8 @@ func TestInit_copyGet(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -222,8 +222,8 @@ func TestInit_backend(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -248,8 +248,8 @@ func TestInit_backendUnset(t *testing.T) {
 		ui := new(cli.MockUi)
 		c := &InitCommand{
 			Meta: Meta{
-				ContextOpts: testCtxConfig(testProvider()),
-				Ui:          ui,
+				testingOverrides: metaOverridesForProvider(testProvider()),
+				Ui:               ui,
 			},
 		}
 
@@ -270,18 +270,15 @@ func TestInit_backendUnset(t *testing.T) {
 			t.Fatalf("err: %s", err)
 		}
 
-		// Run it again
-		defer testInteractiveInput(t, []string{"yes", "yes"})()
-
 		ui := new(cli.MockUi)
 		c := &InitCommand{
 			Meta: Meta{
-				ContextOpts: testCtxConfig(testProvider()),
-				Ui:          ui,
+				testingOverrides: metaOverridesForProvider(testProvider()),
+				Ui:               ui,
 			},
 		}
 
-		args := []string{}
+		args := []string{"-force-copy"}
 		if code := c.Run(args); code != 0 {
 			t.Fatalf("bad: \n%s", ui.ErrorWriter.String())
 		}
@@ -304,12 +301,71 @@ func TestInit_backendConfigFile(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
 	args := []string{"-backend-config", "input.config"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("bad: \n%s", ui.ErrorWriter.String())
+	}
+
+	// Read our saved backend config and verify we have our settings
+	state := testStateRead(t, filepath.Join(DefaultDataDir, DefaultStateFilename))
+	if v := state.Backend.Config["path"]; v != "hello" {
+		t.Fatalf("bad: %#v", v)
+	}
+}
+
+func TestInit_backendConfigFileChange(t *testing.T) {
+	// Create a temporary working directory that is empty
+	td := tempDir(t)
+	copy.CopyDir(testFixturePath("init-backend-config-file-change"), td)
+	defer os.RemoveAll(td)
+	defer testChdir(t, td)()
+
+	// Ask input
+	defer testInputMap(t, map[string]string{
+		"backend-migrate-to-new": "no",
+	})()
+
+	ui := new(cli.MockUi)
+	c := &InitCommand{
+		Meta: Meta{
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
+		},
+	}
+
+	args := []string{"-backend-config", "input.config"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("bad: \n%s", ui.ErrorWriter.String())
+	}
+
+	// Read our saved backend config and verify we have our settings
+	state := testStateRead(t, filepath.Join(DefaultDataDir, DefaultStateFilename))
+	if v := state.Backend.Config["path"]; v != "hello" {
+		t.Fatalf("bad: %#v", v)
+	}
+}
+
+func TestInit_backendConfigKV(t *testing.T) {
+	// Create a temporary working directory that is empty
+	td := tempDir(t)
+	copy.CopyDir(testFixturePath("init-backend-config-kv"), td)
+	defer os.RemoveAll(td)
+	defer testChdir(t, td)()
+
+	ui := new(cli.MockUi)
+	c := &InitCommand{
+		Meta: Meta{
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
+		},
+	}
+
+	args := []string{"-backend-config", "path=hello"}
 	if code := c.Run(args); code != 0 {
 		t.Fatalf("bad: \n%s", ui.ErrorWriter.String())
 	}
@@ -331,8 +387,8 @@ func TestInit_copyBackendDst(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
-			Ui:          ui,
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
 		},
 	}
 
@@ -350,6 +406,134 @@ func TestInit_copyBackendDst(t *testing.T) {
 	}
 }
 
+func TestInit_backendReinitWithExtra(t *testing.T) {
+	td := tempDir(t)
+	copy.CopyDir(testFixturePath("init-backend-empty"), td)
+	defer os.RemoveAll(td)
+	defer testChdir(t, td)()
+
+	m := testMetaBackend(t, nil)
+	opts := &BackendOpts{
+		ConfigExtra: map[string]interface{}{"path": "hello"},
+		Init:        true,
+	}
+
+	b, err := m.backendConfig(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ui := new(cli.MockUi)
+	c := &InitCommand{
+		Meta: Meta{
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
+		},
+	}
+
+	args := []string{"-backend-config", "path=hello"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("bad: \n%s", ui.ErrorWriter.String())
+	}
+
+	// Read our saved backend config and verify we have our settings
+	state := testStateRead(t, filepath.Join(DefaultDataDir, DefaultStateFilename))
+	if v := state.Backend.Config["path"]; v != "hello" {
+		t.Fatalf("bad: %#v", v)
+	}
+
+	if state.Backend.Hash != b.Hash {
+		t.Fatal("mismatched state and config backend hashes")
+	}
+
+	if state.Backend.Rehash() != b.Rehash() {
+		t.Fatal("mismatched state and config re-hashes")
+	}
+
+	// init again and make sure nothing changes
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("bad: \n%s", ui.ErrorWriter.String())
+	}
+	state = testStateRead(t, filepath.Join(DefaultDataDir, DefaultStateFilename))
+	if v := state.Backend.Config["path"]; v != "hello" {
+		t.Fatalf("bad: %#v", v)
+	}
+
+	if state.Backend.Hash != b.Hash {
+		t.Fatal("mismatched state and config backend hashes")
+	}
+}
+
+// move option from config to -backend-config args
+func TestInit_backendReinitConfigToExtra(t *testing.T) {
+	td := tempDir(t)
+	copy.CopyDir(testFixturePath("init-backend"), td)
+	defer os.RemoveAll(td)
+	defer testChdir(t, td)()
+
+	ui := new(cli.MockUi)
+	c := &InitCommand{
+		Meta: Meta{
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
+		},
+	}
+
+	if code := c.Run([]string{"-input=false"}); code != 0 {
+		t.Fatalf("bad: \n%s", ui.ErrorWriter.String())
+	}
+
+	// Read our saved backend config and verify we have our settings
+	state := testStateRead(t, filepath.Join(DefaultDataDir, DefaultStateFilename))
+	if v := state.Backend.Config["path"]; v != "foo" {
+		t.Fatalf("bad: %#v", v)
+	}
+
+	backendHash := state.Backend.Hash
+
+	// init again but remove the path option from the config
+	cfg := "terraform {\n  backend \"local\" {}\n}\n"
+	if err := ioutil.WriteFile("main.tf", []byte(cfg), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	args := []string{"-input=false", "-backend-config=path=foo"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("bad: \n%s", ui.ErrorWriter.String())
+	}
+	state = testStateRead(t, filepath.Join(DefaultDataDir, DefaultStateFilename))
+
+	if state.Backend.Hash == backendHash {
+		t.Fatal("state.Backend.Hash was not updated")
+	}
+}
+
+// make sure inputFalse stops execution on migrate
+func TestInit_inputFalse(t *testing.T) {
+	td := tempDir(t)
+	copy.CopyDir(testFixturePath("init-backend"), td)
+	defer os.RemoveAll(td)
+	defer testChdir(t, td)()
+
+	ui := new(cli.MockUi)
+	c := &InitCommand{
+		Meta: Meta{
+			testingOverrides: metaOverridesForProvider(testProvider()),
+			Ui:               ui,
+		},
+	}
+
+	args := []string{"-input=false", "-backend-config=path=foo"}
+	if code := c.Run([]string{"-input=false"}); code != 0 {
+		t.Fatalf("bad: \n%s", ui.ErrorWriter)
+	}
+
+	args = []string{"-input=false", "-backend-config=path=bar"}
+	if code := c.Run(args); code == 0 {
+		t.Fatal("init should have failed", ui.OutputWriter)
+	}
+}
+
 /*
 func TestInit_remoteState(t *testing.T) {
 	tmp, cwd := testCwd(t)
@@ -362,7 +546,7 @@ func TestInit_remoteState(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
+			testingOverrides: metaOverridesForProvider(testProvider()),
 			Ui:          ui,
 		},
 	}
@@ -398,7 +582,7 @@ func TestInit_remoteStateSubdir(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
+			testingOverrides: metaOverridesForProvider(testProvider()),
 			Ui:          ui,
 		},
 	}
@@ -442,7 +626,7 @@ func TestInit_remoteStateWithLocal(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
+			testingOverrides: metaOverridesForProvider(testProvider()),
 			Ui:          ui,
 		},
 	}
@@ -480,7 +664,7 @@ func TestInit_remoteStateWithRemote(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &InitCommand{
 		Meta: Meta{
-			ContextOpts: testCtxConfig(testProvider()),
+			testingOverrides: metaOverridesForProvider(testProvider()),
 			Ui:          ui,
 		},
 	}

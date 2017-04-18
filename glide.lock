@@ -1,5 +1,5 @@
-hash: 6aba6bf5236457c10c5088dcd826a5782ef887efe4a044ffd8f01f2a8c8297c6
-updated: 2017-03-09T21:57:02.086776759-10:00
+hash: c9dcaeb22dc55e4b637743f7f841ad72185f5c0d9d185aa23ec19c0c2c31a5bb
+updated: 2017-04-18T09:48:52.484821927-10:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -8,7 +8,7 @@ imports:
 - name: github.com/alecthomas/units
   version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
 - name: github.com/aws/aws-sdk-go
-  version: 0484dc540811ee0df1acfee287786cb5b0150ab3
+  version: 4bbd6fa3fdede4c68e941248f974b8951c17de89
   subpackages:
   - aws
   - aws/awserr
@@ -32,7 +32,6 @@ imports:
   - private/protocol/query/queryutil
   - private/protocol/rest
   - private/protocol/xml/xmlutil
-  - private/waiter
   - service/autoscaling
   - service/ec2
   - service/elb
@@ -42,7 +41,7 @@ imports:
 - name: github.com/go-ini/ini
   version: e3c2d47c61e5333f9aa2974695dd94396eb69c75
 - name: github.com/hashicorp/terraform
-  version: dbb920ff54edea3ef975751d9ec31d6049eb5003
+  version: 3c2f6190e6d0ab40b04374043349a152dc458173
 - name: github.com/jmespath/go-jmespath
   version: 3433f3ea46d9f8019119e7dd41274e112a2359a9
 - name: github.com/jteeuwen/go-bindata
@@ -55,11 +54,18 @@ imports:
   repo: https://github.com/mattn/go-isatty
 - name: github.com/mitchellh/packer
   version: c0f2b4768d7f9265adb1aa3c91a0206ca707d91e
+- name: golang.org/x/crypto
+  version: 41d678d1df78cd0410143162dff954e6dc09300f
+  subpackages:
+  - curve25519
+  - ed25519
+  - ed25519/internal/edwards25519
+  - ssh
 - name: golang.org/x/sys
   version: e24f485414aeafb646f6fca458b0bf869c0880a1
   repo: https://go.googlesource.com/sys
   subpackages:
   - unix
 - name: gopkg.in/alecthomas/kingpin.v2
-  version: e9044be3ab2a8e11d4e1f418d12f0790d57e8d70
+  version: 7f0871f2e17818990e4eed73f9b5c2f429501228
 testImports: []
