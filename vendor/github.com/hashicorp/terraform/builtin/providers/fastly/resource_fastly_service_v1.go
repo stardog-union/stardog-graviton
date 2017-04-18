@@ -189,6 +189,19 @@ func resourceServiceV1() *schema.Resource {
 							Optional:    true,
 							Default:     "",
 							Description: "SSL certificate hostname",
+							Deprecated:  "Use ssl_cert_hostname and ssl_sni_hostname instead.",
+						},
+						"ssl_cert_hostname": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: "SSL certificate hostname for cert verification",
+						},
+						"ssl_sni_hostname": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: "SSL certificate hostname for SNI verification",
 						},
 						// UseSSL is something we want to support in the future, but
 						// requires SSL setup we don't yet have
@@ -526,7 +539,7 @@ func resourceServiceV1() *schema.Resource {
 							Optional:     true,
 							Default:      1,
 							Description:  "The version of the custom logging format used for the configured endpoint. Can be either 1 or 2. (Default: 1)",
-							ValidateFunc: validateS3FormatVersion,
+							ValidateFunc: validateLoggingFormatVersion,
 						},
 						"timestamp_format": {
 							Type:        schema.TypeString,
@@ -577,6 +590,52 @@ func resourceServiceV1() *schema.Resource {
 							Optional:    true,
 							Default:     "",
 							Description: "Name of a condition to apply this logging",
+						},
+					},
+				},
+			},
+			"sumologic": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						// Required fields
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Unique name to refer to this logging setup",
+						},
+						"url": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The URL to POST to.",
+						},
+						// Optional fields
+						"format": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "%h %l %u %t %r %>s",
+							Description: "Apache-style string or VCL variables to use for log formatting",
+						},
+						"format_version": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      1,
+							Description:  "The version of the custom logging format used for the configured endpoint. Can be either 1 or 2. (Default: 1)",
+							ValidateFunc: validateLoggingFormatVersion,
+						},
+						"response_condition": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: "Name of a condition to apply this logging.",
+						},
+						"message_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "classic",
+							Description:  "How the message should be formatted.",
+							ValidateFunc: validateLoggingMessageType,
 						},
 					},
 				},
@@ -1011,6 +1070,8 @@ func resourceServiceV1Update(d *schema.ResourceData, meta interface{}) error {
 					AutoLoadbalance:     gofastly.CBool(df["auto_loadbalance"].(bool)),
 					SSLCheckCert:        gofastly.CBool(df["ssl_check_cert"].(bool)),
 					SSLHostname:         df["ssl_hostname"].(string),
+					SSLCertHostname:     df["ssl_cert_hostname"].(string),
+					SSLSNIHostname:      df["ssl_sni_hostname"].(string),
 					Shield:              df["shield"].(string),
 					Port:                uint(df["port"].(int)),
 					BetweenBytesTimeout: uint(df["between_bytes_timeout"].(int)),
@@ -1323,6 +1384,59 @@ func resourceServiceV1Update(d *schema.ResourceData, meta interface{}) error {
 
 				log.Printf("[DEBUG] Create Papertrail Opts: %#v", opts)
 				_, err := conn.CreatePapertrail(&opts)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		// find difference in Sumologic
+		if d.HasChange("sumologic") {
+			os, ns := d.GetChange("sumologic")
+			if os == nil {
+				os = new(schema.Set)
+			}
+			if ns == nil {
+				ns = new(schema.Set)
+			}
+
+			oss := os.(*schema.Set)
+			nss := ns.(*schema.Set)
+			removeSumologic := oss.Difference(nss).List()
+			addSumologic := nss.Difference(oss).List()
+
+			// DELETE old sumologic configurations
+			for _, pRaw := range removeSumologic {
+				sf := pRaw.(map[string]interface{})
+				opts := gofastly.DeleteSumologicInput{
+					Service: d.Id(),
+					Version: latestVersion,
+					Name:    sf["name"].(string),
+				}
+
+				log.Printf("[DEBUG] Fastly Sumologic removal opts: %#v", opts)
+				err := conn.DeleteSumologic(&opts)
+				if err != nil {
+					return err
+				}
+			}
+
+			// POST new/updated Sumologic
+			for _, pRaw := range addSumologic {
+				sf := pRaw.(map[string]interface{})
+				opts := gofastly.CreateSumologicInput{
+					Service:           d.Id(),
+					Version:           latestVersion,
+					Name:              sf["name"].(string),
+					URL:               sf["url"].(string),
+					Format:            sf["format"].(string),
+					FormatVersion:     sf["format_version"].(int),
+					ResponseCondition: sf["response_condition"].(string),
+					MessageType:       sf["message_type"].(string),
+				}
+
+				log.Printf("[DEBUG] Create Sumologic Opts: %#v", opts)
+				_, err := conn.CreateSumologic(&opts)
 				if err != nil {
 					return err
 				}
@@ -1746,6 +1860,22 @@ func resourceServiceV1Read(d *schema.ResourceData, meta interface{}) error {
 			log.Printf("[WARN] Error setting Papertrail for (%s): %s", d.Id(), err)
 		}
 
+		// refresh Sumologic Logging
+		log.Printf("[DEBUG] Refreshing Sumologic for (%s)", d.Id())
+		sumologicList, err := conn.ListSumologics(&gofastly.ListSumologicsInput{
+			Service: d.Id(),
+			Version: s.ActiveVersion.Number,
+		})
+
+		if err != nil {
+			return fmt.Errorf("[ERR] Error looking up Sumologic for (%s), version (%s): %s", d.Id(), s.ActiveVersion.Number, err)
+		}
+
+		sul := flattenSumologics(sumologicList)
+		if err := d.Set("sumologic", sul); err != nil {
+			log.Printf("[WARN] Error setting Sumologic for (%s): %s", d.Id(), err)
+		}
+
 		// refresh Response Objects
 		log.Printf("[DEBUG] Refreshing Response Object for (%s)", d.Id())
 		responseObjectList, err := conn.ListResponseObjects(&gofastly.ListResponseObjectsInput{
@@ -1907,7 +2037,7 @@ func flattenBackends(backendList []*gofastly.Backend) []map[string]interface{} {
 		nb := map[string]interface{}{
 			"name":                  b.Name,
 			"address":               b.Address,
-			"auto_loadbalance":      gofastly.CBool(b.AutoLoadbalance),
+			"auto_loadbalance":      b.AutoLoadbalance,
 			"between_bytes_timeout": int(b.BetweenBytesTimeout),
 			"connect_timeout":       int(b.ConnectTimeout),
 			"error_threshold":       int(b.ErrorThreshold),
@@ -1915,8 +2045,10 @@ func flattenBackends(backendList []*gofastly.Backend) []map[string]interface{} {
 			"max_conn":              int(b.MaxConn),
 			"port":                  int(b.Port),
 			"shield":                b.Shield,
-			"ssl_check_cert":        gofastly.CBool(b.SSLCheckCert),
+			"ssl_check_cert":        b.SSLCheckCert,
 			"ssl_hostname":          b.SSLHostname,
+			"ssl_cert_hostname":     b.SSLCertHostname,
+			"ssl_sni_hostname":      b.SSLSNIHostname,
 			"weight":                int(b.Weight),
 			"request_condition":     b.RequestCondition,
 		}
@@ -2162,7 +2294,7 @@ func flattenS3s(s3List []*gofastly.S3) []map[string]interface{} {
 func flattenPapertrails(papertrailList []*gofastly.Papertrail) []map[string]interface{} {
 	var pl []map[string]interface{}
 	for _, p := range papertrailList {
-		// Convert S3s to a map for saving to state.
+		// Convert Papertrails to a map for saving to state.
 		ns := map[string]interface{}{
 			"name":               p.Name,
 			"address":            p.Address,
@@ -2182,6 +2314,32 @@ func flattenPapertrails(papertrailList []*gofastly.Papertrail) []map[string]inte
 	}
 
 	return pl
+}
+
+func flattenSumologics(sumologicList []*gofastly.Sumologic) []map[string]interface{} {
+	var l []map[string]interface{}
+	for _, p := range sumologicList {
+		// Convert Sumologic to a map for saving to state.
+		ns := map[string]interface{}{
+			"name":               p.Name,
+			"url":                p.URL,
+			"format":             p.Format,
+			"response_condition": p.ResponseCondition,
+			"message_type":       p.MessageType,
+			"format_version":     int(p.FormatVersion),
+		}
+
+		// prune any empty values that come from the default string value in structs
+		for k, v := range ns {
+			if v == "" {
+				delete(ns, k)
+			}
+		}
+
+		l = append(l, ns)
+	}
+
+	return l
 }
 
 func flattenResponseObjects(responseObjectList []*gofastly.ResponseObject) []map[string]interface{} {

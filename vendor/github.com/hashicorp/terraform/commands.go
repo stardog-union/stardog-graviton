@@ -30,9 +30,10 @@ func init() {
 	}
 
 	meta := command.Meta{
-		Color:       true,
-		ContextOpts: &ContextOpts,
-		Ui:          Ui,
+		Color:            true,
+		GlobalPluginDirs: globalPluginDirs(),
+		PluginOverrides:  &PluginOverrides,
+		Ui:               Ui,
 	}
 
 	// The command list is included in the terraform -help
@@ -42,8 +43,9 @@ func init() {
 	// that to match.
 
 	PlumbingCommands = map[string]struct{}{
-		"state": struct{}{}, // includes all subcommands
-		"debug": struct{}{}, // includes all subcommands
+		"state":        struct{}{}, // includes all subcommands
+		"debug":        struct{}{}, // includes all subcommands
+		"force-unlock": struct{}{},
 	}
 
 	Commands = map[string]cli.CommandFactory{
@@ -101,12 +103,6 @@ func init() {
 
 		"fmt": func() (cli.Command, error) {
 			return &command.FmtCommand{
-				Meta: meta,
-			}, nil
-		},
-
-		"force-unlock": func() (cli.Command, error) {
-			return &command.UnlockCommand{
 				Meta: meta,
 			}, nil
 		},
@@ -211,6 +207,12 @@ func init() {
 
 		"debug json2dot": func() (cli.Command, error) {
 			return &command.DebugJSON2DotCommand{
+				Meta: meta,
+			}, nil
+		},
+
+		"force-unlock": func() (cli.Command, error) {
+			return &command.UnlockCommand{
 				Meta: meta,
 			}, nil
 		},

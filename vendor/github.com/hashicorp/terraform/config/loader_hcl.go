@@ -209,6 +209,19 @@ func loadTerraformHcl(list *ast.ObjectList) (*Terraform, error) {
 	// Get our one item
 	item := list.Items[0]
 
+	// This block should have an empty top level ObjectItem.  If there are keys
+	// here, it's likely because we have a flattened JSON object, and we can
+	// lift this into a nested ObjectList to decode properly.
+	if len(item.Keys) > 0 {
+		item = &ast.ObjectItem{
+			Val: &ast.ObjectType{
+				List: &ast.ObjectList{
+					Items: []*ast.ObjectItem{item},
+				},
+			},
+		}
+	}
+
 	// We need the item value as an ObjectList
 	var listVal *ast.ObjectList
 	if ot, ok := item.Val.(*ast.ObjectType); ok {
@@ -541,6 +554,7 @@ func loadProvidersHcl(list *ast.ObjectList) ([]*ProviderConfig, error) {
 		}
 
 		delete(config, "alias")
+		delete(config, "version")
 
 		rawConfig, err := NewRawConfig(config)
 		if err != nil {
@@ -562,9 +576,22 @@ func loadProvidersHcl(list *ast.ObjectList) ([]*ProviderConfig, error) {
 			}
 		}
 
+		// If we have a version field then extract it
+		var version string
+		if a := listVal.Filter("version"); len(a.Items) > 0 {
+			err := hcl.DecodeObject(&version, a.Items[0].Val)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Error reading version for provider[%s]: %s",
+					n,
+					err)
+			}
+		}
+
 		result = append(result, &ProviderConfig{
 			Name:      n,
 			Alias:     alias,
+			Version:   version,
 			RawConfig: rawConfig,
 		})
 	}

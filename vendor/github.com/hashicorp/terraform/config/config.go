@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hil"
 	"github.com/hashicorp/hil/ast"
@@ -64,6 +65,7 @@ type Module struct {
 type ProviderConfig struct {
 	Name      string
 	Alias     string
+	Version   string
 	RawConfig *RawConfig
 }
 
@@ -238,6 +240,33 @@ func (r *Resource) Id() string {
 	}
 }
 
+// ProviderFullName returns the full name of the provider for this resource,
+// which may either be specified explicitly using the "provider" meta-argument
+// or implied by the prefix on the resource type name.
+func (r *Resource) ProviderFullName() string {
+	return ResourceProviderFullName(r.Type, r.Provider)
+}
+
+// ResourceProviderFullName returns the full (dependable) name of the
+// provider for a hypothetical resource with the given resource type and
+// explicit provider string. If the explicit provider string is empty then
+// the provider name is inferred from the resource type name.
+func ResourceProviderFullName(resourceType, explicitProvider string) string {
+	if explicitProvider != "" {
+		return explicitProvider
+	}
+
+	idx := strings.IndexRune(resourceType, '_')
+	if idx == -1 {
+		// If no underscores, the resource name is assumed to be
+		// also the provider name, e.g. if the provider exposes
+		// only a single resource of each type.
+		return resourceType
+	}
+
+	return resourceType[:idx]
+}
+
 // Validate does some basic semantic checking of the configuration.
 func (c *Config) Validate() error {
 	if c == nil {
@@ -285,8 +314,15 @@ func (c *Config) Validate() error {
 		}
 
 		interp := false
-		fn := func(ast.Node) (interface{}, error) {
-			interp = true
+		fn := func(n ast.Node) (interface{}, error) {
+			// LiteralNode is a literal string (outside of a ${ ... } sequence).
+			// interpolationWalker skips most of these. but in particular it
+			// visits those that have escaped sequences (like $${foo}) as a
+			// signal that *some* processing is required on this string. For
+			// our purposes here though, this is fine and not an interpolation.
+			if _, ok := n.(*ast.LiteralNode); !ok {
+				interp = true
+			}
 			return "", nil
 		}
 
@@ -342,7 +378,8 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	// Check that providers aren't declared multiple times.
+	// Check that providers aren't declared multiple times and that their
+	// version constraints, where present, are syntactically valid.
 	providerSet := make(map[string]struct{})
 	for _, p := range c.ProviderConfigs {
 		name := p.FullName()
@@ -351,6 +388,16 @@ func (c *Config) Validate() error {
 				"provider.%s: declared multiple times, you can only declare a provider once",
 				name))
 			continue
+		}
+
+		if p.Version != "" {
+			_, err := semver.ParseRange(p.Version)
+			if err != nil {
+				errs = append(errs, fmt.Errorf(
+					"provider.%s: invalid version constraint %q: %s",
+					name, p.Version, err,
+				))
+			}
 		}
 
 		providerSet[name] = struct{}{}
@@ -501,10 +548,13 @@ func (c *Config) Validate() error {
 			// Good
 			case *ModuleVariable:
 			case *ResourceVariable:
+			case *TerraformVariable:
 			case *UserVariable:
 
 			default:
-				panic(fmt.Sprintf("Unknown type in count var in %s: %T", n, v))
+				errs = append(errs, fmt.Errorf(
+					"Internal error. Unknown type in count var in %s: %T",
+					n, v))
 			}
 		}
 

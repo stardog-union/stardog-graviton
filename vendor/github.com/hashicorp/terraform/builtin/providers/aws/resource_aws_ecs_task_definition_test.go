@@ -135,6 +135,41 @@ func TestAccAWSEcsTaskDefinition_constraint(t *testing.T) {
 	})
 }
 
+func TestAccAWSEcsTaskDefinition_changeVolumesForcesNewResource(t *testing.T) {
+	var before ecs.TaskDefinition
+	var after ecs.TaskDefinition
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsTaskDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEcsTaskDefinition,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.jenkins", &before),
+				),
+			},
+			{
+				Config: testAccAWSEcsTaskDefinitionUpdatedVolume,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.jenkins", &after),
+					testAccCheckEcsTaskDefinitionRecreated(t, &before, &after),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckEcsTaskDefinitionRecreated(t *testing.T,
+	before, after *ecs.TaskDefinition) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if *before.Revision == *after.Revision {
+			t.Fatalf("Expected change of TaskDefinition Revisions, but both were %v", before.Revision)
+		}
+		return nil
+	}
+}
+
 func testAccCheckAWSTaskDefinitionConstraintsAttrs(def *ecs.TaskDefinition) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if len(def.PlacementConstraints) != 1 {
@@ -164,6 +199,28 @@ func TestValidateAwsEcsTaskDefinitionNetworkMode(t *testing.T) {
 		_, errors := validateAwsEcsTaskDefinitionNetworkMode(v, "network_mode")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid AWS ECS Task Definition Network Mode", v)
+		}
+	}
+}
+
+func TestValidateAwsEcsTaskDefinitionContainerDefinitions(t *testing.T) {
+	validDefinitions := []string{
+		testValidateAwsEcsTaskDefinitionValidContainerDefinitions,
+	}
+	for _, v := range validDefinitions {
+		_, errors := validateAwsEcsTaskDefinitionContainerDefinitions(v, "container_definitions")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid AWS ECS Task Definition Container Definitions: %q", v, errors)
+		}
+	}
+
+	invalidDefinitions := []string{
+		testValidateAwsEcsTaskDefinitionInvalidCommandContainerDefinitions,
+	}
+	for _, v := range invalidDefinitions {
+		_, errors := validateAwsEcsTaskDefinitionContainerDefinitions(v, "container_definitions")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid AWS ECS Task Definition Container Definitions", v)
 		}
 	}
 }
@@ -315,6 +372,55 @@ TASK_DEFINITION
   volume {
     name = "jenkins-home"
     host_path = "/ecs/jenkins-home"
+  }
+}
+`
+
+var testAccAWSEcsTaskDefinitionUpdatedVolume = `
+resource "aws_ecs_task_definition" "jenkins" {
+  family = "terraform-acc-test"
+  container_definitions = <<TASK_DEFINITION
+[
+	{
+		"cpu": 10,
+		"command": ["sleep", "10"],
+		"entryPoint": ["/"],
+		"environment": [
+			{"name": "VARNAME", "value": "VARVAL"}
+		],
+		"essential": true,
+		"image": "jenkins",
+		"links": ["mongodb"],
+		"memory": 128,
+		"name": "jenkins",
+		"portMappings": [
+			{
+				"containerPort": 80,
+				"hostPort": 8080
+			}
+		]
+	},
+	{
+		"cpu": 10,
+		"command": ["sleep", "10"],
+		"entryPoint": ["/"],
+		"essential": true,
+		"image": "mongodb",
+		"memory": 128,
+		"name": "mongodb",
+		"portMappings": [
+			{
+				"containerPort": 28017,
+				"hostPort": 28017
+			}
+		]
+	}
+]
+TASK_DEFINITION
+
+  volume {
+    name = "jenkins-home"
+    host_path = "/ecs/jenkins"
   }
 }
 `
@@ -581,4 +687,30 @@ TASK_DEFINITION
     host_path = "/ecs/jenkins-home"
   }
 }
+`
+
+var testValidateAwsEcsTaskDefinitionValidContainerDefinitions = `
+[
+  {
+    "name": "sleep",
+    "image": "busybox",
+    "cpu": 10,
+    "command": ["sleep","360"],
+    "memory": 10,
+    "essential": true
+  }
+]
+`
+
+var testValidateAwsEcsTaskDefinitionInvalidCommandContainerDefinitions = `
+[
+  {
+    "name": "sleep",
+    "image": "busybox",
+    "cpu": 10,
+    "command": "sleep 360",
+    "memory": 10,
+    "essential": true
+  }
+]
 `

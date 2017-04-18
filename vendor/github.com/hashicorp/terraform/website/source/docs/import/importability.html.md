@@ -65,6 +65,7 @@ To make a resource importable, please see the
 * aws_iam_instance_profile
 * aws_iam_role
 * aws_iam_saml_provider
+* aws_iam_server_certificate
 * aws_iam_user
 * aws_instance
 * aws_internet_gateway
@@ -91,6 +92,7 @@ To make a resource importable, please see the
 * aws_route_table
 * aws_s3_bucket
 * aws_security_group
+* aws_ses_domain_identity
 * aws_ses_receipt_filter
 * aws_ses_receipt_rule_set
 * aws_simpledb_domain
@@ -118,6 +120,11 @@ To make a resource importable, please see the
 * azurerm_sql_firewall_rule
 * azurerm_storage_account
 * azurerm_virtual_network
+
+### Circonus
+
+* circonus_check
+* circonus_contact_group
 
 ### DigitalOcean
 
@@ -171,7 +178,8 @@ To make a resource importable, please see the
 
 ### Triton
 
-* triton_firewall_rule
 * triton_key
-* triton_machine
+* triton_firewall_rule
 * triton_vlan
+* triton_fabric
+* triton_machine

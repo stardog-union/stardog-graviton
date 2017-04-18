@@ -26,6 +26,7 @@ func TestAccRecord_basic(t *testing.T) {
 					testAccCheckRecordExists("ns1_record.it", &record),
 					testAccCheckRecordDomain(&record, "test.terraform-record-test.io"),
 					testAccCheckRecordTTL(&record, 60),
+					testAccCheckRecordUseClientSubnet(&record, true),
 					testAccCheckRecordRegionName(&record, []string{"cal"}),
 					// testAccCheckRecordAnswerMetaWeight(&record, 10),
 					testAccCheckRecordAnswerRdata(&record, "test1.terraform-record-test.io"),
@@ -48,6 +49,7 @@ func TestAccRecord_updated(t *testing.T) {
 					testAccCheckRecordExists("ns1_record.it", &record),
 					testAccCheckRecordDomain(&record, "test.terraform-record-test.io"),
 					testAccCheckRecordTTL(&record, 60),
+					testAccCheckRecordUseClientSubnet(&record, true),
 					testAccCheckRecordRegionName(&record, []string{"cal"}),
 					// testAccCheckRecordAnswerMetaWeight(&record, 10),
 					testAccCheckRecordAnswerRdata(&record, "test1.terraform-record-test.io"),
@@ -59,9 +61,31 @@ func TestAccRecord_updated(t *testing.T) {
 					testAccCheckRecordExists("ns1_record.it", &record),
 					testAccCheckRecordDomain(&record, "test.terraform-record-test.io"),
 					testAccCheckRecordTTL(&record, 120),
+					testAccCheckRecordUseClientSubnet(&record, false),
 					testAccCheckRecordRegionName(&record, []string{"ny", "wa"}),
 					// testAccCheckRecordAnswerMetaWeight(&record, 5),
 					testAccCheckRecordAnswerRdata(&record, "test2.terraform-record-test.io"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRecord_SPF(t *testing.T) {
+	var record dns.Record
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRecordDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccRecordSPF,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRecordExists("ns1_record.spf", &record),
+					testAccCheckRecordDomain(&record, "terraform-record-test.io"),
+					testAccCheckRecordTTL(&record, 86400),
+					testAccCheckRecordUseClientSubnet(&record, true),
+					testAccCheckRecordAnswerRdata(&record, "v=DKIM1; k=rsa; p=XXXXXXXX"),
 				),
 			},
 		},
@@ -117,9 +141,9 @@ func testAccCheckRecordDestroy(s *terraform.State) error {
 		}
 	}
 
-	foundRecord, _, err := client.Records.Get(recordDomain, recordZone, recordType)
-	if err != nil {
-		return fmt.Errorf("Record still exists: %#v", foundRecord)
+	foundRecord, _, err := client.Records.Get(recordZone, recordDomain, recordType)
+	if err != ns1.ErrRecordMissing {
+		return fmt.Errorf("Record still exists: %#v %#v", foundRecord, err)
 	}
 
 	return nil
@@ -138,6 +162,15 @@ func testAccCheckRecordTTL(r *dns.Record, expected int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if r.TTL != expected {
 			return fmt.Errorf("TTL: got: %#v want: %#v", r.TTL, expected)
+		}
+		return nil
+	}
+}
+
+func testAccCheckRecordUseClientSubnet(r *dns.Record, expected bool) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if *r.UseClientSubnet != expected {
+			return fmt.Errorf("UseClientSubnet: got: %#v want: %#v", *r.UseClientSubnet, expected)
 		}
 		return nil
 	}
@@ -240,7 +273,7 @@ resource "ns1_record" "it" {
   domain            = "test.${ns1_zone.test.zone}"
   type              = "CNAME"
   ttl               = 120
-  use_client_subnet = true
+  use_client_subnet = false
 
   // meta {
   //   weight = 5
@@ -278,6 +311,23 @@ resource "ns1_record" "it" {
 
   filters {
     filter = "geotarget_country"
+  }
+}
+
+resource "ns1_zone" "test" {
+  zone = "terraform-record-test.io"
+}
+`
+
+const testAccRecordSPF = `
+resource "ns1_record" "spf" {
+  zone              = "${ns1_zone.test.zone}"
+  domain            = "${ns1_zone.test.zone}"
+  type              = "SPF"
+  ttl               = 86400
+  use_client_subnet = "true"
+  answers = {
+    answer = "v=DKIM1; k=rsa; p=XXXXXXXX"
   }
 }
 

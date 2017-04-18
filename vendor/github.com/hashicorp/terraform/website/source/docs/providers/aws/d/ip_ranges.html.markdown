@@ -12,7 +12,7 @@ Use this data source to get the [IP ranges][1] of various AWS products and servi
 
 ## Example Usage
 
-```
+```hcl
 data "aws_ip_ranges" "european_ec2" {
   regions  = ["eu-west-1", "eu-central-1"]
   services = ["ec2"]
@@ -42,7 +42,7 @@ omitted). Valid items are `global` (for `cloudfront`) as well as all AWS regions
 (e.g. `eu-central-1`)
 
 * `services` - (Required) Filter IP ranges by services. Valid items are `amazon`
-(for amazon.com), `cloudfront`, `ec2`, `route53` and `route53_healthchecks`.
+(for amazon.com), `cloudfront`, `ec2`, `route53`, `route53_healthchecks` and `S3`.
 
 ~> **NOTE:** If the specified combination of regions and services does not yield any
 CIDR blocks, Terraform will fail.

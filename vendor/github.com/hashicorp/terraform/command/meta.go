@@ -3,6 +3,7 @@ package command
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -31,9 +32,10 @@ type Meta struct {
 	// command with a Meta field. These are expected to be set externally
 	// (not from within the command itself).
 
-	Color       bool                   // True if output should be colored
-	ContextOpts *terraform.ContextOpts // Opts copied to initialize
-	Ui          cli.Ui                 // Ui for output
+	Color            bool             // True if output should be colored
+	GlobalPluginDirs []string         // Additional paths to search for plugins
+	PluginOverrides  *PluginOverrides // legacy overrides from .terraformrc file
+	Ui               cli.Ui           // Ui for output
 
 	// ExtraHooks are extra hooks to add to the context.
 	ExtraHooks []terraform.Hook
@@ -44,6 +46,9 @@ type Meta struct {
 
 	// Modify the data directory location. Defaults to DefaultDataDir
 	dataDir string
+
+	// Override certain behavior for tests within this package
+	testingOverrides *testingOverrides
 
 	//----------------------------------------------------------
 	// Private: do not set these
@@ -87,14 +92,32 @@ type Meta struct {
 	//
 	// provider is to specify specific resource providers
 	//
-	// lockState is set to false to disable state locking
-	statePath    string
-	stateOutPath string
-	backupPath   string
-	parallelism  int
-	shadow       bool
-	provider     string
-	stateLock    bool
+	// stateLock is set to false to disable state locking
+	//
+	// stateLockTimeout is the optional duration to retry a state locks locks
+	// when it is already locked by another process.
+	//
+	// forceInitCopy suppresses confirmation for copying state data during
+	// init.
+	statePath        string
+	stateOutPath     string
+	backupPath       string
+	parallelism      int
+	shadow           bool
+	provider         string
+	stateLock        bool
+	stateLockTimeout time.Duration
+	forceInitCopy    bool
+}
+
+type PluginOverrides struct {
+	Providers    map[string]string
+	Provisioners map[string]string
+}
+
+type testingOverrides struct {
+	Providers    map[string]terraform.ResourceProviderFactory
+	Provisioners map[string]terraform.ResourceProvisionerFactory
 }
 
 // initStatePaths is used to initialize the default values for
@@ -187,14 +210,7 @@ func (m *Meta) StdinPiped() bool {
 // context with the settings from this Meta.
 func (m *Meta) contextOpts() *terraform.ContextOpts {
 	var opts terraform.ContextOpts
-	if v := m.ContextOpts; v != nil {
-		opts = *v
-	}
-
 	opts.Hooks = []terraform.Hook{m.uiHook(), &terraform.DebugHook{}}
-	if m.ContextOpts != nil {
-		opts.Hooks = append(opts.Hooks, m.ContextOpts.Hooks...)
-	}
 	opts.Hooks = append(opts.Hooks, m.ExtraHooks...)
 
 	vs := make(map[string]interface{})
@@ -208,10 +224,26 @@ func (m *Meta) contextOpts() *terraform.ContextOpts {
 		vs[k] = v
 	}
 	opts.Variables = vs
+
 	opts.Targets = m.targets
 	opts.UIInput = m.UIInput()
 	opts.Parallelism = m.parallelism
 	opts.Shadow = m.shadow
+
+	// If testingOverrides are set, we'll skip the plugin discovery process
+	// and just work with what we've been given, thus allowing the tests
+	// to provide mock providers and provisioners.
+	if m.testingOverrides != nil {
+		opts.Providers = m.testingOverrides.Providers
+		opts.Provisioners = m.testingOverrides.Provisioners
+	} else {
+		opts.Providers = m.providerFactories()
+		opts.Provisioners = m.provisionerFactories()
+	}
+
+	opts.Meta = &terraform.ContextMeta{
+		Env: m.Env(),
+	}
 
 	return &opts
 }
@@ -249,6 +281,10 @@ func (m *Meta) flagSet(n string) *flag.FlagSet {
 
 	// Set the default Usage to empty
 	f.Usage = func() {}
+
+	// command that bypass locking will supply their own flag on this var, but
+	// set the initial meta value to true as a failsafe.
+	m.stateLock = true
 
 	return f
 }
@@ -332,6 +368,9 @@ func (m *Meta) uiHook() *UiHook {
 
 // confirm asks a yes/no confirmation.
 func (m *Meta) confirm(opts *terraform.InputOpts) (bool, error) {
+	if !m.input {
+		return false, errors.New("input disabled")
+	}
 	for {
 		v, err := m.UIInput().Input(opts)
 		if err != nil {
