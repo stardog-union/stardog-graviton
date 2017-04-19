@@ -374,32 +374,42 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, z
 }
 
 func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfile string) error {
+	if os.Getenv("SSH_AUTH_SOCK") == "" {
+		return fmt.Errorf("ssh-agent needs to be setup for log gathering to work")
+	}
 	context.ConsoleLog(2, "Gathering logs...\n")
 	sd, err := dep.FullStatus()
 	if err != nil {
 		return err
 	}
-
 	sshBase, err := getSSHCommand(context, baseD, sd)
 	if err != nil {
 		return err
+	}
+	pw := os.Getenv("STARDOG_ADMIN_PASSWORD")
+	if pw == "" {
+		pw = "admin"
 	}
 	dst_log_file := fmt.Sprintf("/tmp/stardog%d.tar.gz", rand.Int())
 	sshCmd := append(sshBase, []string{
 		"/usr/local/bin/stardog-gather-logs",
 		sd.StardogInternalURL,
 		dst_log_file,
+		pw,
 	}...)
 	cmd := exec.Cmd{
 		Path: sshCmd[0],
 		Args: sshCmd,
 	}
+	context.Logf(DEBUG, "Running the log gathering command: %s", strings.Join(sshCmd[:len(sshCmd)-1], " "))
 	o, err := cmd.Output()
 	if err != nil {
 		context.Logf(ERROR, "Failed to get the logs: %s", string(o))
 		context.Logf(ERROR, "Error getting the logs: %s", err)
+		context.ConsoleLog(0, "Failed to gather the logs, verify that ssh agent is working.")
 		return err
 	}
+	context.Logf(DEBUG, "Log gathering output: %s", string(o))
 	context.Logf(INFO, "Successfully gathered the logs on the bastion node at %s", dst_log_file)
 	outfile = strings.TrimSpace(outfile)
 	if outfile == "" {
