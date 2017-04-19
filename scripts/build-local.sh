@@ -8,7 +8,7 @@ BIN_DIR=$BASE_DIR/bin
 
 v=$(git describe --abbrev=0 --tags 2> /dev/null)
 if [ $? -ne 0 ]; then
-    v="unknown"
+    v="0.0.0"
 fi
 which go-bindata
 if [ $? -ne 0 ]; then
