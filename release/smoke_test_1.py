@@ -4,6 +4,7 @@ import tempfile
 import uuid
 import subprocess
 import sys
+import time
 
 
 def start_sd(exe_path):
@@ -136,6 +137,7 @@ def run_integration_tests(source_dir, sd_url):
 
 
 def main():
+    time.sleep(30.0)
     working_dir = sys.argv[1]
     release = sys.argv[2]
     ssh_key_name = sys.argv[3]

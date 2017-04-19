@@ -334,7 +334,7 @@ func GenerateKey(dir string, keyname string) (string, []byte, error) {
 		return "", nil, fmt.Errorf("The private key %s already exists", pubKeyFilename)
 	}
 
-	privateKeyFile, err := os.Create(privateKeyFilename)
+	privateKeyFile, err := os.OpenFile(privateKeyFilename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	defer privateKeyFile.Close()
 	if err != nil {
 		return "", nil, err

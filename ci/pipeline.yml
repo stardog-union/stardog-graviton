@@ -1,0 +1,123 @@
+---
+resources:
+- name: graviton-repo
+  type: git
+  source:
+    branch: feature/pipeline1
+    uri: https://github.com/stardog-union/stardog-graviton.git
+
+- name: ci-docker-image
+  type: docker-image
+  source:
+    repository: buzztroll/graviton-builder
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: stage-bucket
+  type: s3
+  source:
+    bucket: graviton-staging
+    regexp: stardog-graviton-(?P<version>.*)
+    region_name: {{s3-region}}
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+jobs:
+- name: build-docker
+  plan:
+  - get: graviton-repo
+    trigger: true
+  - put: ci-docker-image
+    params:
+      build: graviton-repo/ci
+
+- name: build-graviton
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ build-docker ]
+      trigger: true
+    - get: graviton-repo
+      trigger: true
+  - task: build-tile
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: graviton-repo
+      outputs:
+      - name: build-dir
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          x=`pwd`
+          ls /usr/local/go/bin
+          cp -r graviton-repo /usr/local/src/go/src/github.com/stardog-union/stardog-graviton
+          cd /usr/local/src/go/src/github.com/stardog-union/stardog-graviton
+          export GOPATH=/usr/local/src/go
+          export PATH=/usr/local/go/bin:/usr/local/src/go/bin:$PATH
+          make
+          make test
+          ver=`cat etc/version`
+          gox -osarch="linux/amd64" -osarch="darwin/amd64" -output=$x/build-dir/stardog-graviton-$ver-{{.OS}}_{{.Arch}}
+  - aggregate:
+    - put: stage-bucket
+      params:
+        file: build-dir/stardog-graviton*darwin_amd64
+        versioned_file: True
+    - put: stage-bucket
+      params:
+        file: build-dir/stardog-graviton*linux_amd64
+
+- name: graviton-test
+  plan:
+  - aggregate:
+    - get: graviton-repo
+      trigger: true
+    - get: ci-docker-image
+      passed: [ build-docker ]
+      trigger: true
+    - get: stage-bucket
+      passed: [ build-graviton ]
+      params:
+        file: build-dir/stardog-graviton*linux_amd64
+      trigger: true
+  - task: make-env
+    image: ci-docker-image
+    config:
+      platform: linux
+      outputs:
+      - name: build-dir
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          curl -u {{archiveuser}}:{{archivepw}} -o build-dir/stardog-{{stardog-version}}.zip {{stardogurl}}
+          echo {{stardog-license}} | base64 -d > build-dir/stardog-license-key.bin
+  - task: launch
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: graviton-repo
+      - name: build-dir
+      - name: stage-bucket
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          x=`pwd`
+          ls build-dir/
+          ls -l stage-bucket
+          pgm=`ls stage-bucket/stardog-graviton*linux_amd64`
+          release=$x/build-dir/stardog-{{stardog-version}}.zip
+          license=$x/build-dir/stardog-license-key.bin
+          sed -e "s^@@LICENSE@@^$license^" -e "s^@@RELEASE@@^$release^" -e "s^@@VERSION@@^{{stardog-version}}^" graviton-repo/ci/default.json.template > build-dir/default.json
+          cat build-dir/default.json
+          chmod 755 $x/$pgm
+          $x/$pgm --config-dir=$x/build-dir launch --force pipetest{{stardog-version}}

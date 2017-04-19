@@ -429,9 +429,9 @@ func TestDestroyNoExist(t *testing.T) {
 	if rc == 0 {
 		t.Fatalf("Should fail when deleting a non existing instance")
 	}
-	rc = realMain([]string{"--config-dir", confDir, "client", depName, "hostname"})
+	rc = realMain([]string{"--config-dir", confDir, "invalid", depName, "hostname"})
 	if rc == 0 {
-		t.Fatalf("client command should have failed")
+		t.Fatalf("invalid command should have failed")
 	}
 }
 

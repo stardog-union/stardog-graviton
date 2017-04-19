@@ -142,7 +142,7 @@ def linux_test(sd_license, release, ssh_key_path, ssh_key_name):
         print("Exe: linux_amd64/stardog-graviton")
     except Exception as ex:
         global _g_failed
-        _g_failed.append("Linus failed: %s" % str(ex))
+        _g_failed.append("Linux failed: %s" % str(ex))
         print("TEST ERROR linux %s" % str(ex))
 
 

@@ -25,6 +25,11 @@ type TestContext struct {
 	Version   string
 }
 
+
+func (c *TestContext) GetInteractive() bool {
+	return true
+}
+
 func (c *TestContext) Logf(level int, format string, v ...interface{}) {
 }
 
@@ -144,4 +149,3 @@ func (tstDep *tpDeployment) ClusterSize() (int, error) {
 func (tstDep *tpDeployment) DestroyDeployment() error {
 	return nil
 }
-
