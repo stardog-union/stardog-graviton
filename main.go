@@ -56,6 +56,9 @@ type CliContext struct {
 	HTTPMask          string             `json:"http_mask,omitempty"`
 	ConnectionTimeout int                `json:"connection_timeout,omitempty"`
 	Memory            string             `json:"memory,omitempty"`
+	MemoryStart       string             `json:"memory_start,omitempty"`
+	MemoryMax         string             `json:"memory_max,omitempty"`
+	MemoryDirect      string             `json:"memory_direct,omitempty"`
 	DisableSecurity   bool               `json:"disable_security,omitempty"`
 	CloudOpts         interface{}        `json:"cloud_options"`
 	DeploymentName    string             `json:"-"`
@@ -140,7 +143,6 @@ func (cliContext *CliContext) aboutCommand(c *kingpin.ParseContext) error {
 	return nil
 }
 
-
 func envNormalize(cliContext *CliContext) error {
 	found := false
 	for ndx, env := range cliContext.EnvList {
@@ -158,7 +160,20 @@ func envNormalize(cliContext *CliContext) error {
 
 	}
 	if !found {
-		cliContext.EnvList = append(cliContext.EnvList, fmt.Sprintf("STARDOG_JAVA_ARGS=\"-Xmx%s -Xms%s -XX:MaxDirectMemorySize=%s\"", cliContext.Memory, cliContext.Memory, cliContext.Memory))
+		if cliContext.MemoryDirect == "" {
+			cliContext.MemoryDirect = cliContext.Memory
+		}
+		if cliContext.MemoryMax == "" {
+			cliContext.MemoryMax = cliContext.Memory
+		}
+		if cliContext.MemoryStart == "" {
+			cliContext.MemoryStart = cliContext.Memory
+		}
+		if cliContext.MemoryStart > cliContext.MemoryMax {
+			cliContext.Logf(sdutils.WARN, "Memory start was larger than memory max.  Increasing the max to %s", cliContext.MemoryStart)
+			cliContext.MemoryMax = cliContext.MemoryStart
+		}
+		cliContext.EnvList = append(cliContext.EnvList, fmt.Sprintf("STARDOG_JAVA_ARGS=\"-Xmx%s -Xms%s -XX:MaxDirectMemorySize=%s\"", cliContext.MemoryMax, cliContext.MemoryStart, cliContext.MemoryDirect))
 	}
 
 	return nil
@@ -599,6 +614,9 @@ func loadDefaultCliOptions() *CliContext {
 		ConnectionTimeout: 300,
 		HTTPMask:          sdutils.GetLocalOnlyHTTPMask(),
 		Memory:            "2g",
+		MemoryDirect:      "",
+		MemoryMax:         "",
+		MemoryStart:       "",
 		highlight:         color.New(color.FgHiWhite, color.Bold).SprintFunc(),
 		green:             color.New(color.FgGreen, color.Bold).SprintFunc(),
 		red:               color.New(color.FgRed, color.Bold).SprintFunc(),
@@ -666,7 +684,10 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("env", "Set an environment variable before running Stardog.  The format should be key=value.  This option can be used multiple times. Advanced feature.").StringsVar(&cliContext.EnvList)
 	cmdOpts.LaunchCmd.Arg("name", "The name of the deployment.  It must be unique to this account.").Required().StringVar(&cliContext.DeploymentName)
 	cmdOpts.LaunchCmd.Flag("cidr", "The network mask to which stardog access will be limited.  The default is the IP of this machine.").Default(cliContext.HTTPMask).StringVar(&cliContext.HTTPMask)
-	cmdOpts.LaunchCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
+	cmdOpts.LaunchCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.  This will set the maximum amount of memory, the starting amount of memory, and the direct memory to this value.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
+	cmdOpts.LaunchCmd.Flag("memory-direct", "The amount of direct memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryDirect)
+	cmdOpts.LaunchCmd.Flag("memory-max", "The maximum amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryMax)
+	cmdOpts.LaunchCmd.Flag("memory-start", "The starting amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryStart)
 	cmdOpts.LaunchCmd.Flag("disable-security", "Run the Stardog servers without security.").Default(fmt.Sprintf("%t", cliContext.DisableSecurity)).BoolVar(&cliContext.DisableSecurity)
 	cmdOpts.LaunchCmd.Validate(cliContext.envValidate)
 	cmdOpts.LaunchCmd.Action(cliContext.interactive)
@@ -713,7 +734,10 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.NewDeploymentCmd.Flag("private-key", "The path to the private key.").Default(cliContext.PrivateKeyPath).StringVar(&cliContext.PrivateKeyPath)
 	cmdOpts.NewDeploymentCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
 	cmdOpts.NewDeploymentCmd.Flag("env", "Set an environment variable before running Stardog.  The format should be key=value.  This option can be used multiple times. Advanced feature.").StringsVar(&cliContext.EnvList)
-	cmdOpts.NewDeploymentCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
+	cmdOpts.NewDeploymentCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.  This will set the maximum amount of memory, the starting amount of memory, and the direct memory to this value.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
+	cmdOpts.NewDeploymentCmd.Flag("memory-direct", "The amount of direct memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryDirect)
+	cmdOpts.NewDeploymentCmd.Flag("memory-max", "The maximum amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryMax)
+	cmdOpts.NewDeploymentCmd.Flag("memory-start", "The starting amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryStart)
 	cmdOpts.NewDeploymentCmd.Flag("disable-security", "Run the Stardog servers without security.").Default(fmt.Sprintf("%t", cliContext.DisableSecurity)).BoolVar(&cliContext.DisableSecurity)
 	cmdOpts.NewDeploymentCmd.Action(cliContext.newDeployment)
 	cmdOpts.NewDeploymentCmd.Validate(cliContext.envValidate)
