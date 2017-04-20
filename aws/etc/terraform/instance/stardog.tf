@@ -53,6 +53,12 @@ resource "aws_launch_configuration" "stardog" {
   iam_instance_profile = "${aws_iam_instance_profile.stardog.id}"
   # XXX TODO figure out why we need a public ip for external routing
   associate_public_ip_address = true
+
+  root_block_device {
+    volume_type = "${var.root_volume_type}"
+    volume_size = "${var.root_volume_size}"
+    delete_on_termination = "true"
+  }
 }
 
 resource "aws_iam_instance_profile" "stardog" {

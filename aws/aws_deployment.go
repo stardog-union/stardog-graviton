@@ -202,20 +202,20 @@ func (dd *awsDeploymentDescription) VolumeExists() bool {
 	return vm.VolumeExists()
 }
 
-func (dd *awsDeploymentDescription) CreateInstance(zookeeperSize int, idleTimeout int) error {
+func (dd *awsDeploymentDescription) CreateInstance(volumeSize int, zookeeperSize int, idleTimeout int) error {
 	im, err := NewEc2Instance(dd.ctx, dd)
 	if err != nil {
 		return err
 	}
-	return im.CreateInstance(zookeeperSize, idleTimeout)
+	return im.CreateInstance(volumeSize, zookeeperSize, idleTimeout)
 }
 
-func (dd *awsDeploymentDescription) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
+func (dd *awsDeploymentDescription) OpenInstance(volumeSize int, zookeeperSize int, mask string, idleTimeout int) error {
 	im, err := NewEc2Instance(dd.ctx, dd)
 	if err != nil {
 		return err
 	}
-	return im.OpenInstance(zookeeperSize, mask, idleTimeout)
+	return im.OpenInstance(volumeSize, zookeeperSize, mask, idleTimeout)
 }
 
 func (dd *awsDeploymentDescription) DeleteInstance() error {

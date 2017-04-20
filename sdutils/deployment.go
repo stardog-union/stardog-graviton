@@ -332,8 +332,8 @@ func linePrinter(cliContext AppContext, line string) *ScanResult {
 // the deployment is considered healthy.  It will then change the password by
 // SSHing into the bastion node.  Once that is complete it will open up the
 // the firewall.
-func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, zkSize int, waitMaxTimeSec int, timeoutSec int, mask string, noWait bool) error {
-	err := dep.CreateInstance(zkSize, timeoutSec)
+func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, volumeSize int, zkSize int, waitMaxTimeSec int, timeoutSec int, mask string, noWait bool) error {
+	err := dep.CreateInstance(volumeSize, zkSize, timeoutSec)
 	if err != nil {
 		return err
 	}
@@ -361,7 +361,7 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, z
 		}
 		pw = newPw
 	}
-	err = dep.OpenInstance(zkSize, mask, timeoutSec)
+	err = dep.OpenInstance(volumeSize, zkSize, mask, timeoutSec)
 	if err != nil {
 		return err
 	}

@@ -133,3 +133,15 @@ variable "stardog_start_opts" {
   description = "Options passed to stardog-admin server start"
   default = ""
 }
+
+variable "root_volume_type" {
+  type = "string"
+  description = "The type of volume to use for the root partition"
+  default = "standard"
+}
+
+variable "root_volume_size" {
+  type = "string"
+  description = "The size of the root partition"
+  default = "16g"
+}
