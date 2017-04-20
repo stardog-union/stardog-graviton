@@ -3,7 +3,7 @@
     "log_level": "DEBUG",
     "cloud_type": "aws",
     "volume_size": 16,
-    "cluster_size": 2,
+    "cluster_size": 3,
     "memory": "4g",
     "release_file": "@@RELEASE@@",
     "zookeeper_size": 3,

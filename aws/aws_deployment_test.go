@@ -166,6 +166,7 @@ func TestDeploymentLoadNew(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "standard",
 	}
 	app := sdutils.TestContext{
 		ConfigDir: dir,

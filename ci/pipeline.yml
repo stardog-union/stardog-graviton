@@ -1,5 +1,12 @@
 ---
 resources:
+- name: dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/Dockerfile" ]
+    branch: feature/pipeline1
+    uri: https://github.com/stardog-union/stardog-graviton.git
+
 - name: graviton-repo
   type: git
   source:
@@ -26,11 +33,11 @@ resources:
 jobs:
 - name: build-docker
   plan:
-  - get: graviton-repo
+  - get: dockerfile-repo
     trigger: true
   - put: ci-docker-image
     params:
-      build: graviton-repo/ci
+      build: dockerfile-repo/ci
 
 - name: build-graviton
   plan:
@@ -39,8 +46,9 @@ jobs:
       passed: [ build-docker ]
       trigger: true
     - get: graviton-repo
+      passed: [ build-docker ]
       trigger: true
-  - task: build-tile
+  - task: make-grav
     image: ci-docker-image
     config:
       platform: linux
@@ -61,7 +69,6 @@ jobs:
           export PATH=/usr/local/go/bin:/usr/local/src/go/bin:$PATH
           make
           make test
-          git log
           cat etc/version
           ver=`cat etc/version`
           gox -osarch="linux/amd64" -osarch="darwin/amd64" -output=$x/build-dir/stardog-graviton-$ver-{{.OS}}_{{.Arch}}
@@ -78,10 +85,9 @@ jobs:
   plan:
   - aggregate:
     - get: graviton-repo
-      trigger: true
+      passed: [ build-graviton ]
     - get: ci-docker-image
-      passed: [ build-docker ]
-      trigger: true
+      passed: [ build-graviton ]
     - get: stage-bucket
       passed: [ build-graviton ]
       params:
@@ -108,18 +114,50 @@ jobs:
       - name: graviton-repo
       - name: build-dir
       - name: stage-bucket
+      outputs:
+      - name: grav-dir
       run:
-        path: sh
+        path: graviton-repo/ci/start-cluster.sh
         args:
-        - -exc
-        - |
-          x=`pwd`
-          ls build-dir/
-          ls -l stage-bucket
-          pgm=`ls stage-bucket/stardog-graviton*linux_amd64`
-          release=$x/build-dir/stardog-{{stardog-version}}.zip
-          license=$x/build-dir/stardog-license-key.bin
-          sed -e "s^@@LICENSE@@^$license^" -e "s^@@RELEASE@@^$release^" -e "s^@@VERSION@@^{{stardog-version}}^" graviton-repo/ci/default.json.template > build-dir/default.json
-          cat build-dir/default.json
-          chmod 755 $x/$pgm
-          $x/$pgm --config-dir=$x/build-dir launch --force pipetest{{stardog-version}}
+          - {{s3-access-key}} 
+          - {{s3-secret}}
+          - stage-bucket
+          - {{stardog-version}}
+          - build-dir
+          - grav-dir
+
+  - task: load
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: graviton-repo
+      - name: grav-dir
+      - name: stage-bucket
+      run:
+        path: graviton-repo/ci/create-db.sh
+        args:
+          - {{s3-access-key}}
+          - {{s3-secret}}
+          - graviton-repo
+          - grav-dir
+          - stage-bucket
+          - {{stardog-version}}
+    
+  - task: destroy
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: graviton-repo
+      - name: grav-dir
+      - name: build-dir
+      - name: stage-bucket
+      run:
+        path: graviton-repo/ci/stop-cluster.sh
+        args:
+          - {{s3-access-key}}
+          - {{s3-secret}}
+          - stage-bucket
+          - grav-dir
+          - build-dir

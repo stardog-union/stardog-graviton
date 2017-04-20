@@ -48,6 +48,7 @@ func TestInstanceNotThere(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "standard",
 	}
 	baseD := sdutils.BaseDeployment{
 		Type:       plugin.GetName(),
@@ -107,6 +108,7 @@ func TestInstanceFakeTerraform(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "standard",
 	}
 	baseD := sdutils.BaseDeployment{
 		Type:       plugin.GetName(),
@@ -208,6 +210,7 @@ func TestInstanceFakeTerraformThroughDeployment(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "standard",
 	}
 	baseD := sdutils.BaseDeployment{
 		Type:       plugin.GetName(),
@@ -314,6 +317,7 @@ func TestInstanceNotThereThroughDd(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "standard",
 	}
 	baseD := sdutils.BaseDeployment{
 		Type:       plugin.GetName(),
