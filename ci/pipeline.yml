@@ -61,6 +61,8 @@ jobs:
           export PATH=/usr/local/go/bin:/usr/local/src/go/bin:$PATH
           make
           make test
+          git log
+          cat etc/version
           ver=`cat etc/version`
           gox -osarch="linux/amd64" -osarch="darwin/amd64" -output=$x/build-dir/stardog-graviton-$ver-{{.OS}}_{{.Arch}}
   - aggregate:
