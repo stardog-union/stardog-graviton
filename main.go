@@ -45,6 +45,7 @@ type CliContext struct {
 	LogLevel          string             `json:"log_level,omitempty"`
 	CloudType         string             `json:"cloud_type,omitempty"`
 	VolumeSize        int                `json:"volume_size,omitempty"`
+	RootVolumeSize    int                `json:"volume_size,omitempty"`
 	Quiet             bool               `json:"quiet,omitempty"`
 	ClusterSize       int                `json:"cluster_size,omitempty"`
 	SdReleaseFilePath string             `json:"release_file,omitempty"`
@@ -246,7 +247,7 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 	if err != nil {
 		return err
 	}
-	err = sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
+	err = sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.RootVolumeSize, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
 	if err != nil {
 		return err
 	}
@@ -439,7 +440,7 @@ func (cliContext *CliContext) launchInstance(c *kingpin.ParseContext) error {
 		return err
 	}
 
-	return sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
+	return sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.RootVolumeSize, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
 }
 
 func (cliContext *CliContext) destroyInstance(c *kingpin.ParseContext) error {
@@ -584,6 +585,7 @@ func loadDefaultCliOptions() *CliContext {
 		LogLevel:          "INFO",
 		CloudType:         "aws",
 		VolumeSize:        10,
+		RootVolumeSize:    16,
 		Quiet:             false,
 		ClusterSize:       3,
 		SdReleaseFilePath: "",
@@ -654,6 +656,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("license", "Path to your stardog license.").Default(cliContext.LicensePath).StringVar(&cliContext.LicensePath)
 	cmdOpts.LaunchCmd.Flag("release", "Path to the stardog release zip file.").Default(cliContext.SdReleaseFilePath).StringVar(&cliContext.SdReleaseFilePath)
 	cmdOpts.LaunchCmd.Flag("volume-size", "The size of each storage volume in gigabytes.").Default(fmt.Sprintf("%d", cliContext.VolumeSize)).IntVar(&cliContext.VolumeSize)
+	cmdOpts.LaunchCmd.Flag("root-volume-size", "The size of each stardog node root volume in gigabytes.").Default(fmt.Sprintf("%d", cliContext.RootVolumeSize)).IntVar(&cliContext.RootVolumeSize)
 	cmdOpts.LaunchCmd.Flag("node-count", "The number storage volume.  This will be the size of the stardog cluster").Default(fmt.Sprintf("%d", cliContext.ClusterSize)).IntVar(&cliContext.ClusterSize)
 	cmdOpts.LaunchCmd.Flag("zk-count", "The number of zookeeper nodes.").Default(fmt.Sprintf("%d", cliContext.ZkClusterSize)).IntVar(&cliContext.ZkClusterSize)
 	cmdOpts.LaunchCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
@@ -743,6 +746,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	instanceCmd := cli.Command("instance", "Manage the instance.")
 	cmdOpts.LaunchInstanceCmd = instanceCmd.Command("new", "Create new set of VMs running Stardog.")
 	cmdOpts.LaunchInstanceCmd.Arg("deployment", "The name of the deployment.").Required().StringVar(&cliContext.DeploymentName)
+	cmdOpts.LaunchInstanceCmd.Flag("root-volume-size", "The size of each stardog node root volume in gigabytes.").Default(fmt.Sprintf("%d", cliContext.RootVolumeSize)).IntVar(&cliContext.RootVolumeSize)
 	cmdOpts.LaunchInstanceCmd.Arg("zk", "The number of zookeeper nodes.").Required().IntVar(&cliContext.ZkClusterSize)
 	cmdOpts.LaunchInstanceCmd.Flag("no-wait", "Block until the stardog instance is healthy.").Default(fmt.Sprintf("%t", cliContext.NoWaitForHealthy)).BoolVar(&cliContext.NoWaitForHealthy)
 	cmdOpts.LaunchInstanceCmd.Flag("wait-timeout", "The number of seconds to block waiting for the stardog instance to become healthy.").Default(fmt.Sprintf("%d", cliContext.WaitMaxTimeSec)).IntVar(&cliContext.WaitMaxTimeSec)

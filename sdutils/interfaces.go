@@ -72,8 +72,8 @@ type Deployment interface {
 	VolumeExists() bool
 	ClusterSize() (int, error)
 
-	CreateInstance(zookeeperSize int, idleTimeout int) error
-	OpenInstance(zookeeperSize int, mask string, idleTimeout int) error
+	CreateInstance(volumeSize int, zookeeperSize int, idleTimeout int) error
+	OpenInstance(volumeSize int, zookeeperSize int, mask string, idleTimeout int) error
 	DeleteInstance() error
 	StatusInstance() error
 	InstanceExists() bool

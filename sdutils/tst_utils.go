@@ -109,11 +109,11 @@ func (tstDep *tpDeployment) VolumeExists() bool {
 	return tstDep.TstVolumeExists
 }
 
-func (tstDep *tpDeployment) CreateInstance(zookeeperSize int, idleTimeout int) error {
+func (tstDep *tpDeployment) CreateInstance(rootSize int, zookeeperSize int, idleTimeout int) error {
 	return nil
 }
 
-func (tstDep *tpDeployment) OpenInstance(zookeeperSize int, mask string, idleTimeout int) error {
+func (tstDep *tpDeployment) OpenInstance(rootSize int, zookeeperSize int, mask string, idleTimeout int) error {
 	return nil
 }
 
