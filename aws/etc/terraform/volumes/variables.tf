@@ -75,3 +75,14 @@ variable "stardog_license" {
   type = "string"
   description = "The path to your stardog license"
 }
+
+variable "volume_type" {
+  type = "string"
+  description = "The EBS storage type"
+  default = "io1"
+}
+
+variable "iops" {
+  type = "string"
+  description = "The IOPS to provision the volume with"
+}

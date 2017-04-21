@@ -42,7 +42,10 @@ type EbsVolumes struct {
 	AmiID            string `json:"ami,omitempty"`
 	InstanceType     string `json:"instance_type,omitempty"`
 	LicensePath      string `json:"stardog_license,omitempty"`
+	VolumeType       string `json:"volume_type,omitempty"`
+	IoPs             string `json:"iops,omitempty"`
 	VolumeDir        string `json:"-"`
+	iopsRatio        int
 	appContext       sdutils.AppContext
 }
 
@@ -50,6 +53,7 @@ type EbsVolumes struct {
 // graviton to manage the volumes.
 func NewAwsEbsVolumeManager(ac sdutils.AppContext, dd *awsDeploymentDescription) *EbsVolumes {
 	volumeDir := path.Join(dd.deployDir, "etc", "terraform", "volumes")
+
 	return &EbsVolumes{
 		DeploymentName: dd.Name,
 		Region:         dd.Region,
@@ -59,6 +63,8 @@ func NewAwsEbsVolumeManager(ac sdutils.AppContext, dd *awsDeploymentDescription)
 		InstanceType:   dd.SdInstanceType,
 		VolumeDir:      volumeDir,
 		appContext:     ac,
+		VolumeType:     dd.VolumeType,
+		iopsRatio:      dd.IoPsRatio,
 	}
 }
 
@@ -92,6 +98,7 @@ func (v *EbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, cluster
 	v.ClusterSize = fmt.Sprintf("%d", clusterSize)
 	v.SizeOfEachVolume = fmt.Sprintf("%d", sizeOfEachVolume)
 	v.LicensePath = licensePath
+	v.IoPs = fmt.Sprintf("%d", v.iopsRatio*clusterSize)
 
 	confFile := path.Join(v.VolumeDir, "config.json")
 	if _, err := os.Stat(confFile); err == nil {

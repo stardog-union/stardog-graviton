@@ -37,7 +37,25 @@ var (
 		"us-west-1", "us-west-2", "us-east-1",
 		"us-east-2", "eu-central-1", "eu-west-1",
 	}
+	// ValidVolumeTypes is the list of volume types that are supported by this plugin and
+	// their default iops values
+	ValidVolumeTypes = make(map[string]int)
 )
+
+func init() {
+	ValidVolumeTypes["standard"] = 0
+	ValidVolumeTypes["gp2"] = 50
+	ValidVolumeTypes["io1"] = 50
+}
+
+// GetValidVolumeTypes returns a list of the volume types that are supported
+func GetValidVolumeTypes() []string {
+	keys := []string{}
+	for k := range ValidVolumeTypes {
+		keys = append(keys, k)
+	}
+	return keys
+}
 
 func hasTag(tags []*ec2.Tag, tagVal string, possibleDelpoyNames *map[string]bool) bool {
 	for _, t := range tags {
@@ -171,7 +189,7 @@ func ImportKeyName(c sdutils.AppContext, a *awsPlugin, keyname string, publickey
 	svc := ec2.New(sess, &conf)
 
 	keyInput := ec2.ImportKeyPairInput{
-		KeyName:  &keyname,
+		KeyName:           &keyname,
 		PublicKeyMaterial: publickey,
 	}
 	_, err = svc.ImportKeyPair(&keyInput)
@@ -191,7 +209,7 @@ func DeleteKeyPair(c sdutils.AppContext, a *awsPlugin, keyname string) error {
 		return err
 	}
 	svc := ec2.New(sess, &conf)
-	_, err = svc.DeleteKeyPair(&ec2.DeleteKeyPairInput{KeyName: &keyname,})
+	_, err = svc.DeleteKeyPair(&ec2.DeleteKeyPairInput{KeyName: &keyname})
 	if err != nil {
 		return err
 	}

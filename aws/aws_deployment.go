@@ -24,27 +24,30 @@ import (
 	"path"
 	"strings"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
 	"time"
+
+	"github.com/stardog-union/stardog-graviton/sdutils"
 )
 
 type awsDeploymentDescription struct {
-	Region         string `json:"region,omitempty"`
-	AmiID          string `json:"ami_id,omitempty"`
-	AwsKeyName     string `json:"keyname,omitempty"`
-	ZkInstanceType string `json:"zk_instance,omitempty"`
-	SdInstanceType string `json:"sd_instance,omitempty"`
-	PrivateKeyPath string `json:"private_key_path,omitempty"`
-	CreatedKey     bool   `json:"created_key,omitempty"`
-	HTTPMask       string `json:"http_mask,omitempty"`
-	Version        string `json:"-"`
-	Name           string `json:"-"`
-	deployDir      string
-	customPropFile string
-	environment    []string
+	Region          string `json:"region,omitempty"`
+	AmiID           string `json:"ami_id,omitempty"`
+	AwsKeyName      string `json:"keyname,omitempty"`
+	ZkInstanceType  string `json:"zk_instance,omitempty"`
+	SdInstanceType  string `json:"sd_instance,omitempty"`
+	PrivateKeyPath  string `json:"private_key_path,omitempty"`
+	CreatedKey      bool   `json:"created_key,omitempty"`
+	HTTPMask        string `json:"http_mask,omitempty"`
+	VolumeType      string `json:"volume_type,omitempty"`
+	IoPsRatio       int    `json:"iops,omitempty"`
+	Version         string `json:"-"`
+	Name            string `json:"-"`
+	deployDir       string
+	customPropFile  string
+	environment     []string
 	disableSecurity bool
-	ctx            sdutils.AppContext
-	plugin         *awsPlugin
+	ctx             sdutils.AppContext
+	plugin          *awsPlugin
 }
 
 func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeployment, a *awsPlugin) (*awsDeploymentDescription, error) {
@@ -129,21 +132,31 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 	}
 	c.ConsoleLog(2, "Terraform configuration extracted to %s\n", assertDir)
 
+	iops := a.IoPs
+	if iops == 0 {
+		var ok bool
+		iops, ok = ValidVolumeTypes[a.VolumeType]
+		if !ok {
+			return nil, fmt.Errorf("%s is not a valid volume type", a.VolumeType)
+		}
+	}
 	dd := awsDeploymentDescription{
-		Region:         a.Region,
-		AmiID:          a.AmiID,
-		AwsKeyName:     a.AwsKeyName,
-		ZkInstanceType: a.ZkInstanceType,
-		SdInstanceType: a.SdInstanceType,
-		Version:        baseD.Version,
-		Name:           baseD.Name,
-		PrivateKeyPath: baseD.PrivateKey,
-		ctx:            c,
-		deployDir:      deployDir,
-		customPropFile: baseD.CustomPropsFile,
-		environment:    baseD.Environment,
+		Region:          a.Region,
+		AmiID:           a.AmiID,
+		AwsKeyName:      a.AwsKeyName,
+		ZkInstanceType:  a.ZkInstanceType,
+		SdInstanceType:  a.SdInstanceType,
+		Version:         baseD.Version,
+		Name:            baseD.Name,
+		PrivateKeyPath:  baseD.PrivateKey,
+		ctx:             c,
+		deployDir:       deployDir,
+		customPropFile:  baseD.CustomPropsFile,
+		environment:     baseD.Environment,
 		disableSecurity: baseD.DisableSecurity,
-		CreatedKey:     createdKey,
+		CreatedKey:      createdKey,
+		VolumeType:      a.VolumeType,
+		IoPsRatio:       iops,
 	}
 	return &dd, nil
 }
@@ -238,7 +251,7 @@ func (dd *awsDeploymentDescription) FullStatus() (*sdutils.StardogDescription, e
 	vm := NewAwsEbsVolumeManager(dd.ctx, dd)
 	volumeStatus, err := vm.getStatusInformation()
 	if err != nil {
-		dd.ctx.ConsoleLog(1, "No volume information found.\n")
+		dd.ctx.ConsoleLog(1, "No volume information found %s\n", err)
 	}
 
 	im, err := NewEc2Instance(dd.ctx, dd)
@@ -272,6 +285,8 @@ func (dd *awsDeploymentDescription) InstanceExists() bool {
 
 type awsPlugin struct {
 	Region         string `json:"region,omitempty"`
+	VolumeType     string `json:"volume_type,omitempty"`
+	IoPs           int    `json:"iops,omitempty"`
 	AmiID          string `json:"ami_id,omitempty"`
 	AwsKeyName     string `json:"aws_key_name,omitempty"`
 	ZkInstanceType string `json:"zk_instance_type,omitempty"`
@@ -288,6 +303,8 @@ func GetPlugin() sdutils.Plugin {
 		ZkInstanceType: "t2.small",
 		SdInstanceType: "m3.medium",
 		BastionType:    "t2.small",
+		VolumeType:     "io1",
+		IoPs:           0,
 	}
 }
 
@@ -307,10 +324,15 @@ func (a *awsPlugin) LoadDefaults(defaultCliOpts interface{}) error {
 func (a *awsPlugin) Register(cmdOpts *sdutils.CommandOpts) error {
 	cmdOpts.BuildCmd.Flag("region", fmt.Sprintf("The aws region to use [%s].", strings.Join(ValidRegions, " | "))).Default(a.Region).StringVar(&a.Region)
 
+	cmdOpts.NewVolumesCmd.Flag("volume-type", fmt.Sprintf("The EBS volume type to use [%s]", strings.Join(GetValidVolumeTypes(), " | "))).Default(a.VolumeType).StringVar(&a.VolumeType)
+	cmdOpts.NewVolumesCmd.Flag("iops", "The IOPS for the volume type").IntVar(&a.IoPs)
+
 	cmdOpts.LaunchCmd.Flag("region", fmt.Sprintf("The aws region to use [%s]", strings.Join(ValidRegions, " | "))).Default(a.Region).StringVar(&a.Region)
 	cmdOpts.LaunchCmd.Flag("zk-instance-type", "The instance type to use for zookeeper VMs").Default(a.ZkInstanceType).StringVar(&a.ZkInstanceType)
 	cmdOpts.LaunchCmd.Flag("sd-instance-type", "The instance type to use for stardog VMs").Default(a.SdInstanceType).StringVar(&a.SdInstanceType)
 	cmdOpts.LaunchCmd.Flag("aws-key-name", "The AWS ssh key name.").Default(a.AwsKeyName).StringVar(&a.AwsKeyName)
+	cmdOpts.LaunchCmd.Flag("volume-type", fmt.Sprintf("The EBS volume type to use [%s]", strings.Join(GetValidVolumeTypes(), " | "))).Default(a.VolumeType).StringVar(&a.VolumeType)
+	cmdOpts.LaunchCmd.Flag("iops", "The IOPS for the volume type").IntVar(&a.IoPs)
 
 	cmdOpts.LeaksCmd.Flag("region", fmt.Sprintf("The aws region to use [%s]", strings.Join(ValidRegions, " | "))).Default(a.Region).StringVar(&a.Region)
 
