@@ -21,15 +21,6 @@ resources:
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
 
-- name: linuxstaged
-  type: s3
-  source:
-    bucket: graviton-staging
-    regexp: (?P<version>.*)/linux_amd64/stardog-graviton
-    region_name: {{s3-region}}
-    access_key_id: {{s3-access-key}}
-    secret_access_key: {{s3-secret}}
-
 jobs:
 - name: build-docker
   plan:
@@ -62,6 +53,7 @@ jobs:
           - {{s3-secret}}
           - graviton-repo
           - build-dir
+          - {{stage-bucket}}
 
 - name: graviton-test
   plan:
@@ -70,11 +62,6 @@ jobs:
       passed: [ build-graviton ]
     - get: ci-docker-image
       passed: [ build-graviton ]
-    - get: linuxstaged
-      passed: [ build-graviton ]
-      params:
-        file: build-dir/*/linux_amd64/stardog-graviton
-      trigger: true
   - task: make-env
     image: ci-docker-image
     config:
@@ -95,7 +82,6 @@ jobs:
       inputs:
       - name: graviton-repo
       - name: build-dir
-      - name: linuxstaged
       outputs:
       - name: grav-dir
       run:
@@ -104,7 +90,6 @@ jobs:
           - {{run-long-test}} 
           - {{s3-access-key}} 
           - {{s3-secret}}
-          - linuxstaged
           - {{stardog-version}}
           - build-dir
           - grav-dir
@@ -116,7 +101,6 @@ jobs:
       inputs:
       - name: graviton-repo
       - name: grav-dir
-      - name: linuxstaged
       run:
         path: graviton-repo/ci/create-db.sh
         args:
@@ -125,7 +109,6 @@ jobs:
           - {{s3-secret}}
           - graviton-repo
           - grav-dir
-          - linuxstaged
           - {{stardog-version}}
     
   - task: destroy
@@ -136,13 +119,11 @@ jobs:
       - name: graviton-repo
       - name: grav-dir
       - name: build-dir
-      - name: linuxstaged
       run:
         path: graviton-repo/ci/stop-cluster.sh
         args:
           - {{run-long-test}} 
           - {{s3-access-key}}
           - {{s3-secret}}
-          - linuxstaged
           - grav-dir
           - build-dir
