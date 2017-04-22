@@ -30,6 +30,15 @@ resources:
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
+- name: final-bucket
+  type: s3
+  source:
+    bucket: {{final-bucket}}
+    regexp: stardog-graviton-(?P<version>.*)
+    region_name: {{s3-region}}
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
 jobs:
 - name: build-docker
   plan:
@@ -71,15 +80,14 @@ jobs:
           make test
           cat etc/version
           ver=`cat etc/version`
-          gox -osarch="linux/amd64" -osarch="darwin/amd64" -output=$x/build-dir/stardog-graviton-$ver-{{.OS}}_{{.Arch}}
+          gox -osarch="linux/amd64" -osarch="darwin/amd64" -output=$x/build-dir/$ver/{{.OS}}_{{.Arch}}/stardog-graviton
   - aggregate:
     - put: stage-bucket
       params:
-        file: build-dir/stardog-graviton*darwin_amd64
-        versioned_file: True
+        file: build-dir/*/darwin_amd64/stardog-graviton
     - put: stage-bucket
       params:
-        file: build-dir/stardog-graviton*linux_amd64
+        file: build-dir/*/linux_amd64/stardog-graviton
 
 - name: graviton-test
   plan:
@@ -91,7 +99,7 @@ jobs:
     - get: stage-bucket
       passed: [ build-graviton ]
       params:
-        file: build-dir/stardog-graviton*linux_amd64
+        file: build-dir/*/linux_amd64/stardog-graviton
       trigger: true
   - task: make-env
     image: ci-docker-image
@@ -119,6 +127,7 @@ jobs:
       run:
         path: graviton-repo/ci/start-cluster.sh
         args:
+          - {{run-long-test}} 
           - {{s3-access-key}} 
           - {{s3-secret}}
           - stage-bucket
@@ -137,6 +146,7 @@ jobs:
       run:
         path: graviton-repo/ci/create-db.sh
         args:
+          - {{run-long-test}} 
           - {{s3-access-key}}
           - {{s3-secret}}
           - graviton-repo
@@ -156,6 +166,7 @@ jobs:
       run:
         path: graviton-repo/ci/stop-cluster.sh
         args:
+          - {{run-long-test}} 
           - {{s3-access-key}}
           - {{s3-secret}}
           - stage-bucket

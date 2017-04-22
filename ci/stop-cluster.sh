@@ -2,12 +2,18 @@
 
 set -e
 
-export AWS_ACCESS_KEY_ID=$1
-export AWS_SECRET_ACCESS_KEY=$2
+SKIP=$1
+export AWS_ACCESS_KEY_ID=$2
+export AWS_SECRET_ACCESS_KEY=$3
 
-STAGE_BUCKET=$3
-BUILD_DIR=$4
-OLDDIR=$5
+STAGE_BUCKET=$4
+BUILD_DIR=$5
+OLDDIR=$6
+
+if [ $SKIP -eq 1 ]; then
+    echo "Skipping the graviton tests"
+    exit 0
+fi
 
 ls
 echo "BUILD"

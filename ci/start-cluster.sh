@@ -2,13 +2,19 @@
 
 set -e
 
-export AWS_ACCESS_KEY_ID=$1
-export AWS_SECRET_ACCESS_KEY=$2
+SKIP=$1
+export AWS_ACCESS_KEY_ID=$2
+export AWS_SECRET_ACCESS_KEY=$32
 
-STAGE_BUCKET=$3
-STARDOG_VERSION=$4
-BUILD_DIR=$5
-OUT_DIR=$6
+STAGE_BUCKET=$4
+STARDOG_VERSION=$5
+BUILD_DIR=$6
+OUT_DIR=$7
+
+if [ $SKIP -eq 1 ]; then
+    echo "Skipping the graviton tests"
+    exit 0
+fi
 
 THIS_DIR=$(pwd)
 GRAV=$(ls $STAGE_BUCKET/stardog-graviton*linux_amd64)
