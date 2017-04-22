@@ -21,20 +21,11 @@ resources:
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
 
-- name: stage-bucket
+- name: linuxstaged
   type: s3
   source:
     bucket: graviton-staging
-    regexp: stardog-graviton-(?P<version>.*)
-    region_name: {{s3-region}}
-    access_key_id: {{s3-access-key}}
-    secret_access_key: {{s3-secret}}
-
-- name: final-bucket
-  type: s3
-  source:
-    bucket: {{final-bucket}}
-    regexp: stardog-graviton-(?P<version>.*)
+    regexp: (?P<version>.*)/linux_amd64/stardog-graviton
     region_name: {{s3-region}}
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
@@ -55,7 +46,6 @@ jobs:
       passed: [ build-docker ]
       trigger: true
     - get: graviton-repo
-      passed: [ build-docker ]
       trigger: true
   - task: make-grav
     image: ci-docker-image
@@ -66,28 +56,12 @@ jobs:
       outputs:
       - name: build-dir
       run:
-        path: sh
+        path: graviton-repo/ci/build-graviton.sh
         args:
-        - -exc
-        - |
-          x=`pwd`
-          ls /usr/local/go/bin
-          cp -r graviton-repo /usr/local/src/go/src/github.com/stardog-union/stardog-graviton
-          cd /usr/local/src/go/src/github.com/stardog-union/stardog-graviton
-          export GOPATH=/usr/local/src/go
-          export PATH=/usr/local/go/bin:/usr/local/src/go/bin:$PATH
-          make
-          make test
-          cat etc/version
-          ver=`cat etc/version`
-          gox -osarch="linux/amd64" -osarch="darwin/amd64" -output=$x/build-dir/$ver/{{.OS}}_{{.Arch}}/stardog-graviton
-  - aggregate:
-    - put: stage-bucket
-      params:
-        file: build-dir/*/darwin_amd64/stardog-graviton
-    - put: stage-bucket
-      params:
-        file: build-dir/*/linux_amd64/stardog-graviton
+          - {{s3-access-key}} 
+          - {{s3-secret}}
+          - graviton-repo
+          - build-dir
 
 - name: graviton-test
   plan:
@@ -96,7 +70,7 @@ jobs:
       passed: [ build-graviton ]
     - get: ci-docker-image
       passed: [ build-graviton ]
-    - get: stage-bucket
+    - get: linuxstaged
       passed: [ build-graviton ]
       params:
         file: build-dir/*/linux_amd64/stardog-graviton
@@ -121,7 +95,7 @@ jobs:
       inputs:
       - name: graviton-repo
       - name: build-dir
-      - name: stage-bucket
+      - name: linuxstaged
       outputs:
       - name: grav-dir
       run:
@@ -130,7 +104,7 @@ jobs:
           - {{run-long-test}} 
           - {{s3-access-key}} 
           - {{s3-secret}}
-          - stage-bucket
+          - linuxstaged
           - {{stardog-version}}
           - build-dir
           - grav-dir
@@ -142,7 +116,7 @@ jobs:
       inputs:
       - name: graviton-repo
       - name: grav-dir
-      - name: stage-bucket
+      - name: linuxstaged
       run:
         path: graviton-repo/ci/create-db.sh
         args:
@@ -151,7 +125,7 @@ jobs:
           - {{s3-secret}}
           - graviton-repo
           - grav-dir
-          - stage-bucket
+          - linuxstaged
           - {{stardog-version}}
     
   - task: destroy
@@ -162,13 +136,13 @@ jobs:
       - name: graviton-repo
       - name: grav-dir
       - name: build-dir
-      - name: stage-bucket
+      - name: linuxstaged
       run:
         path: graviton-repo/ci/stop-cluster.sh
         args:
           - {{run-long-test}} 
           - {{s3-access-key}}
           - {{s3-secret}}
-          - stage-bucket
+          - linuxstaged
           - grav-dir
           - build-dir
