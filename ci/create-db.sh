@@ -8,8 +8,7 @@ export AWS_SECRET_ACCESS_KEY=$3
 
 GRAV_REPO=$4
 CONFIG_DIR=$5
-STAGE_DIR=$6
-STARDOG_VERSION=$7
+STARDOG_VERSION=$6
 
 if [ $SKIP -eq 1 ]; then
     echo "Skipping the graviton tests"
@@ -17,7 +16,7 @@ if [ $SKIP -eq 1 ]; then
 fi
 
 THIS_DIR=$(pwd)
-GRAV_PGM=$(ls $STAGE_DIR/stardog-graviton*linux_amd64)
+GRAV_PGM="$THIS_DIR/$CONFIG_DIR/stardog-graviton"
 RELEASE=$THIS_DIR/$CONFIG_DIR/stardog-$STARDOG_VERSION.zip
 export STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR=$THIS_DIR/$CONFIG_DIR
 LAUNCH_NAME=$(cat $CONFIG_DIR/name)

@@ -6,9 +6,8 @@ SKIP=$1
 export AWS_ACCESS_KEY_ID=$2
 export AWS_SECRET_ACCESS_KEY=$3
 
-STAGE_BUCKET=$4
+GRAV_DIR=$4
 BUILD_DIR=$5
-OLDDIR=$6
 
 if [ $SKIP -eq 1 ]; then
     echo "Skipping the graviton tests"
@@ -17,13 +16,11 @@ fi
 
 ls
 echo "BUILD"
-ls $BUILD_DIR
 
 echo "OLD"
-ls $OLDDIR
 
 THIS_DIR=$(pwd)
-GRAV=$(ls $STAGE_BUCKET/stardog-graviton*linux_amd64)
+GRAV="$THIS_DIR/GRAV_DIR/stardog-graviton"
 
 LAUNCH_NAME=$(cat $BUILD_DIR/name)
 chmod 755 $THIS_DIR/$GRAV

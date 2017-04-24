@@ -4,12 +4,11 @@ set -e
 
 SKIP=$1
 export AWS_ACCESS_KEY_ID=$2
-export AWS_SECRET_ACCESS_KEY=$32
+export AWS_SECRET_ACCESS_KEY=$3
 
-STAGE_BUCKET=$4
-STARDOG_VERSION=$5
-BUILD_DIR=$6
-OUT_DIR=$7
+STARDOG_VERSION=$4
+BUILD_DIR=$5
+OUT_DIR=$6
 
 if [ $SKIP -eq 1 ]; then
     echo "Skipping the graviton tests"
@@ -17,7 +16,10 @@ if [ $SKIP -eq 1 ]; then
 fi
 
 THIS_DIR=$(pwd)
-GRAV=$(ls $STAGE_BUCKET/stardog-graviton*linux_amd64)
+GRAV="$THIS_DIR/$OUT_DIR/stardog-graviton"
+S3_URL=$($THIS_DIR/$BUILD_DIR/s3filename)
+aws s3 cp $S3_URL $GRAV
+
 release=$THIS_DIR/build-dir/stardog-$STARDOG_VERSION.zip
 license=$THIS_DIR/build-dir/stardog-license-key.bin
 sed -e "s^@@LICENSE@@^$license^" -e "s^@@RELEASE@@^$release^" -e "s^@@VERSION@@^$STARDOG_VERSION^" graviton-repo/ci/default.json.template > build-dir/default.json

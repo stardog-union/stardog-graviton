@@ -30,3 +30,7 @@ echo "YYY aws s3 cp $THIS_DIR/$OUT_DIR/$VER/darwin/stardog-graviton $OSX_BUCKET_
 aws s3 cp $THIS_DIR/$OUT_DIR/$VER/darwin/stardog-graviton $OSX_BUCKET_NAME
 
 echo $LINUX_BUCKET_NAME > $THIS_DIR/$OUT_DIR/s3filename
+
+echo $LINUX_BUCKET_NAME
+echo $THIS_DIR/$OUT_DIR/s3filename
+cat $THIS_DIR/$OUT_DIR/s3filename
