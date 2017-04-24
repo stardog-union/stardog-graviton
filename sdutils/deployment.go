@@ -406,7 +406,8 @@ func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfi
 	if err != nil {
 		context.Logf(ERROR, "Failed to get the logs: %s", string(o))
 		context.Logf(ERROR, "Error getting the logs: %s", err)
-		context.ConsoleLog(0, "Failed to gather the logs, verify that ssh agent is working.")
+		context.ConsoleLog(0, "Failed to gather the logs, verify that ssh agent is working and that the ssh key has been added to the agent.  Please run:\n")
+		context.ConsoleLog(0, "\tssh-add %s\n", baseD.PrivateKey)
 		return err
 	}
 	context.Logf(DEBUG, "Log gathering output: %s", string(o))
