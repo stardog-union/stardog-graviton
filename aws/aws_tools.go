@@ -44,8 +44,8 @@ var (
 
 func init() {
 	ValidVolumeTypes["standard"] = 0
-	ValidVolumeTypes["gp2"] = 50
-	ValidVolumeTypes["io1"] = 50
+	ValidVolumeTypes["gp2"] = 0
+	ValidVolumeTypes["io1"] = 20
 }
 
 // GetValidVolumeTypes returns a list of the volume types that are supported

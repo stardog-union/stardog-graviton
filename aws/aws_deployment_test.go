@@ -33,6 +33,7 @@ func TestDeploymentLoadDefaults(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "gp2",
 	}
 	i := make(map[string]string)
 	i["region"] = "us-west-2"
@@ -75,6 +76,7 @@ func TestDeploymentLoadEnvs(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "gp2",
 	}
 	app := sdutils.TestContext{
 		ConfigDir: dir,
@@ -123,6 +125,7 @@ func TestDeploymentLoadNoExes(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "gp2",
 	}
 	app := sdutils.TestContext{
 		ConfigDir: dir,
@@ -166,6 +169,7 @@ func TestDeploymentLoadNew(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
+		VolumeType:     "gp2",
 	}
 	app := sdutils.TestContext{
 		ConfigDir: dir,

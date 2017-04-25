@@ -26,12 +26,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
-	"crypto/rsa"
 	"crypto/rand"
-	"path/filepath"
-	"encoding/pem"
+	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
+	"path/filepath"
+
+	"github.com/fatih/color"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -334,14 +335,14 @@ func GenerateKey(dir string, keyname string) (string, []byte, error) {
 		return "", nil, fmt.Errorf("The private key %s already exists", pubKeyFilename)
 	}
 
-	privateKeyFile, err := os.Create(privateKeyFilename)
+	privateKeyFile, err := os.OpenFile(privateKeyFilename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	defer privateKeyFile.Close()
 	if err != nil {
 		return "", nil, err
 	}
 
 	pemKey := &pem.Block{
-		Type: "RSA PRIVATE KEY",
+		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(rsaKey)}
 	if err := pem.Encode(privateKeyFile, pemKey); err != nil {
 		return "", nil, err
@@ -357,4 +358,25 @@ func GenerateKey(dir string, keyname string) (string, []byte, error) {
 	}
 
 	return privateKeyFilename, pubKeyBytes, nil
+}
+
+// ValueStringToInt returns a integer from a string with a unit of g, m, or k.
+func ValueStringToInt(i string) (int, error) {
+	multTab := make(map[string]int)
+	multTab["g"] = 1024 * 1024 * 1024
+	multTab["m"] = 1024 * 1024
+	multTab["k"] = 1024 * 1024
+
+	unit := i[len(i)-1 : len(i)]
+	mult, ok := multTab[strings.ToLower(unit)]
+	if ok {
+		i = i[0 : len(i)-1]
+	} else {
+		mult = 1
+	}
+	base, err := strconv.Atoi(i)
+	if err != nil {
+		return 0, fmt.Errorf("%s is not valid", i)
+	}
+	return base * mult, nil
 }
