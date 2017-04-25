@@ -81,17 +81,19 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		}
 	}
 	if a.AwsKeyName == "" && baseD.PrivateKey == "" {
-		if sdutils.AskUserYesOrNo("Would you like to create an SSH key pair?") {
+		if !c.GetInteractive() || sdutils.AskUserYesOrNo("Would you like to create an SSH key pair?") {
 			newKeyName := baseD.Name + "key"
-			keyName, public, err := sdutils.GenerateKey(baseD.Directory, newKeyName)
+			privateKeyFilename, public, err := sdutils.GenerateKey(baseD.Directory, newKeyName)
 			if err != nil {
 				return nil, err
 			}
-			err = ImportKeyName(c, a, keyName, public)
+			err = ImportKeyName(c, a, newKeyName, public)
 			if err != nil {
 				return nil, err
 			}
 			createdKey = true
+			a.AwsKeyName = newKeyName
+			baseD.PrivateKey = privateKeyFilename
 		}
 	}
 	if a.AwsKeyName == "" {
@@ -303,7 +305,7 @@ func GetPlugin() sdutils.Plugin {
 		ZkInstanceType: "t2.small",
 		SdInstanceType: "m3.medium",
 		BastionType:    "t2.small",
-		VolumeType:     "io1",
+		VolumeType:     "gp2",
 		IoPs:           0,
 	}
 }

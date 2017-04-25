@@ -46,6 +46,7 @@ type AppContext interface {
 	Logf(level int, format string, v ...interface{})
 	GetConfigDir() string
 	GetVersion() string
+	GetInteractive() bool
 	HighlightString(a ...interface{}) string
 	SuccessString(a ...interface{}) string
 	FailString(a ...interface{}) string

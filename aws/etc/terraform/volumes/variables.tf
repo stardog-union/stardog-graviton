@@ -79,7 +79,7 @@ variable "stardog_license" {
 variable "volume_type" {
   type = "string"
   description = "The EBS storage type"
-  default = "io1"
+  default = "gp2"
 }
 
 variable "iops" {

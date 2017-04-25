@@ -45,7 +45,7 @@ type CliContext struct {
 	LogLevel          string             `json:"log_level,omitempty"`
 	CloudType         string             `json:"cloud_type,omitempty"`
 	VolumeSize        int                `json:"volume_size,omitempty"`
-	RootVolumeSize    int                `json:"volume_size,omitempty"`
+	RootVolumeSize    int                `json:"root_volume_size,omitempty"`
 	Quiet             bool               `json:"quiet,omitempty"`
 	ClusterSize       int                `json:"cluster_size,omitempty"`
 	SdReleaseFilePath string             `json:"release_file,omitempty"`
@@ -70,6 +70,7 @@ type CliContext struct {
 	Logger            sdutils.SdVaLogger `json:"-"`
 	InternalHealth    bool               `json:"-"`
 	Force             bool               `json:"-"`
+	Interactive       bool               `json:"-"`
 	Destroy           bool               `json:"-"`
 	NoWaitForHealthy  bool               `json:"-"`
 	WaitMaxTimeSec    int                `json:"-"`
@@ -169,11 +170,27 @@ func envNormalize(cliContext *CliContext) error {
 		if cliContext.MemoryStart == "" {
 			cliContext.MemoryStart = cliContext.Memory
 		}
-		if cliContext.MemoryStart > cliContext.MemoryMax {
-			cliContext.Logf(sdutils.WARN, "Memory start was larger than memory max.  Increasing the max to %s", cliContext.MemoryStart)
+		_, err := sdutils.ValueStringToInt(cliContext.MemoryDirect)
+		if err != nil {
+			return err
+		}
+		ms, err := sdutils.ValueStringToInt(cliContext.MemoryStart)
+		if err != nil {
+			return err
+		}
+		mx, err := sdutils.ValueStringToInt(cliContext.MemoryMax)
+		if err != nil {
+			return err
+		}
+		if ms > mx {
+			warnMsg := fmt.Sprintf("Memory start was larger than memory max.  Increasing the max to %s", cliContext.MemoryStart)
+			cliContext.Logf(sdutils.WARN, warnMsg)
+			cliContext.ConsoleLog(1, "%s\n", warnMsg)
 			cliContext.MemoryMax = cliContext.MemoryStart
 		}
-		cliContext.EnvList = append(cliContext.EnvList, fmt.Sprintf("STARDOG_JAVA_ARGS=\"-Xmx%s -Xms%s -XX:MaxDirectMemorySize=%s\"", cliContext.MemoryMax, cliContext.MemoryStart, cliContext.MemoryDirect))
+		memStr := fmt.Sprintf("STARDOG_JAVA_ARGS=\"-Xmx%s -Xms%s -XX:MaxDirectMemorySize=%s\"", cliContext.MemoryMax, cliContext.MemoryStart, cliContext.MemoryDirect)
+		cliContext.Logf(sdutils.INFO, "Using the memory string %s", memStr)
+		cliContext.EnvList = append(cliContext.EnvList, memStr)
 	}
 
 	return nil
@@ -181,6 +198,10 @@ func envNormalize(cliContext *CliContext) error {
 
 func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 	var err error
+
+	if cliContext.Force {
+		cliContext.Interactive = false
+	}
 
 	err = envNormalize(cliContext)
 	if err != nil {
@@ -192,18 +213,18 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 		return err
 	}
 
-	err = sdutils.AskUserInteractiveString("What version of stardog are you launching?", cliContext.Version, !cliContext.Force, &cliContext.Version)
+	err = sdutils.AskUserInteractiveString("What version of stardog are you launching?", cliContext.Version, !cliContext.Interactive, &cliContext.Version)
 	if err != nil {
 		return err
 	}
 
 	if !plugin.HaveImage(cliContext) {
-		err = sdutils.AskUserInteractiveString("What is the path to the Stardog release?", cliContext.SdReleaseFilePath, !cliContext.Force, &cliContext.SdReleaseFilePath)
+		err = sdutils.AskUserInteractiveString("What is the path to the Stardog release?", cliContext.SdReleaseFilePath, !cliContext.Interactive, &cliContext.SdReleaseFilePath)
 		if err != nil {
 			return err
 		}
 		cliContext.ConsoleLog(0, "There is no base image for version %s.\n", cliContext.Version)
-		if !cliContext.Force || sdutils.AskUserYesOrNo("Do you wish to build one?") {
+		if cliContext.Force || sdutils.AskUserYesOrNo("Do you wish to build one?") {
 			err = plugin.BuildImage(cliContext, cliContext.SdReleaseFilePath, cliContext.Version)
 			if err != nil {
 				cliContext.ConsoleLog(0, "Failed to make the stardog base image: %s\n", err.Error())
@@ -213,12 +234,12 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 			return fmt.Errorf("A base image is needed in order to launch a stardog-graviton cluster")
 		}
 	}
-	err = sdutils.AskUserInteractiveString("What would you like to name this deployment?", cliContext.DeploymentName, !cliContext.Force, &cliContext.DeploymentName)
+	err = sdutils.AskUserInteractiveString("What would you like to name this deployment?", cliContext.DeploymentName, !cliContext.Interactive, &cliContext.DeploymentName)
 	if err != nil {
 		return err
 	}
 
-	err = sdutils.AskUserInteractiveString("What CIDR will be allowed to access stardog?", cliContext.HTTPMask, !cliContext.Force, &cliContext.HTTPMask)
+	err = sdutils.AskUserInteractiveString("What CIDR will be allowed to access stardog?", cliContext.HTTPMask, !cliContext.Interactive, &cliContext.HTTPMask)
 	if err != nil {
 		return err
 	}
@@ -241,15 +262,15 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 		}
 	}
 	if !dep.VolumeExists() {
-		err = sdutils.AskUserInteractiveString("What is the path to your Stardog license?", cliContext.LicensePath, !cliContext.Force, &cliContext.LicensePath)
+		err = sdutils.AskUserInteractiveString("What is the path to your Stardog license?", cliContext.LicensePath, !cliContext.Interactive, &cliContext.LicensePath)
 		if err != nil {
 			return err
 		}
-		err = sdutils.AskUserInteractiveInt("How big should each disk be in gigabytes?", cliContext.VolumeSize, !cliContext.Force, &cliContext.VolumeSize)
+		err = sdutils.AskUserInteractiveInt("How big should each disk be in gigabytes?", cliContext.VolumeSize, !cliContext.Interactive, &cliContext.VolumeSize)
 		if err != nil {
 			return err
 		}
-		err = sdutils.AskUserInteractiveInt("How many Stardog nodes will be in the cluster?", cliContext.ClusterSize, !cliContext.Force, &cliContext.ClusterSize)
+		err = sdutils.AskUserInteractiveInt("How many Stardog nodes will be in the cluster?", cliContext.ClusterSize, !cliContext.Interactive, &cliContext.ClusterSize)
 		if err != nil {
 			return err
 		}
@@ -258,7 +279,7 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 			return err
 		}
 	}
-	err = sdutils.AskUserInteractiveInt("How many Zookeeper nodes will be used?", cliContext.ZkClusterSize, !cliContext.Force, &cliContext.ZkClusterSize)
+	err = sdutils.AskUserInteractiveInt("How many Zookeeper nodes will be used?", cliContext.ZkClusterSize, !cliContext.Interactive, &cliContext.ZkClusterSize)
 	if err != nil {
 		return err
 	}
@@ -477,6 +498,12 @@ func (cliContext *CliContext) statusInstance(c *kingpin.ParseContext) error {
 	return d.StatusInstance()
 }
 
+// GetInteractive returns a bool indicating whether or not the user should be bothered
+// with questions.
+func (cliContext *CliContext) GetInteractive() bool {
+	return !cliContext.Force
+}
+
 // ConsoleLog will write the formatted string to the console if the user is interested
 // in information at the associated level (regaring --versbose --quiet)
 func (cliContext *CliContext) ConsoleLog(level int, format string, v ...interface{}) {
@@ -666,7 +693,8 @@ func parseParameters(args []string) (*CliContext, error) {
 	cli.Validate(cliContext.topValidate)
 
 	cmdOpts.LaunchCmd = cli.Command("launch", "Walk through a launch from scratch.")
-	cmdOpts.LaunchCmd.Flag("interactive", "Ask all questions even if there are default values.").Default(fmt.Sprintf("%t", cliContext.Force)).BoolVar(&cliContext.Force)
+	cmdOpts.LaunchCmd.Flag("interactive", "Ask all questions even if there are default values.").Default(fmt.Sprintf("%t", cliContext.Interactive)).BoolVar(&cliContext.Interactive)
+	cmdOpts.LaunchCmd.Flag("force", "Do not ask questions.").Default(fmt.Sprintf("%t", cliContext.Force)).BoolVar(&cliContext.Force)
 	cmdOpts.LaunchCmd.Flag("type", "The type of cloud with which graviton will interact (only aws supported).").Default(cliContext.CloudType).StringVar(&cliContext.CloudType)
 	cmdOpts.LaunchCmd.Flag("name", "The name of the deployment.  It must be unique to this account.").StringVar(&cliContext.DeploymentName)
 	cmdOpts.LaunchCmd.Flag("sd-version", "The stardog version to associate with this deployment.").Default(cliContext.Version).StringVar(&cliContext.Version)

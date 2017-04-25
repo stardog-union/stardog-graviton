@@ -98,8 +98,16 @@ func (v *EbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, cluster
 	v.ClusterSize = fmt.Sprintf("%d", clusterSize)
 	v.SizeOfEachVolume = fmt.Sprintf("%d", sizeOfEachVolume)
 	v.LicensePath = licensePath
-	v.IoPs = fmt.Sprintf("%d", v.iopsRatio*clusterSize)
-
+	normalizedIOPS := v.iopsRatio * sizeOfEachVolume
+	if normalizedIOPS > 0 {
+		if normalizedIOPS < 100 {
+			normalizedIOPS = 100
+		}
+		if normalizedIOPS > 20000 {
+			normalizedIOPS = 20000
+		}
+	}
+	v.IoPs = fmt.Sprintf("%d", normalizedIOPS)
 	confFile := path.Join(v.VolumeDir, "config.json")
 	if _, err := os.Stat(confFile); err == nil {
 		v.appContext.ConsoleLog(1, "Volumes have already been created for the %s deployment, running terraform apply again.", v.DeploymentName)
