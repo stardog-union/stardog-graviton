@@ -1,0 +1,263 @@
+---
+resources:
+- name: dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/Dockerfile" ]
+    branch: {{repo-branch}}
+    uri: {{repo-uri}}
+    private_key: {{github_private_key}}
+
+- name: ci-repo
+  type: git
+  source:
+    paths: [ "ci/build-graviton.sh", "ci/make-env.sh", "ci/start-cluster.sh",
+             "ci/create-db.sh", "ci/stop-cluster.sh",
+             "ci/create_db.py", "ci/publish.sh", "ci/default.json.template" ]
+    branch: {{repo-branch}}
+    uri: {{repo-uri}}
+    private_key: {{github_private_key}}
+
+- name: graviton-repo
+  type: git
+  source:
+    branch: {{repo-branch}}
+    uri: {{repo-uri}}
+    private_key: {{github_private_key}}
+
+- name: ci-docker-image
+  type: docker-image
+  source:
+    repository: buzztroll/graviton-builder
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: linux-stage
+  type: s3
+  source:
+    region_name: {{s3-region}}
+    bucket: {{stage-bucket}}
+    regexp: linux/stardog-graviton-(?P<version>.*)
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: darwin-stage
+  type: s3
+  source:
+    bucket: {{stage-bucket}}
+    region_name: {{s3-region}}
+    regexp: darwin/stardog-graviton-(?P<version>.*)
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: linux-final
+  type: s3
+  source:
+    region_name: {{s3-region}}
+    bucket: {{final-bucket}}
+    regexp: linux/stardog-graviton-(?P<version>.*)
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: darwin-final
+  type: s3
+  source:
+    bucket: {{final-bucket}}
+    region_name: {{s3-region}}
+    regexp: darwin/stardog-graviton-(?P<version>.*)
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+jobs:
+- name: build-docker
+  plan:
+  - get: dockerfile-repo
+    trigger: true
+  - put: ci-docker-image
+    params:
+      build: dockerfile-repo/ci
+
+- name: build-graviton
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ build-docker ]
+      trigger: true
+    - get: graviton-repo
+      trigger: true
+  - task: make-grav
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: graviton-repo
+      outputs:
+      - name: outdir
+      run:
+        path: graviton-repo/ci/build-graviton.sh
+        args:
+          - graviton-repo
+          - outdir
+  - aggregate:
+    - put: linux-stage
+      params:
+        file: outdir/linux/stardog-graviton*
+    - put: darwin-stage
+      params:
+        file: outdir/darwin/stardog-graviton*
+
+- name: graviton-test
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ build-docker ]
+    - get: ci-repo
+    - get: linux-stage
+      passed: [ build-graviton ]
+      trigger: true
+
+  - task: make-env
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: ci-repo
+      - name: linux-stage
+      outputs:
+      - name: envdir
+      run:
+        path: ci-repo/ci/make-env.sh
+        args:
+          - {{stardog-license}}
+          - {{archiveuser}}
+          - {{archivepw}}
+          - {{stardogurl}}
+          - {{stardog-version}}
+          - ci-repo
+          - linux-stage
+          - envdir
+
+  - task: launch
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: ci-repo
+      - name: envdir
+      - name: linux-stage
+      outputs:
+      - name: launch-outdir
+      run:
+        path: ci-repo/ci/start-cluster.sh
+        args:
+          - {{skip-long-test}}
+          - {{s3-access-key}}
+          - {{s3-secret}}
+          - {{stardog-version}}
+          - ci-repo
+          - linux-stage
+          - envdir
+          - launch-outdir
+
+  - task: load
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: ci-repo
+      - name: envdir
+      - name: launch-outdir
+      - name: linux-stage
+      run:
+        path: ci-repo/ci/create-db.sh
+        args:
+          - {{skip-long-test}}
+          - {{s3-access-key}}
+          - {{s3-secret}}
+          - {{stardog-version}}
+          - ci-repo
+          - linux-stage
+          - envdir
+          - launch-outdir
+    on_failure:
+      task: cleanup
+      image: ci-docker-image
+      config:
+        platform: linux
+        inputs:
+          - name: ci-repo
+          - name: envdir
+          - name: launch-outdir
+          - name: linux-stage
+        run:
+          path: ci-repo/ci/stop-cluster.sh
+          args:
+            - {{skip-long-test}}
+            - {{s3-access-key}}
+            - {{s3-secret}}
+            - ci-repo
+            - linux-stage
+            - envdir
+            - launch-outdir
+
+  - task: destroy
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: ci-repo
+      - name: envdir
+      - name: launch-outdir
+      - name: linux-stage
+      run:
+        path: ci-repo/ci/stop-cluster.sh
+        args:
+          - {{skip-long-test}}
+          - {{s3-access-key}}
+          - {{s3-secret}}
+          - ci-repo
+          - linux-stage
+          - envdir
+          - launch-outdir
+
+- name: publish
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ build-docker ]
+    - get: graviton-repo
+      passed: [ build-graviton ]
+      trigger: true
+    - get: linux-stage
+      passed: [ graviton-test ]
+    - get: darwin-stage
+      passed: [ build-graviton ]
+
+  - task: publish
+    image: ci-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: graviton-repo
+      - name: linux-stage
+      - name: darwin-stage
+      outputs:
+      - name: exe-output
+      run:
+        path: graviton-repo/ci/publish.sh
+        args:
+          - {{tag-repo}}
+          - graviton-repo
+          - linux-stage
+          - darwin-stage
+          - exe-output
+      params:
+        GIT_SSH_KEY: {{github_private_key}}
+  - aggregate:
+    - put: linux-final
+      params:
+        file: exe-output/linux/stardog-graviton*
+    - put: darwin-final
+      params:
+        file: exe-output/darwin/stardog-graviton*
