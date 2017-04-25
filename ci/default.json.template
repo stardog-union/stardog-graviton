@@ -1,0 +1,17 @@
+{
+    "license_path": "@@LICENSE@@",
+    "log_level": "DEBUG",
+    "cloud_type": "aws",
+    "volume_size": 16,
+    "cluster_size": 3,
+    "memory": "4g",
+    "release_file": "@@RELEASE@@",
+    "zookeeper_size": 3,
+    "sd_version": "@@VERSION@@",
+    "http_mask": "0.0.0.0/0",
+    "cloud_options": {
+        "region": "us-west-2",
+        "zk_instance_type": "m4.large",
+        "sd_instance_type": "m4.large"
+    }
+}
