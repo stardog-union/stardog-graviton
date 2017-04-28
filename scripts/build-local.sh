@@ -6,9 +6,13 @@ cd $THIS_DIR/..
 BASE_DIR=`pwd`
 BIN_DIR=$BASE_DIR/bin
 
-v=$(git describe --abbrev=0 --tags 2> /dev/null)
-if [ $? -ne 0 ]; then
-    v="0.0.0"
+if [ "X$GRAVITON_FORCE_TAG" == "X" ]; then
+    v=$(git describe --abbrev=0 --tags 2> /dev/null)
+    if [ $? -ne 0 ]; then
+        v="0.0.0"
+    fi
+else
+    v=$GRAVITON_FORCE_TAG
 fi
 which go-bindata
 if [ $? -ne 0 ]; then
