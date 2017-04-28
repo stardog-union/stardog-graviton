@@ -3,8 +3,13 @@
 set -eu
 
 GRAV_REPO=$1
-OUT_DIR=$2
+TAG_REPO=$2
+OUT_DIR=$3
 THIS_DIR=$(pwd)
+
+if [ "X$TAG_REPO" != "X0" ]; then
+    export GRAVITON_FORCE_TAG=$TAG_REPO
+fi
 
 # we know what the docker container looks like
 cp -r graviton-repo /usr/local/src/go/src/github.com/stardog-union/stardog-graviton
