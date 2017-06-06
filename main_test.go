@@ -26,6 +26,8 @@ import (
 	"testing"
 	"time"
 
+	"path/filepath"
+
 	"github.com/stardog-union/stardog-graviton/aws"
 	"github.com/stardog-union/stardog-graviton/sdutils"
 )
@@ -58,6 +60,8 @@ var (
     },
     "volumes": { "sensitive": false, "type": "list", "value": ["vol-46313ce8", "vol-a34ba11c", "vol-50313cfe"]}
 }`
+	packerFile    = filepath.Join(os.TempDir(), "packer")
+	terraformFile = filepath.Join(os.TempDir(), "terraform")
 )
 
 func TestAbout(t *testing.T) {
@@ -438,6 +442,11 @@ func TestDestroyNoExist(t *testing.T) {
 func init() {
 	rand.Seed(time.Now().UnixNano())
 	os.Setenv("STARDOG_GRAVITON_UNIT_TEST", "on")
+	successData := []byte("#!/bin/bash\nexit 0")
+	ioutil.WriteFile(packerFile, successData, 0755)
+	ioutil.WriteFile(terraformFile, successData, 0755)
+	// We need to trick the tests into thinking packer and terraform exists for stubs
+	os.Setenv("PATH", strings.Join([]string{os.Getenv("PATH"), os.TempDir()}, ":"))
 }
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -448,4 +457,9 @@ func randDeployName() string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+func TestCleanup(t *testing.T) {
+	os.Remove(packerFile)
+	os.Remove(terraformFile)
 }
