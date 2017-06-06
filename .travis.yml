@@ -7,3 +7,4 @@ jobs:
     - script: make && go test -v github.com/stardog-union/stardog-graviton/aws
     - script: make && go test -v github.com/stardog-union/stardog-graviton
     - stage: integration tests
+      script: make && go test -v github.com/stardog-union/stardog-graviton/integration
