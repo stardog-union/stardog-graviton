@@ -16,8 +16,9 @@
 package sdutils
 
 import (
-	"gopkg.in/alecthomas/kingpin.v2"
 	"time"
+
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // ConsoleEffect is a function for writing lines to the console in a
@@ -33,6 +34,7 @@ type BaseDeployment struct {
 	Version         string      `json:"version,omitempty"`
 	PrivateKey      string      `json:"private_key,omitempty"`
 	CustomPropsFile string      `json:"custom_props,omitempty"`
+	CustomLog4J     string      `json:"custom_log4j,omitempty"`
 	IdleTimeout     int         `json:"idle_timeout,omitempty"`
 	Environment     []string    `json:"environment,omitempty"`
 	DisableSecurity bool        `json:"disable_security,omitempty"`

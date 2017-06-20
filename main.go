@@ -52,6 +52,7 @@ type CliContext struct {
 	ZkClusterSize     int                `json:"zookeeper_size,omitempty"`
 	Version           string             `json:"sd_version,omitempty"`
 	CustomSdProps     string             `json:"custom_stardog_properties,omitempty"`
+	CustomLog4J       string             `json:"custom_log4j,omitempty"`
 	OutputFile        string             `json:"output_file,omitempty"`
 	HTTPMask          string             `json:"http_mask,omitempty"`
 	ConnectionTimeout int                `json:"connection_timeout,omitempty"`
@@ -119,6 +120,7 @@ func (cliContext *CliContext) sshIn(c *kingpin.ParseContext) error {
 		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
+		CustomLog4J:     cliContext.CustomLog4J,
 	}
 	d, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
@@ -250,6 +252,7 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
+		CustomLog4J:     cliContext.CustomLog4J,
 		Environment:     cliContext.EnvList,
 		DisableSecurity: cliContext.DisableSecurity,
 	}
@@ -326,6 +329,7 @@ func (cliContext *CliContext) newDeployment(c *kingpin.ParseContext) error {
 		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
+		CustomLog4J:     cliContext.CustomLog4J,
 		Environment:     cliContext.EnvList,
 		DisableSecurity: cliContext.DisableSecurity,
 	}
@@ -384,6 +388,7 @@ func (cliContext *CliContext) gatherLogs(c *kingpin.ParseContext) error {
 		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
+		CustomLog4J:     cliContext.CustomLog4J,
 	}
 	d, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
@@ -400,6 +405,7 @@ func (cliContext *CliContext) fullStatus(c *kingpin.ParseContext) error {
 		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
+		CustomLog4J:     cliContext.CustomLog4J,
 	}
 	d, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
@@ -470,6 +476,7 @@ func (cliContext *CliContext) launchInstance(c *kingpin.ParseContext) error {
 		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
+		CustomLog4J:     cliContext.CustomLog4J,
 	}
 	dep, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
@@ -706,6 +713,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("node-count", "The number storage volume.  This will be the size of the stardog cluster").Default(fmt.Sprintf("%d", cliContext.ClusterSize)).IntVar(&cliContext.ClusterSize)
 	cmdOpts.LaunchCmd.Flag("zk-count", "The number of zookeeper nodes.").Default(fmt.Sprintf("%d", cliContext.ZkClusterSize)).IntVar(&cliContext.ZkClusterSize)
 	cmdOpts.LaunchCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
+	cmdOpts.LaunchCmd.Flag("custom-log4j", "A custom log4j file.").StringVar(&cliContext.CustomLog4J)
 	cmdOpts.LaunchCmd.Flag("no-wait", "Block until the stardog instance is healthy.").Default(fmt.Sprintf("%t", cliContext.NoWaitForHealthy)).BoolVar(&cliContext.NoWaitForHealthy)
 	cmdOpts.LaunchCmd.Flag("wait-timeout", "The number of seconds to block waiting for the stardog instance to become healthy.").Default(fmt.Sprintf("%d", cliContext.WaitMaxTimeSec)).IntVar(&cliContext.WaitMaxTimeSec)
 	cmdOpts.LaunchCmd.Flag("connection-timeout", "The maximum number of seconds that a connection to Stardog can be idle.").Default(fmt.Sprintf("%d", cliContext.ConnectionTimeout)).IntVar(&cliContext.ConnectionTimeout)
@@ -761,6 +769,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.NewDeploymentCmd.Arg("sd-version", "The stardog version to associate with this deployment.").Required().StringVar(&cliContext.Version)
 	cmdOpts.NewDeploymentCmd.Flag("private-key", "The path to the private key.").Default(cliContext.PrivateKeyPath).StringVar(&cliContext.PrivateKeyPath)
 	cmdOpts.NewDeploymentCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
+	cmdOpts.NewDeploymentCmd.Flag("custom-log4j", "A custom log4j file.").StringVar(&cliContext.CustomLog4J)
 	cmdOpts.NewDeploymentCmd.Flag("env", "Set an environment variable before running Stardog.  The format should be key=value.  This option can be used multiple times. Advanced feature.").StringsVar(&cliContext.EnvList)
 	cmdOpts.NewDeploymentCmd.Flag("memory", "The amount of memory to give the JVM that runs Stardog nodes.  This will set the maximum amount of memory, the starting amount of memory, and the direct memory to this value.").Default(cliContext.Memory).StringVar(&cliContext.Memory)
 	cmdOpts.NewDeploymentCmd.Flag("memory-direct", "The amount of direct memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryDirect)
@@ -837,6 +846,7 @@ func loadDepWrapper(cliContext *CliContext, new bool) (sdutils.Deployment, error
 		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
 		PrivateKey:      cliContext.PrivateKeyPath,
 		CustomPropsFile: cliContext.CustomSdProps,
+		CustomLog4J:     cliContext.CustomLog4J,
 	}
 	return sdutils.LoadDeployment(cliContext, &baseD, new)
 }

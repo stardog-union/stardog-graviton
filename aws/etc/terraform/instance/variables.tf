@@ -122,6 +122,12 @@ variable "custom_properties_data" {
   default = ""
 }
 
+variable "custom_log4j_data" {
+  type = "string"
+  description = "The custom log4j file"
+  default = ""
+}
+
 variable "environment_variables" {
   type = "string"
   description = "The environment variables to inject into the stardog script"

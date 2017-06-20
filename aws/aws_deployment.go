@@ -44,6 +44,7 @@ type awsDeploymentDescription struct {
 	Name            string `json:"-"`
 	deployDir       string
 	customPropFile  string
+	customLog4J     string
 	environment     []string
 	disableSecurity bool
 	ctx             sdutils.AppContext
@@ -154,6 +155,7 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		ctx:             c,
 		deployDir:       deployDir,
 		customPropFile:  baseD.CustomPropsFile,
+		customLog4J:     baseD.CustomLog4J,
 		environment:     baseD.Environment,
 		disableSecurity: baseD.DisableSecurity,
 		CreatedKey:      createdKey,
