@@ -18,6 +18,7 @@ data "template_file" "stardog_userdata" {
   template = "${file("stardog_userdata.tpl")}"
   vars {
     stardog_conf = "${data.template_file.stardog_properties.rendered}"
+    custom_log4j_data = "${var.custom_log4j_data}"
     deployment_name = "${var.deployment_name}"
     zk_servers = "${join(",", data.template_file.stardog_zk_server.*.rendered)}"
     environment_variables = "${var.environment_variables}"

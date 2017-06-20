@@ -15,6 +15,11 @@ sed -i "s/@@LOCAL_IP@@/$MY_IP/" $STARDOG_HOME/stardog.properties
 /usr/local/bin/stardog-wait-for-socket 100 ${zk_servers}
 
 set +e
+
+if [ 'X${custom_log4j_data}' != 'X' ]; then
+    echo '${custom_log4j_data}' | /usr/bin/base64 -d > $STARDOG_HOME/log4j2.xml
+fi
+
 cnt=0
 rc=1
 while [ $rc -ne 0 ]; do

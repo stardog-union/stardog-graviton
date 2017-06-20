@@ -17,6 +17,7 @@ package aws
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -43,6 +44,7 @@ type Ec2Instance struct {
 	HTTPMask               string             `json:"http_subnet,omitempty"`
 	ELBIdleTimeout         string             `json:"elb_idle_timeout,omitempty"`
 	CustomPropsData        string             `json:"custom_properties_data,omitempty"`
+	CustomLog4JData        string             `json:"custom_log4j_data,omitempty"`
 	Environment            string             `json:"environment_variables,omitempty"`
 	StartOpts              string             `json:"stardog_start_opts,omitempty"`
 	RootVolumeSize         int                `json:"root_volume_size"`
@@ -74,6 +76,15 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		customData = string(data)
 	}
 
+	customLog4J := ""
+	if dd.customLog4J != "" {
+		log4JData, err := ioutil.ReadFile(dd.customLog4J)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid custom properties file: %s", err)
+		}
+		customLog4J = base64.StdEncoding.EncodeToString(log4JData)
+	}
+
 	var envBuffer bytes.Buffer
 	for _, env := range dd.environment {
 		envBuffer.WriteString(fmt.Sprintf("export %s\n", env))
@@ -90,6 +101,7 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		DeployDir:       dd.deployDir,
 		Ctx:             ctx,
 		CustomPropsData: customData,
+		CustomLog4JData: customLog4J,
 		Environment:     envBuffer.String(),
 	}
 	if dd.disableSecurity {
@@ -278,4 +290,3 @@ func (awsI *Ec2Instance) Status() error {
 	awsI.Ctx.ConsoleLog(1, "SSH: %s\n", awsI.BastionContact)
 	return nil
 }
-
