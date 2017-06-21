@@ -40,6 +40,9 @@ type awsDeploymentDescription struct {
 	HTTPMask        string `json:"http_mask,omitempty"`
 	VolumeType      string `json:"volume_type,omitempty"`
 	IoPsRatio       int    `json:"iops,omitempty"`
+	DNSName         string `json:"route53_dnsname,omitempty"`
+	HostedZone      string `json:"route53_hosted_zone,omitempty"`
+	CertARN         string `json:"cert_arn,omitempty"`
 	Version         string `json:"-"`
 	Name            string `json:"-"`
 	deployDir       string
@@ -160,6 +163,9 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		disableSecurity: baseD.DisableSecurity,
 		CreatedKey:      createdKey,
 		VolumeType:      a.VolumeType,
+		DNSName:         a.DNSName,
+		HostedZone:      a.HostedZone,
+		CertARN:         a.CertARN,
 		IoPsRatio:       iops,
 	}
 	return &dd, nil
@@ -269,7 +275,7 @@ func (dd *awsDeploymentDescription) FullStatus() (*sdutils.StardogDescription, e
 
 	sD := sdutils.StardogDescription{
 		SSHHost:             im.BastionContact,
-		StardogURL:          fmt.Sprintf("http://%s:5821", im.StardogContact),
+		StardogURL:          fmt.Sprintf("%s://%s:5821", im.ExternalProtocol, im.StardogContact),
 		StardogInternalURL:  fmt.Sprintf("http://%s:5821", im.StardogInternalContact),
 		VolumeDescription:   volumeStatus,
 		InstanceDescription: instS,
@@ -296,6 +302,9 @@ type awsPlugin struct {
 	ZkInstanceType string `json:"zk_instance_type,omitempty"`
 	SdInstanceType string `json:"sd_instance_type,omitempty"`
 	BastionType    string `json:"bastion_instance_type,omitempty"`
+	DNSName        string `json:"route53_dnsname,omitempty"`
+	HostedZone     string `json:"route53_hosted_zone,omitempty"`
+	CertARN        string `json:"cert_arn,omitempty"`
 }
 
 // GetPlugin returns the plugin interface that this module represents.
@@ -337,6 +346,9 @@ func (a *awsPlugin) Register(cmdOpts *sdutils.CommandOpts) error {
 	cmdOpts.LaunchCmd.Flag("aws-key-name", "The AWS ssh key name.").Default(a.AwsKeyName).StringVar(&a.AwsKeyName)
 	cmdOpts.LaunchCmd.Flag("volume-type", fmt.Sprintf("The EBS volume type to use [%s]", strings.Join(GetValidVolumeTypes(), " | "))).Default(a.VolumeType).StringVar(&a.VolumeType)
 	cmdOpts.LaunchCmd.Flag("iops", "The IOPS for the volume type").IntVar(&a.IoPs)
+	cmdOpts.LaunchCmd.Flag("dns-name", "The DNS name to be added to the route 53 records.").StringVar(&a.DNSName)
+	cmdOpts.LaunchCmd.Flag("hostzone53", "The route 53 hosted zone name.  Must be used with --dns-name and must match the end of it.  Defaults to the last two sections of it.").StringVar(&a.HostedZone)
+	cmdOpts.LaunchCmd.Flag("cert-arn", "The ARN of the cert to use for HTTPS.").StringVar(&a.CertARN)
 
 	cmdOpts.LeaksCmd.Flag("region", fmt.Sprintf("The aws region to use [%s]", strings.Join(ValidRegions, " | "))).Default(a.Region).StringVar(&a.Region)
 
@@ -344,6 +356,9 @@ func (a *awsPlugin) Register(cmdOpts *sdutils.CommandOpts) error {
 	cmdOpts.NewDeploymentCmd.Flag("zk-instance-type", "The instance type to use for zookeeper VMs.").Default("m3.large").StringVar(&a.ZkInstanceType)
 	cmdOpts.NewDeploymentCmd.Flag("sd-instance-type", "The instance type to use for stardog VMs.").Default("m3.large").StringVar(&a.SdInstanceType)
 	cmdOpts.NewDeploymentCmd.Flag("aws-key-name", "The AWS ssh key name.").Default(a.AwsKeyName).StringVar(&a.AwsKeyName)
+	cmdOpts.NewDeploymentCmd.Flag("dns-name", "The DNS name to be added to the route 53 records.").StringVar(&a.DNSName)
+	cmdOpts.NewDeploymentCmd.Flag("hostzone53", "The route 53 hosted zone name.  Must be used with --dns-name and must match the end of it.  Defaults to the last two sections of it.").StringVar(&a.HostedZone)
+	cmdOpts.NewDeploymentCmd.Flag("cert-arn", "The ARN of the cert to use for HTTPS.").StringVar(&a.CertARN)
 
 	return nil
 }
@@ -360,6 +375,21 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 		_, err := exec.LookPath(e)
 		if err != nil {
 			return nil, fmt.Errorf("The program %s must be in the path when running this program", e)
+		}
+	}
+
+	if a.DNSName != "" {
+		DNSParts := strings.Split(a.DNSName, ".")
+		if len(DNSParts) < 3 {
+			return nil, fmt.Errorf("The dns-name needs at least 3 parts")
+		}
+		if a.HostedZone != "" {
+			if !strings.HasSuffix(a.DNSName, a.HostedZone) {
+				return nil, fmt.Errorf("The hosted zone must match the domain of the DNS name")
+			}
+		} else {
+			sz := len(DNSParts)
+			a.HostedZone = strings.Join([]string{DNSParts[sz-2], DNSParts[sz-1]}, ".")
 		}
 	}
 

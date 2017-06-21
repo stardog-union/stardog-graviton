@@ -1,12 +1,13 @@
 package sdutils
 
 import (
-	"io"
-	"fmt"
-	"net/http"
-	"io/ioutil"
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"time"
 )
 
@@ -16,7 +17,6 @@ type stardogClientImpl struct {
 	username string
 	logger   SdVaLogger
 }
-
 
 func (s *stardogClientImpl) doRequest(method, urlStr string, body io.Reader, contentType string, expectedCode int) ([]byte, int, error) {
 	return s.doRequestWithAccept(method, urlStr, body, contentType, contentType, expectedCode)
@@ -32,6 +32,9 @@ func (s *stardogClientImpl) doRequestWithAccept(method, urlStr string, body io.R
 	req.Header.Set("Content-Type", contentType)
 	if accept != "" {
 		req.Header.Set("Accept", accept)
+	}
+	client.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -79,7 +82,7 @@ func (s *stardogClientImpl) GetClusterInfo() (*[]string, error) {
 		s.logger.Logf(DEBUG, "Interface list %s", v)
 		ifaceList = v
 	default:
-	// no match; here v has the same type as i
+		// no match; here v has the same type as i
 		return nil, fmt.Errorf("The returned cluster information was not expected %s", v)
 	}
 

@@ -151,3 +151,13 @@ variable "root_volume_size" {
   description = "The size of the root partition"
   default = "16g"
 }
+
+variable "route53_hosted_zone" {
+  type = "string"
+  default = ""
+}
+
+variable "route53_dnsname"  {
+  type = "string"
+  default = ""
+}

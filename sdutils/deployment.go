@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -26,7 +27,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"math/rand"
 )
 
 var (
@@ -297,12 +297,12 @@ func WaitForNClusterNodes(context AppContext, size int, sdURL string, pw string,
 	itCnt := waitTimeout / pollInterval
 
 	client := stardogClientImpl{
-		sdURL: sdURL,
-		logger: context,
+		sdURL:    sdURL,
+		logger:   context,
 		username: "admin",
 		password: pw,
 	}
-	spinner := NewSpinner(context, 2, "Waiting for the node to be healthy internally")
+	spinner := NewSpinner(context, 2, "Waiting for the node to be healthy")
 	nodes := &[]string{}
 	for i := 0; len(*nodes) < size; i++ {
 		context.ConsoleLog(2, "%d nodes waiting for %d\n", len(*nodes), size)
@@ -446,8 +446,8 @@ func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, inter
 	}
 
 	client := stardogClientImpl{
-		sdURL: sd.StardogURL,
-		logger: context,
+		sdURL:    sd.StardogURL,
+		logger:   context,
 		username: "admin",
 		password: pw,
 	}

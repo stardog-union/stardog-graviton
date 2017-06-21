@@ -49,6 +49,10 @@ type Ec2Instance struct {
 	StartOpts              string             `json:"stardog_start_opts,omitempty"`
 	RootVolumeSize         int                `json:"root_volume_size"`
 	RootVolumeType         string             `json:"root_volume_type"`
+	DNSName                string             `json:"route53_dnsname,omitempty"`
+	HostedZone             string             `json:"route53_hosted_zone,omitempty"`
+	CertARN                string             `json:"ssl_cert_arn,omitempty"`
+	ExternalProtocol       string             `json:"external_protocol,omitempty"`
 	DeployDir              string             `json:"-"`
 	Ctx                    sdutils.AppContext `json:"-"`
 	BastionContact         string             `json:"-"`
@@ -102,7 +106,15 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		Ctx:             ctx,
 		CustomPropsData: customData,
 		CustomLog4JData: customLog4J,
+		DNSName:         dd.DNSName,
+		HostedZone:      dd.HostedZone,
+		CertARN:         dd.CertARN,
 		Environment:     envBuffer.String(),
+	}
+	if dd.CertARN != "" {
+		instance.ExternalProtocol = "https"
+	} else {
+		instance.ExternalProtocol = "http"
 	}
 	if dd.disableSecurity {
 		instance.StartOpts = "--disable-security"
@@ -170,7 +182,19 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 
 // CreateInstance will boot up a Stardog service in AWS.
 func (awsI *Ec2Instance) CreateInstance(volumeSize int, zookeeperSize int, idleTimeout int) error {
-	err := awsI.runTerraformApply(volumeSize, zookeeperSize, "0.0.0.0/32", idleTimeout, "Creating the instance VMs...")
+	var err error
+	instanceTarget := path.Join(awsI.DeployDir, "etc", "terraform", "instance", "route53.tf")
+	route53Source := path.Join(awsI.DeployDir, "etc", "terraform", "route53", "route53.tf")
+
+	if awsI.DNSName != "" {
+		// We need to copy in the route 53 stuff
+		err = os.Rename(route53Source, instanceTarget)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = awsI.runTerraformApply(volumeSize, zookeeperSize, "0.0.0.0/32", idleTimeout, "Creating the instance VMs...")
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to create the instance.\n")
 		return err
