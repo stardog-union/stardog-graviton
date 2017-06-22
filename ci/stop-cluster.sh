@@ -2,31 +2,15 @@
 
 set -eu
 
-SKIP=$1
-export AWS_ACCESS_KEY_ID=$2
-export AWS_SECRET_ACCESS_KEY=$3
-GRAV_REPO=$4
-LINUX_STAGE=$5
-ENV_DIR=$6
-LAUNCH_OUTPUT=$7
+START_DIR=$(pwd)
+OUTPUT_DIR=${START_DIR}/OUTPUT
 
-if [ $SKIP -eq 1 ]; then
-    echo "Skipping the graviton tests"
-    exit 0
-fi
+GRAV_EXE=$(ls $OUTPUT_DIR/linux/stardog-graviton-*)
 
-ls
-echo "BUILD"
-
-echo "OLD"
-
-THIS_DIR=$(pwd)
-GRAV_EXE=$(ls $THIS_DIR/$LINUX_STAGE/stardog-graviton-*)
-
-LAUNCH_NAME=$(cat $LAUNCH_OUTPUT/name)
-chmod 755 $GRAV_EXE
-export STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR=$THIS_DIR/$LAUNCH_OUTPUT
-
+LAUNCH_NAME=$(cat $OUTPUT_DIR/name)
+export STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR=$OUTPUT_DIR
 echo $LAUNCH_NAME
+
+ls -l $OUTPUT_DIR
 
 $GRAV_EXE destroy --force $LAUNCH_NAME

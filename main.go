@@ -622,10 +622,15 @@ func (cliContext *CliContext) topValidate(a *kingpin.Application) error {
 func loadDefaultCliOptions() *CliContext {
 	var err error
 
-	usr, _ := user.Current()
+	usr, err := user.Current()
 	confDir := os.Getenv("STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR")
 	if confDir == "" {
-		confDir = filepath.Join(usr.HomeDir, ".graviton")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to get a current user home directory.  Using the current directory.\n")
+			confDir = ".graviton"
+		} else {
+			confDir = filepath.Join(usr.HomeDir, ".graviton")
+		}
 	}
 	// Setup defaults here
 	cliContext := CliContext{
