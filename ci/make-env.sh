@@ -1,26 +1,22 @@
 #!/bin/bash
 
-set -e
+set -eu
 
-LICENSE_DATA=$1
-ARCHIVE_USER=$2
-ARCHIVE_PW=$3
-STARDOG_RELEASE_URL=$4
-STARDOG_VERSION=$5
-GRAV_REPO_DIR=$6
-LINUX_STAGE=$7
-OUTPUT_DIR=$8
+START_DIR=$(pwd)
+OUTPUT_DIR=${START_DIR}/OUTPUT
 
-THIS_DIR=$(pwd)
+STARDOG_RELEASE_URL=https://complexible.artifactoryonline.com/complexible/stardog-binaries/complexible/stardog/stardog-${STARDOG_VERSION}.zip
 
-ls $GRAV_REPO_DIR/ci
-RELEASE_FILE=$THIS_DIR/$ENV_INPUT_DIR/stardog-$STARDOG_VERSION.zip
-LICENSE_FILE=$THIS_DIR/$ENV_INPUT_DIR/stardog-license-key.bin
+RELEASE_FILE=$OUTPUT_DIR/stardog-$STARDOG_VERSION.zip
+LICENSE_FILE=$OUTPUT_DIR/stardog-license-key.bin
 
-sed -e "s^@@LICENSE@@^$LICENSE_FILE^" -e "s^@@RELEASE@@^$RELEASE_FILE^" -e "s^@@VERSION@@^$STARDOG_VERSION^" $GRAV_REPO_DIR/ci/default.json.template > $OUTPUT_DIR/default.json
+echo ${STARDOG_RELEASE_URL}
+curl -u ${artifactoryUsername}:${artifactoryPassword} ${STARDOG_RELEASE_URL} > $RELEASE_FILE
 
-echo $LICENSE_DATA | base64 -d > $OUTPUT_DIR/stardog-license-key.bin
-curl -u $ARCHIVE_USER:$ARCHIVE_PW -o $OUTPUT_DIR/stardog-$STARDOG_VERSION.zip $STARDOG_RELEASE_URL
+sed -e "s^@@LICENSE@@^$LICENSE_FILE^" -e "s^@@RELEASE@@^$RELEASE_FILE^" -e "s^@@VERSION@@^$STARDOG_VERSION^" ./ci/default.json.template > $OUTPUT_DIR/default.json
 
-ls $LINUX_STAGE
-cp -r $LINUX_STAGE/* $OUTPUT_DIR
+echo $STARDOG_LICENSE | base64 -d > $LICENSE_FILE
+
+if [ "X$AMI" != "X" ]; then
+    echo '{"us-west-2":"'$AMI'"}' > $OUTPUT_DIR/amis-${STARDOG_VERSION}.json
+fi

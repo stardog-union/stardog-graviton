@@ -1,28 +1,20 @@
 #!/bin/bash
 
+mkdir OUTPUT
 set -eu
 
-GRAV_REPO=$1
-TAG_REPO=$2
-OUT_DIR=$3
-THIS_DIR=$(pwd)
-
-if [ "X$TAG_REPO" != "X0" ]; then
-    export GRAVITON_FORCE_TAG=$TAG_REPO
+if [ "X$TAG_VERSION" != "X" ]; then
+    echo "TAGGING with $TAG_VERSION"
+    git tag $TAG_VERSION
+    VER=$TAG_VERSION
+else
+    VER=$(cat etc/version)
 fi
-
-# we know what the docker container looks like
-cp -r graviton-repo /usr/local/src/go/src/github.com/stardog-union/stardog-graviton
-cd /usr/local/src/go/src/github.com/stardog-union/stardog-graviton
-export GOPATH=/usr/local/src/go
-export PATH=/usr/local/go/bin:/usr/local/src/go/bin:$PATH
+make clean
 make
-make test
-VER=$(cat etc/version)
 
-echo $VER
+cat etc/version
 
-gox -osarch="linux/amd64" -osarch="darwin/amd64" -output=$THIS_DIR/$OUT_DIR/{{.OS}}/stardog-graviton-$VER
-
-ls -l $THIS_DIR/$OUT_DIR/darwin
-ls -l $THIS_DIR/$OUT_DIR/linux
+cd /usr/local/src/go/src/github.com/stardog-union/stardog-graviton
+echo "Run cross compile..."
+gox -osarch="linux/amd64" -osarch="darwin/amd64" -output=OUTPUT/{{.OS}}/stardog-graviton-$VER 

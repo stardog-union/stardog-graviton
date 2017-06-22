@@ -2,31 +2,19 @@
 
 set -eu
 
-SKIP=$1
-export AWS_ACCESS_KEY_ID=$2
-export AWS_SECRET_ACCESS_KEY=$3
-STARDOG_VERSION=$4
-GRAV_REPO=$5
-LINUX_STAGE=$6
-ENV_DIR=$7
-LAUNCH_OUTPUT=$8
+START_DIR=$(pwd)
+OUTPUT_DIR=${START_DIR}/OUTPUT
 
-if [ $SKIP -eq 1 ]; then
-    echo "Skipping the graviton tests"
-    exit 0
-fi
+GRAV_EXE=$(ls $OUTPUT_DIR/linux/stardog-graviton-*)
 
-THIS_DIR=$(pwd)
-GRAV_EXE=$(ls $THIS_DIR/$LINUX_STAGE/stardog-graviton-*)
 LAUNCH_NAME=$(cat $LAUNCH_OUTPUT/name)
-chmod 755 $GRAV_EXE
+RELEASE_FILE=$OUTPUT_DIR/stardog-$STARDOG_VERSION.zip
 
-RELEASE=$THIS_DIR/$ENV_DIR/stardog-$STARDOG_VERSION.zip
-export STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR=$THIS_DIR/$LAUNCH_OUTPUT
+export STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR=$OUTPUT_DIR
 LAUNCH_NAME=$(cat $LAUNCH_OUTPUT/name)
 
 export STARDOG_HOME=$THIS_DIR/$ENV_DIR
-python $GRAV_REPO/ci/create_db.py $THIS_DIR/$ENV_DIR $RELEASE $GRAV_EXE $LAUNCH_NAME $GRAV_REPO
+python ./ci/create_db.py $OUTPUT_DIR $RELEASE_FILE $GRAV_EXE $LAUNCH_NAME
 if [ $? -ne 0]; then
     echo "Fail"
     exit 1
