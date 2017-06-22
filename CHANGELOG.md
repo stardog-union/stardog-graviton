@@ -1,3 +1,8 @@
+# 1.0.0 (2017-06-22)
+
+# Feature
+* Added a means to control the Stardog log4j file.
+
 # 0.9.0-beta2 (2017-04-28)
 
 Bug fixes:
