@@ -2,7 +2,7 @@ pipeline {
     agent {
         dockerfile {
             dir 'ci'
-            args '-v ${WORKSPACE}:/usr/local/src/go/src/github.com/stardog-union/stardog-graviton -w /usr/local/src/go/src/github.com/stardog-union/stardog-graviton'
+            args '-v /etc/passwd:/etc/passwd -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}:/usr/local/src/go/src/github.com/stardog-union/stardog-graviton -w /usr/local/src/go/src/github.com/stardog-union/stardog-graviton'
         }
     }
     environment {
