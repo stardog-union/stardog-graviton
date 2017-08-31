@@ -15,6 +15,11 @@ resource "aws_autoscaling_group" "bastion" {
     value = "${var.deployment_name}"
     propagate_at_launch = true
   }
+  tag {
+    key = "Name"
+    value = "BastionNode"
+    propagate_at_launch = true
+  }
 }
 
 resource "aws_launch_configuration" "bastion" {

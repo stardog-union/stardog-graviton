@@ -5,8 +5,8 @@ import sys
 import stardog.cluster.utils as utils
 
 
-def find_mount_iteration(deployment_name, device, instance_id):
-    volume_id = utils.find_volume(deployment_name)
+def find_mount_iteration(deployment_name, device, instance_id, az):
+    volume_id = utils.find_volume(deployment_name, az=az)
     if volume_id is None:
         return False
     logging.debug("Attaching the volume %s..." % volume_id)
@@ -72,7 +72,7 @@ def main():
         device = sys.argv[3]
 
         def find_attach_it():
-            return find_mount_iteration(deployment_name, device, instance_id)
+            return find_mount_iteration(deployment_name, device, instance_id, az)
         rc = utils.wait_for_func(10, 5, find_attach_it)
         if not rc:
             e_msg = "Failed to attach the volume in the given number of tries"

@@ -27,20 +27,39 @@ import (
 
 var (
 	baseUbuntu1604 = map[string]string{
-		"ap-northeast-1": "ami-31892c50",
-		"ap-southeast-1": "ami-18e7417b",
-		"ap-southeast-2": "ami-7be4d618",
-		"cn-north-1":     "ami-d7c511ba",
-		"eu-central-1":   "ami-597c8236",
-		"eu-west-1":      "ami-c593deb6",
-		"sa-east-1":      "ami-909b06fc",
-		"us-east-1":      "ami-fd6e3bea",
-		"us-east-2":      "ami-0a104a6f",
-		"us-gov-west-1":  "ami-8df24aec",
-		"us-west-1":      "ami-73531b13",
-		"us-west-2":      "ami-f1ca1091",
+		"eu-west-2":      "ami-03998867",
+		"ap-northeast-1": "ami-0417e362",
+		"ap-northeast-2": "ami-536ab33d",
+		"ap-southeast-1": "ami-9f28b3fc",
+		"ap-southeast-2": "ami-bb1901d8",
+		"sa-east-1":      "ami-a41869c8",
+		"us-east-2":      "ami-dbbd9dbe",
+		"eu-west-1":      "ami-674cbc1e",
+		"eu-central-1":   "ami-958128fa",
+		"us-east-1":      "ami-1d4e7a66",
+		"us-west-1":      "ami-969ab1f6",
+		"us-west-2":      "ami-8803e0f0",
 	}
 )
+
+func getBaseAMI(cliContext sdutils.AppContext, region string) (string, error) {
+	var err error
+
+	baseFileName := path.Join(cliContext.GetConfigDir(), fmt.Sprintf("base-amis-%s.json", cliContext.GetVersion()))
+	if !sdutils.PathExists(baseFileName) {
+		err = sdutils.WriteJSON(baseUbuntu1604, baseFileName)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	baseAMIMap := make(map[string]string)
+	err = sdutils.LoadJSON(&baseAMIMap, baseFileName)
+	if err != nil {
+		return "", nil
+	}
+	return baseAMIMap[region], nil
+}
 
 func lineScanner(cliContext sdutils.AppContext, line string) *sdutils.ScanResult {
 	if strings.Contains(line, "amazon-ebs,artifact,0,string,AMIs were created:") {
@@ -95,7 +114,11 @@ func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath str
 
 	ami := a.AmiID
 	if ami == "" {
-		ami = baseUbuntu1604[a.Region]
+		ami, err = getBaseAMI(context, a.Region)
+		if err != nil {
+			context.Logf(sdutils.ERROR, "Failed to properly obtain the base AMI.  Failing back to hard coded version. %s\n", err.Error())
+			ami = baseUbuntu1604[a.Region]
+		}
 	}
 
 	workingDir := path.Join(dir, "etc/packer")

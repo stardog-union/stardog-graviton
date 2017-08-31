@@ -42,6 +42,11 @@ resource "aws_autoscaling_group" "stardog" {
     value = "${var.deployment_name}"
     propagate_at_launch = true
   }
+  tag {
+    key = "Name"
+    value = "StardogNode"
+    propagate_at_launch = true
+  }
 }
 
 resource "aws_launch_configuration" "stardog" {
@@ -52,7 +57,6 @@ resource "aws_launch_configuration" "stardog" {
   key_name = "${var.aws_key_name}"
   security_groups = ["${aws_security_group.stardog.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.stardog.id}"
-  # XXX TODO figure out why we need a public ip for external routing
   associate_public_ip_address = true
 
   root_block_device {

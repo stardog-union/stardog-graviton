@@ -103,7 +103,7 @@ def make_defaults_file(working_dir, sd_license, release_full_path, release_name,
         "cloud_options": {
             "region": "us-west-1",
             "zk_instance_type": "t2.small",
-            "sd_instance_type": "m3.medium",
+            "sd_instance_type": "t2.medium",
             "aws_key_name": ssh_key_name
         }
     }
