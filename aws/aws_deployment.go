@@ -305,7 +305,7 @@ func GetPlugin() sdutils.Plugin {
 		AmiID:          "",
 		AwsKeyName:     "",
 		ZkInstanceType: "t2.small",
-		SdInstanceType: "m3.medium",
+		SdInstanceType: "t2.medium",
 		BastionType:    "t2.small",
 		VolumeType:     "gp2",
 		IoPs:           0,

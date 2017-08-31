@@ -51,6 +51,11 @@ resource "aws_autoscaling_group" "zookeeper" {
     value = "${var.deployment_name}"
     propagate_at_launch = true
   }
+    tag {
+    key = "Name"
+    value = "ZookeeperNode"
+    propagate_at_launch = true
+  }
 }
 
 resource "aws_launch_configuration" "zookeeper" {

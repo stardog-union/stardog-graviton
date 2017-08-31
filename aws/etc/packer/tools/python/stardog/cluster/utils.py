@@ -36,9 +36,11 @@ def run_json_command(cmd):
     return True, d
 
 
-def find_volume(deployment_name):
+def find_volume(deployment_name, az=None):
     logging.debug("attempting to find an available volume for %s" % deployment_name)
     cmd = 'aws ec2 describe-volumes --filters Name=status,Values=available Name=tag-key,Values="DeploymentName" Name=tag-value,Values=%s' % deployment_name
+    if az is not None:
+        cmd = "%s Name=availability-zone,Values=%s" % (cmd, az)
     rc, vols = run_json_command(cmd)
     if not rc:
         logging.warning("A volume was not found for %s" % deployment_name)
