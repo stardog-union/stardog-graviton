@@ -122,27 +122,6 @@ func volumeLineScanner(cliContext sdutils.AppContext, line string) *sdutils.Scan
 	return nil
 }
 
-// func (awsI *Ec2Instance) runTerraformInit() error {
-// 	terraformPath, err := exec.LookPath("terraform")
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	cmdArray := []string{terraformPath, "init"}
-// 	cmd := exec.Cmd{
-// 		Path: cmdArray[0],
-// 		Args: cmdArray,
-// 		Dir:  instanceWorkingDir,
-// 	}
-// 	awsI.Ctx.Logf(sdutils.INFO, "Running terraform init...\n")
-// 	spin := sdutils.NewSpinner(awsI.Ctx, 1, message)
-// 	_, err = sdutils.RunCommand(awsI.Ctx, cmd, volumeLineScanner, spin)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
 func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, mask string, idleTimeout int, message string) error {
 	awsI.ZkSize = fmt.Sprintf("%d", zookeeperSize)
 	awsI.ELBIdleTimeout = fmt.Sprintf("%d", idleTimeout)
@@ -168,7 +147,7 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 		return err
 	}
 
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(awsI.Ctx)
 	if err != nil {
 		return err
 	}
@@ -219,7 +198,7 @@ func (awsI *Ec2Instance) DeleteInstance() error {
 	if !sdutils.PathExists(instanceConfPath) {
 		return fmt.Errorf("There is no configured instance")
 	}
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(awsI.Ctx)
 	if err != nil {
 		return err
 	}
@@ -263,7 +242,7 @@ func getInstanceValues(awsI *Ec2Instance) (*InstanceStatusDescription, error) {
 	if !sdutils.PathExists(instanceConfPath) {
 		return nil, fmt.Errorf("There is no configured instance")
 	}
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(awsI.Ctx)
 	if err != nil {
 		return nil, err
 	}

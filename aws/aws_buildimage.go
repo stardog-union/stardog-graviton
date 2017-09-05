@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/stardog-union/stardog-graviton/sdutils"
+	"runtime"
 )
 
 var (
@@ -96,6 +97,11 @@ func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath str
 			return fmt.Errorf("The environment variable %s must be set", e)
 		}
 	}
+	packerURL := fmt.Sprintf("https://releases.hashicorp.com/packer/%s/packer_%s_%s_%s.zip", PackerVersion, PackerVersion, runtime.GOOS, runtime.GOARCH)
+	err := sdutils.FindProgramVersion(context, "packer", PackerVersion, packerURL)
+	if err != nil {
+		return fmt.Errorf("We could not get a proper version of packer %s", err.Error())
+	}
 
 	context.Logf(sdutils.DEBUG, "Place assets\n")
 
@@ -107,7 +113,7 @@ func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath str
 	context.ConsoleLog(2, "Extracting packer files to: %s\n", dir)
 	defer os.RemoveAll(dir)
 
-	packerPath, err := exec.LookPath("packer")
+	packerPath, err := GetPackerPath(context)
 	if err != nil {
 		return err
 	}

@@ -25,8 +25,32 @@ import (
 	"github.com/stardog-union/stardog-graviton/sdutils"
 )
 
+func makeTestTerraformAndPacker(dir string, rc int) error {
+	fakePacker := `#!/usr/bin/env bash
+	if [ "X$1" == "X--version" ]; then
+		echo %s
+		exit 0
+	fi
+	echo amazon-ebs,artifact,0,string,AMIs were created:ami-deadbeef
+	exit %d`
+	fakePacker = fmt.Sprintf(fakePacker, PackerVersion, rc)
+	packerFile := path.Join(dir, "packer")
+	err := ioutil.WriteFile(packerFile, []byte(fakePacker), 0755)
+	if err != nil {
+		return err
+	}
+	fakeTerraform := `#!/usr/bin/env bash
+	if [ "X$1" == "X--version" ]; then
+		echo %s
+		exit 0
+	fi
+	exit 0`
+	fakeTerraform = fmt.Sprintf(fakeTerraform, TerraformVersion, rc)
+	terraformFile := path.Join(dir, "terraform")
+	return ioutil.WriteFile(terraformFile, []byte(fakeTerraform), 0755)
+}
+
 func TestGoodPacker(t *testing.T) {
-	fakePacker := "#!/usr/bin/env bash\necho amazon-ebs,artifact,0,string,AMIs were created:ami-deadbeef\nexit 0"
 
 	awsKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
 	defer os.Setenv("AWS_ACCESS_KEY_ID", awsKeyID)
@@ -37,12 +61,11 @@ func TestGoodPacker(t *testing.T) {
 
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
-
-	packerFile := path.Join(dir, "packer")
-	err := ioutil.WriteFile(packerFile, []byte(fakePacker), 0755)
+	err := makeTestTerraformAndPacker(dir, 0)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
+
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
 
@@ -75,16 +98,13 @@ func TestBadRcPacker(t *testing.T) {
 	defer os.Setenv("AWS_SECRET_ACCESS_KEY", awsSecretKeyID)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "somevalue")
 
-	fakePacker := "#!/usr/bin/env bash\necho amazon-ebs,artifact,0,string,AMIs were created:ami-deadbeef\nexit 1"
-
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
-
-	packerFile := path.Join(dir, "packer")
-	err := ioutil.WriteFile(packerFile, []byte(fakePacker), 0755)
+	err := makeTestTerraformAndPacker(dir, 1)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
+
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
 
@@ -110,20 +130,18 @@ func TestBadRcPacker(t *testing.T) {
 }
 
 func TestBadAMIPacker(t *testing.T) {
-	fakePacker := "#!/usr/bin/env bash\necho amazon-ebs,artifact,0,string,AMIs were created:NOAMI\nexit 0"
-
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
-
-	packerFile := path.Join(dir, "packer")
-	err := ioutil.WriteFile(packerFile, []byte(fakePacker), 0755)
+	exedir, _, err := MakeTestPacker(0, "amazon-ebs,artifact,0,string,AMIs were created:NOAMI", "")
+	defer os.RemoveAll(exedir)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
+
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
 
-	newPath := fmt.Sprintf("%s:%s", dir, startPath)
+	newPath := fmt.Sprintf("%s:%s", exedir, startPath)
 	err = os.Setenv("PATH", newPath)
 	if err != nil {
 		t.Fatalf("Failed to set env %s", err)

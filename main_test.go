@@ -160,8 +160,7 @@ func buildImage(amiName string, confDir string, version string, releasefile stri
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
 	data := fmt.Sprintf("amazon-ebs,artifact,0,string,AMIs were created:%s", amiName)
-	exeDir, _, _ := aws.CreateTestExec("packer", data, 0)
-	defer os.RemoveAll(exeDir)
+	aws.MakeTestPacker(0, data, confDir)
 
 	rc := realMain([]string{"--quiet", "--config-dir", confDir, "baseami", "--region", region, releasefile, version})
 	if rc != 0 {
@@ -273,8 +272,9 @@ func TestBasicDeploy(t *testing.T) {
 
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
-	exeDir, _, _ := aws.CreateTestExec("terraform", goodoutput1, 0)
+	exeDir, _, _ := aws.MakeTestTerraform(0, goodoutput1, "")
 	defer os.RemoveAll(exeDir)
+	os.Setenv("PATH", strings.Join([]string{exeDir, os.Getenv("PATH")}, ":"))
 
 	consoleLog := path.Join(confDir, "output2")
 
@@ -354,10 +354,11 @@ func TestSteppedOutDeploy(t *testing.T) {
 
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
-	exeDir, _, _ := aws.CreateTestExec("terraform", goodoutput1, 0)
+	exeDir, _, _ := aws.MakeTestTerraform(0, goodoutput1, "")
 	defer os.RemoveAll(exeDir)
-	sshExeDir, _, _ := aws.CreateTestExec("ssh", "data", 0)
+	sshExeDir, _, _ := aws.MakeTestSSH(0)
 	defer os.RemoveAll(sshExeDir)
+	os.Setenv("PATH", strings.Join([]string{exeDir, os.Getenv("PATH")}, ":"))
 
 	depName := randDeployName()
 	rc := realMain([]string{"--config-dir", confDir, "deployment", "new", "--private-key", sshKeyFile, "--aws-key-name", "keyname", "--region", region, depName, "4.2"})
@@ -442,11 +443,21 @@ func TestDestroyNoExist(t *testing.T) {
 func init() {
 	rand.Seed(time.Now().UnixNano())
 	os.Setenv("STARDOG_GRAVITON_UNIT_TEST", "on")
-	successData := []byte("#!/bin/bash\nexit 0")
-	ioutil.WriteFile(packerFile, successData, 0755)
-	ioutil.WriteFile(terraformFile, successData, 0755)
+	dir, err := ioutil.TempDir("", "stardogtest")
+	if err != nil {
+		panic("failed to make a temp dir")
+	}
+
+	_, _, err = aws.MakeTestPacker(0, "amazon-ebs,artifact,0,string,AMIs were created:ami-deadbeef", dir)
+	if err != nil {
+		panic("failed to make fake packer")
+	}
+	_, _, err = aws.MakeTestTerraform(0, "terraform data", dir)
+	if err != nil {
+		panic("failed to make fake terraform")
+	}
 	// We need to trick the tests into thinking packer and terraform exists for stubs
-	os.Setenv("PATH", strings.Join([]string{os.Getenv("PATH"), os.TempDir()}, ":"))
+	os.Setenv("PATH", strings.Join([]string{dir, os.Getenv("PATH")}, ":"))
 }
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")

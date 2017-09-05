@@ -81,7 +81,7 @@ func TestVolumesNotThere(t *testing.T) {
 
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
-	exedir, _, err := CreateTestExec("terraform", "data", 0)
+	exedir, _, err := MakeTestTerraform(0, "data", dir)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
@@ -117,7 +117,7 @@ func TestVolumesNotThere(t *testing.T) {
 	}
 	// Add in good status
 	data := `{"volumes": { "sensitive": false, "type": "list", "value": ["vol-46313ce8", "vol-a34ba11c", "vol-50313cfe"]}}`
-	exedir2, _, err := CreateTestExec("terraform", data, 0)
+	exedir2, _, err := MakeTestTerraform(0, data, dir)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
@@ -189,7 +189,7 @@ func TestVolumesThroughDD(t *testing.T) {
 
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
-	exedir, _, err := CreateTestExec("terraform", "data", 0)
+	exedir, _, err := MakeTestTerraform(0, "data", dir)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
@@ -225,7 +225,7 @@ func TestVolumesThroughDD(t *testing.T) {
 	}
 	// Add in good status
 	data := `{"volumes": { "sensitive": false, "type": "list", "value": ["vol-46313ce8", "vol-a34ba11c", "vol-50313cfe"]}}`
-	exedir2, _, err := CreateTestExec("terraform", data, 0)
+	exedir2, _, err := MakeTestTerraform(0, data, dir)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}

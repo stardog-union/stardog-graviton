@@ -605,6 +605,7 @@ func (cliContext *CliContext) topValidate(a *kingpin.Application) error {
 	}
 	logWriter, err := os.OpenFile(cliContext.LogFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
+		fmt.Printf("COULDNT OPEN %s\n", cliContext.LogFilePath)
 		return fmt.Errorf("Could not open the file %s.  %s", cliContext.LogFilePath, err.Error())
 	}
 	cliContext.LogLevel = strings.ToUpper(cliContext.LogLevel)

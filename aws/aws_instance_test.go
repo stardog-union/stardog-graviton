@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/stardog-union/stardog-graviton/sdutils"
+	"fmt"
 )
 
 func TestInstanceNotThere(t *testing.T) {
@@ -156,16 +157,18 @@ func TestInstanceFakeTerraform(t *testing.T) {
 
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
-	exedir, _, err := CreateTestExec("terraform", data, 0)
+	exedir, _, err := MakeTestTerraform(0, data, dir)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
 	defer os.RemoveAll(exedir)
+	newPath := fmt.Sprintf("%s:%s", exedir, startPath)
+	err = os.Setenv("PATH", newPath)
 
 	ebs := NewAwsEbsVolumeManager(&app, dd)
 	err = ebs.CreateSet("/path/", 1, 3)
 	if err != nil {
-		t.Fatalf("The create should have worked")
+		t.Fatalf("The create should have worked %s", err)
 	}
 
 	err = inst.CreateInstance(8, 1, 60)
@@ -253,7 +256,7 @@ func TestInstanceFakeTerraformThroughDeployment(t *testing.T) {
 
 	startPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", startPath)
-	exedir, _, err := CreateTestExec("terraform", data, 0)
+	exedir, _, err := MakeTestTerraform(0, data, dir)
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}

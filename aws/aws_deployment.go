@@ -20,8 +20,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"time"
@@ -50,6 +51,11 @@ type awsDeploymentDescription struct {
 	ctx             sdutils.AppContext
 	plugin          *awsPlugin
 }
+
+var (
+	TerraformVersion = "0.8.8"
+	PackerVersion    = "1.0.3"
+)
 
 func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeployment, a *awsPlugin) (*awsDeploymentDescription, error) {
 	var err error
@@ -349,18 +355,19 @@ func (a *awsPlugin) Register(cmdOpts *sdutils.CommandOpts) error {
 }
 
 func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.BaseDeployment, new bool) (sdutils.Deployment, error) {
+	var err error
+
 	neededEnvs := []string{"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"}
 	for _, e := range neededEnvs {
 		if os.Getenv(e) == "" {
 			return nil, fmt.Errorf("The environment variable %s must be set", e)
 		}
 	}
-	neededPgms := []string{"terraform", "packer"}
-	for _, e := range neededPgms {
-		_, err := exec.LookPath(e)
-		if err != nil {
-			return nil, fmt.Errorf("The program %s must be in the path when running this program", e)
-		}
+	terraformOutputVersion := fmt.Sprintf("Terraform v%s", TerraformVersion)
+	terraformURL := fmt.Sprintf("https://releases.hashicorp.com/terraform/%s/terraform_%s_%s_%s.zip", TerraformVersion, TerraformVersion, runtime.GOOS, runtime.GOARCH)
+	err = sdutils.FindProgramVersion(context, "terraform", terraformOutputVersion, terraformURL)
+	if err != nil {
+		return nil, fmt.Errorf("We could not get a proper version of terraform %s", err.Error())
 	}
 
 	if new {
@@ -405,4 +412,20 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 
 func (a *awsPlugin) GetName() string {
 	return "aws"
+}
+
+func GetGravitonDependencyExe(context sdutils.AppContext, program string) (string, error) {
+	path := filepath.Join(context.GetConfigDir(), program)
+	if !sdutils.PathExists(path) {
+		return "", fmt.Errorf("%s is not configure correctly", program)
+	}
+	return path, nil
+}
+
+func GetTerraformPath(context sdutils.AppContext) (string, error) {
+	return GetGravitonDependencyExe(context, "terraform")
+}
+
+func GetPackerPath(context sdutils.AppContext) (string, error) {
+	return GetGravitonDependencyExe(context, "packer")
 }

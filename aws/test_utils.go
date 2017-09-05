@@ -18,36 +18,90 @@ package aws
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 )
 
-// CreateTestExec writes a file to the system for use as a mock for packer or terraform
-// in testing.
-func CreateTestExec(pgmName string, output string, rc int) (string, string, error) {
+
+func MakeTestSSH(rc int)  (string, string, error) {
 	exedir, err := ioutil.TempDir("/tmp", "stardogtest")
 	if err != nil {
 		return "", "", err
 	}
 
-	dataFile := path.Join(exedir, "datafile")
+	fakeSSH := `#!/usr/bin/env bash
+	exit %d`
+	fakeSSH = fmt.Sprintf(fakeSSH, rc)
+
+	sshFile := path.Join(exedir, "ssh")
+	err = ioutil.WriteFile(sshFile, []byte(fakeSSH), 0755)
+	if err != nil {
+		return "", "", err
+	}
+	return exedir, sshFile, nil
+}
+
+func MakeTestTerraform(rc int, output string, dir string) (string, string, error) {
+	var err error
+	exedir := dir
+	if dir == "" {
+		exedir, err = ioutil.TempDir("/tmp", "stardogtest")
+		if err != nil {
+			return "", "", err
+		}
+	}
+	paramsFile := path.Join(exedir, "params")
+	dataFile := path.Join(exedir, "datafileTerraform")
 	err = ioutil.WriteFile(dataFile, []byte(output), 0644)
 	if err != nil {
 		return "", "", fmt.Errorf("Failed to write the file %s", err)
 	}
-	paramsFile := path.Join(exedir, "params")
 
-	exeTemplate := fmt.Sprintf("#!/usr/bin/env bash\necho ${@} > %s\ncat %s\nexit %d", paramsFile, dataFile, rc)
-	exeFile := path.Join(exedir, pgmName)
-	err = ioutil.WriteFile(exeFile, []byte(exeTemplate), 0755)
+	fakeTerraform := `#!/usr/bin/env bash
+	if [ "X$1" == "X--version" ]; then
+		echo Terraform v%s
+		exit 0
+	fi
+	echo ${@} > %s
+	cat %s
+	exit %d`
+	fakeTerraform = fmt.Sprintf(fakeTerraform, TerraformVersion, paramsFile, dataFile, rc)
+	terraformFile := path.Join(exedir, "terraform")
+	err = ioutil.WriteFile(terraformFile, []byte(fakeTerraform), 0755)
+	if err != nil {
+		return "", "", err
+	}
+	return exedir, terraformFile, nil
+}
+
+func MakeTestPacker(rc int, output string, dir string) (string, string, error) {
+	var err error
+	exedir := dir
+	if dir == "" {
+		exedir, err = ioutil.TempDir("/tmp", "stardogtest")
+		if err != nil {
+			return "", "", err
+		}
+	}
+	paramsFile := path.Join(exedir, "params")
+	dataFile := path.Join(exedir, "datafilePacker")
+	err = ioutil.WriteFile(dataFile, []byte(output), 0644)
 	if err != nil {
 		return "", "", fmt.Errorf("Failed to write the file %s", err)
 	}
-	startPath := os.Getenv("PATH")
-	newPath := fmt.Sprintf("%s:%s", exedir, startPath)
-	err = os.Setenv("PATH", newPath)
+
+	fakePacker := `#!/usr/bin/env bash
+	if [ "X$1" == "X--version" ]; then
+		echo %s
+		exit 0
+	fi
+	echo ${@} > %s
+	cat %s
+	exit %d`
+	fakePacker = fmt.Sprintf(fakePacker, PackerVersion, paramsFile, dataFile, rc)
+	packerFile := path.Join(exedir, "packer")
+	err = ioutil.WriteFile(packerFile, []byte(fakePacker), 0755)
 	if err != nil {
-		return "", "", fmt.Errorf("Failed to set env %s", err)
+		return "", "", err
 	}
-	return exedir, exeFile, nil
+	return exedir, packerFile, nil
 }

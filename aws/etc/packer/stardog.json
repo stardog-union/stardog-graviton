@@ -13,7 +13,7 @@
     "source_ami": "{{user `source_ami`}}",
     "instance_type": "c4.large",
     "ssh_username": "ubuntu",
-    "ami_name": "stardog {{user `version`}} {{timestamp}}",
+    "ami_name": "stardog graviton {{user `version`}} {{timestamp}}",
     "ami_description": "stardog graviton virtual appliance base ami {{user `version`}} {{timestamp}}",
     "tags": {
       "OS_Version": "Ubuntu",
