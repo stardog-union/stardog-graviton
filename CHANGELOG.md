@@ -1,3 +1,10 @@
+# 1.0.1 (2017-09-05)
+
+Feature
+* Updated the Ubuntu base AMIs to 16.04 HVM images.
+* Added logic to download packer and terraform if they are not found.
+* Added logic to check the versions of packer and terraform and to cache good ones when found.
+
 # 1.0.0 (2017-06-22)
 
 # Feature
