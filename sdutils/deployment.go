@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -26,7 +27,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"math/rand"
 )
 
 var (
@@ -88,9 +88,6 @@ func LoadDeployment(context AppContext, baseD *BaseDeployment, new bool) (Deploy
 	os.MkdirAll(baseD.Directory, 0755)
 
 	d, err := plugin.DeploymentLoader(context, baseD, new)
-	if err != nil {
-		os.RemoveAll(baseD.Directory)
-	}
 	return d, err
 }
 
@@ -297,8 +294,8 @@ func WaitForNClusterNodes(context AppContext, size int, sdURL string, pw string,
 	itCnt := waitTimeout / pollInterval
 
 	client := stardogClientImpl{
-		sdURL: sdURL,
-		logger: context,
+		sdURL:    sdURL,
+		logger:   context,
 		username: "admin",
 		password: pw,
 	}
@@ -446,8 +443,8 @@ func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, inter
 	}
 
 	client := stardogClientImpl{
-		sdURL: sd.StardogURL,
-		logger: context,
+		sdURL:    sd.StardogURL,
+		logger:   context,
 		username: "admin",
 		password: pw,
 	}

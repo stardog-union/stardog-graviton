@@ -123,7 +123,7 @@ func volumeLineScanner(cliContext sdutils.AppContext, line string) *sdutils.Scan
 }
 
 // func (awsI *Ec2Instance) runTerraformInit() error {
-// 	terraformPath, err := exec.LookPath("terraform")
+// 	terraformPath, err := GetTerraformPath(awsI.Ctx)
 // 	if err != nil {
 // 		return err
 // 	}
@@ -168,7 +168,7 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 		return err
 	}
 
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(awsI.Ctx)
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func (awsI *Ec2Instance) DeleteInstance() error {
 	if !sdutils.PathExists(instanceConfPath) {
 		return fmt.Errorf("There is no configured instance")
 	}
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(awsI.Ctx)
 	if err != nil {
 		return err
 	}
@@ -263,7 +263,7 @@ func getInstanceValues(awsI *Ec2Instance) (*InstanceStatusDescription, error) {
 	if !sdutils.PathExists(instanceConfPath) {
 		return nil, fmt.Errorf("There is no configured instance")
 	}
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(awsI.Ctx)
 	if err != nil {
 		return nil, err
 	}

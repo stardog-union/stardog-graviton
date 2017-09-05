@@ -91,7 +91,7 @@ func (v *EbsVolumes) VolumeExists() bool {
 func (v *EbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, clusterSize int) error {
 	// TODO make sure we clean up resources on failure
 	v.appContext.ConsoleLog(2, "Creating an aws volume set in directory %s\n", v.VolumeDir)
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(v.appContext)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func (v *EbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, cluster
 // DeleteSet will delete the EBS volumes from AWS.
 func (v *EbsVolumes) DeleteSet() error {
 	confFile := path.Join(v.VolumeDir, "config.json")
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(v.appContext)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (v *EbsVolumes) DeleteSet() error {
 }
 
 func (v *EbsVolumes) getStatusInformation() (*VolumeStatusDescription, error) {
-	terraformPath, err := exec.LookPath("terraform")
+	terraformPath, err := GetTerraformPath(v.appContext)
 	if err != nil {
 		return nil, err
 	}

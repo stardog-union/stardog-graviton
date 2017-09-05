@@ -98,9 +98,6 @@ func TestLoadNewDeploymentFailLoad(t *testing.T) {
 	if err == nil {
 		t.Fatal("No deployment load should fail")
 	}
-	if PathExists(dir) {
-		t.Fatalf("The deployment directory should not be created when failure occurs. %s, %s", dir, err)
-	}
 }
 
 func TestLoadNewDeploymentGoodLoad(t *testing.T) {

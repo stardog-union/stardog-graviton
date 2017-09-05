@@ -16,9 +16,11 @@
 package sdutils
 
 import (
+	"archive/zip"
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -379,4 +381,154 @@ func ValueStringToInt(i string) (int, error) {
 		return 0, fmt.Errorf("%s is not valid", i)
 	}
 	return base * mult, nil
+}
+
+func checkVersion(context AppContext, program string, version string) bool {
+	versionOpt := "--version"
+	cmd := exec.Command(program, versionOpt)
+	out, err := cmd.Output()
+	if err != nil {
+		context.Logf(INFO, "The program %s unsuccessfully ran with the %s option", program, versionOpt)
+		return false
+	}
+	outA := strings.Split(string(out), "\n")
+	if len(outA) < 1 {
+		return false
+	}
+	return strings.TrimSpace(outA[0]) == version
+}
+
+func unzipFile(context AppContext, zipPath string) error {
+	extractAndWriteFile := func(f *zip.File) error {
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+
+		destPath := filepath.Join(context.GetConfigDir(), f.Name)
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(destPath, f.Mode())
+		} else {
+			os.MkdirAll(filepath.Dir(destPath), f.Mode())
+			f, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			_, err = io.Copy(f, rc)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	zipR, err := zip.OpenReader(zipPath)
+	if err != nil {
+		return err
+	}
+	for _, f := range zipR.File {
+		err := extractAndWriteFile(f)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func downloadHTTPFile(context AppContext, destPath string, url string) error {
+	// We have to write the data to a file because the zip module requires seeking
+	zipF, err := ioutil.TempFile("", "graviton_zip_dl")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(zipF.Name())
+
+	resp, err := http.Get(url)
+	if err != nil {
+		zipF.Close()
+		return err
+	}
+	defer resp.Body.Close()
+	_, err = io.Copy(zipF, resp.Body)
+	if err != nil {
+		zipF.Close()
+		return err
+	}
+	zipF.Close()
+
+	err = unzipFile(context, zipF.Name())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CopyFile will copy the context of 1 path to another
+func CopyFile(src string, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return err
+	}
+	err = out.Sync()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FindProgramVersion is used to check for golang style single executable programs of a
+// specific version.  We are currently using it for just packer and terraform and there
+// are no guarantees that it will work for other programs with different path expectations
+func FindProgramVersion(context AppContext, program string, version string, url string) error {
+	// First check if the program is already in the graviton environment
+	gravPgm := filepath.Join(context.GetConfigDir(), program)
+	if PathExists(gravPgm) {
+		context.Logf(INFO, "%s exists in graviton directory.  Checking for version %s\n", program, version)
+		if checkVersion(context, gravPgm, version) {
+			context.Logf(INFO, "%s has version %s", program, version)
+			return nil
+		}
+	}
+	// Now search the users path for the program
+	systemPgm, err := exec.LookPath(program)
+	if err == nil {
+		context.Logf(INFO, "%s exists in the system path.  Checking for version %s\n", program, version)
+		if checkVersion(context, systemPgm, version) {
+			err = CopyFile(systemPgm, gravPgm)
+			if err != nil {
+				return err
+			}
+			err = os.Chmod(gravPgm, 0777)
+			if err != nil {
+				return err
+			}
+			context.Logf(INFO, "%s has version %s\n", program, version)
+			return nil
+		}
+	}
+	context.Logf(INFO, "Downloading %s\n", url)
+	err = downloadHTTPFile(context, gravPgm, url)
+	if err == nil {
+		if checkVersion(context, gravPgm, version) {
+			context.Logf(INFO, "%s has version %s\n", program, version)
+			return nil
+		}
+	} else {
+		context.Logf(INFO, "Failed to download %s: %s\n", url, err.Error())
+	}
+	return fmt.Errorf("We were unable to find a valid %s, please install version %s on your system", program, version)
 }

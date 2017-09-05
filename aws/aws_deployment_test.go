@@ -112,50 +112,6 @@ func TestDeploymentLoadEnvs(t *testing.T) {
 	}
 }
 
-func TestDeploymentLoadNoExes(t *testing.T) {
-	dir, _ := ioutil.TempDir("", "stardogtest")
-	defer os.RemoveAll(dir)
-	sshKeyFile := path.Join(dir, "keyfile")
-	fakeOut := "xxx"
-	ioutil.WriteFile(sshKeyFile, []byte(fakeOut), 0600)
-
-	plugin := &awsPlugin{
-		Region:         "us-west-1",
-		AmiID:          "notreal",
-		AwsKeyName:     "somekey",
-		ZkInstanceType: "m3.large",
-		SdInstanceType: "m3.large",
-		VolumeType:     "gp2",
-	}
-	app := sdutils.TestContext{
-		ConfigDir: dir,
-		Version:   "4.2",
-	}
-
-	keySave := os.Getenv("AWS_ACCESS_KEY_ID")
-	defer os.Setenv("AWS_ACCESS_KEY_ID", keySave)
-	os.Setenv("AWS_ACCESS_KEY_ID", "gravitontest")
-	secretSave := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "somesecret")
-
-	sPath := os.Getenv("PATH")
-	defer os.Setenv("PATH", sPath)
-	os.Setenv("PATH", "/")
-
-	baseD := sdutils.BaseDeployment{
-		Type:       plugin.GetName(),
-		Name:       "testdep",
-		Directory:  dir,
-		Version:    "4.2",
-		PrivateKey: sshKeyFile,
-	}
-	_, err := plugin.DeploymentLoader(&app, &baseD, true)
-	if err == nil {
-		t.Fatalf("The deployment should have failed")
-	}
-}
-
 func TestDeploymentLoadNew(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "stardogtest")
 	defer os.RemoveAll(dir)
@@ -183,12 +139,12 @@ func TestDeploymentLoadNew(t *testing.T) {
 	defer os.Setenv("AWS_SECRET_ACCESS_KEY", secretSave)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "gravitontest")
 
-	exedirT, _, err := CreateTestExec("terraform", "data", 0)
+	exedirT, _, err := MakeTestTerraform(0, "data", "")
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
 	defer os.RemoveAll(exedirT)
-	exedirP, _, err := CreateTestExec("packer", "data", 0)
+	exedirP, _, err := MakeTestPacker(0, "data", "")
 	if err != nil {
 		t.Fatalf("Failed to write the file %s", err)
 	}
