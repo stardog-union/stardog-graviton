@@ -24,6 +24,7 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/fatih/color"
@@ -380,15 +381,26 @@ func (cliContext *CliContext) destroyDeployment(c *kingpin.ParseContext) error {
 	return nil
 }
 
+func (cliContext *CliContext) runStardogRestart(c *kingpin.ParseContext) error {
+	baseD := sdutils.BaseDeployment{
+		Name:            cliContext.DeploymentName,
+		Type:            strings.ToLower(cliContext.CloudType),
+		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
+	}
+	d, err := sdutils.LoadDeployment(cliContext, &baseD, false)
+	if err != nil {
+		return err
+	}
+	memStr := fmt.Sprintf("STARDOG_JAVA_ARGS=\"-Xmx%s -Xms%s -XX:MaxDirectMemorySize=%s\"", cliContext.MemoryMax, cliContext.MemoryStart, cliContext.MemoryDirect)
+	envList := []string{memStr,}
+	return sdutils.RunRestartStardogServer(cliContext, &baseD, d, envList)
+}
+
 func (cliContext *CliContext) gatherLogs(c *kingpin.ParseContext) error {
 	baseD := sdutils.BaseDeployment{
 		Name:            cliContext.DeploymentName,
-		Version:         cliContext.Version,
 		Type:            strings.ToLower(cliContext.CloudType),
 		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
-		PrivateKey:      cliContext.PrivateKeyPath,
-		CustomPropsFile: cliContext.CustomSdProps,
-		CustomLog4J:     cliContext.CustomLog4J,
 	}
 	d, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
@@ -556,6 +568,10 @@ func (cliContext *CliContext) Logf(level int, format string, v ...interface{}) {
 func (cliContext *CliContext) nameValidate(a *kingpin.CmdClause) error {
 	if len(cliContext.DeploymentName) > 20 {
 		return fmt.Errorf("Could the deployment name must be less than 20 characters")
+	}
+	var validID = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9\-]+[a-zA-Z0-9]$`)
+	if cliContext.DeploymentName != "" && !validID.MatchString(cliContext.DeploymentName) {
+		return fmt.Errorf("The deployment name must be DNS compatible.  %s is invalid.", cliContext.DeploymentName)
 	}
 	return nil
 }
@@ -745,10 +761,17 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.StatusCmd.Flag("internal-health", "Do not verify with the destruction.").Default("false").BoolVar(&cliContext.InternalHealth)
 	cmdOpts.StatusCmd.Action(cliContext.fullStatus)
 
-	cmdOpts.StatusCmd = cli.Command("logs", "Gather the logs of all the Stardog nodes.")
-	cmdOpts.StatusCmd.Arg("deployment name", "The name of the deployment to inspect.").Required().StringVar(&cliContext.DeploymentName)
-	cmdOpts.StatusCmd.Flag("output-file", "The path to the output file.").StringVar(&cliContext.OutputFile)
-	cmdOpts.StatusCmd.Action(cliContext.gatherLogs)
+	cmdOpts.GetLogsCmd = cli.Command("logs", "Gather the logs of all the Stardog nodes.")
+	cmdOpts.GetLogsCmd.Arg("deployment name", "The name of the deployment to inspect.").Required().StringVar(&cliContext.DeploymentName)
+	cmdOpts.GetLogsCmd.Flag("output-file", "The path to the output file.").StringVar(&cliContext.OutputFile)
+	cmdOpts.GetLogsCmd.Action(cliContext.gatherLogs)
+
+	cmdOpts.RestartStardogCmd = cli.Command("reboot-stardog", "Reboot the Stardog server on all nodes.")
+	cmdOpts.RestartStardogCmd.Flag("memory-direct", "The amount of direct memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryDirect)
+	cmdOpts.RestartStardogCmd.Flag("memory-max", "The maximum amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryMax)
+	cmdOpts.RestartStardogCmd.Flag("memory-start", "The starting amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryStart)
+	cmdOpts.RestartStardogCmd.Arg("deployment name", "The name of the deployment to inspect.").Required().StringVar(&cliContext.DeploymentName)
+	cmdOpts.RestartStardogCmd.Action(cliContext.runStardogRestart)
 
 	cmdOpts.LeaksCmd = cli.Command("leaks", "Check aws services for possible resource leaks.")
 	cmdOpts.LeaksCmd.Flag("destroy", "Destroy any of the resources found.").Default("false").BoolVar(&cliContext.Destroy)

@@ -8,6 +8,7 @@ import time
 import urllib
 import urllib.request
 
+import requests
 import yaml
 
 
@@ -94,3 +95,14 @@ def setup_logging(logging_configfile=None):
     with open(logging_configfile, 'rt') as f:
         config = yaml.load(f.read())
         logging.config.dictConfig(config)
+
+
+def get_cluster_doc(sd_url, pw):
+    full_url = sd_url + "/admin/cluster"
+    logging.info("Trying to contact %s" % full_url)
+    r = requests.get(sd_url + "/admin/cluster", auth=('admin', pw))
+    if r.status_code != 200:
+        raise Exception("Unable to get the cluster document %d" % r.status_code)
+    return r.json()
+
+

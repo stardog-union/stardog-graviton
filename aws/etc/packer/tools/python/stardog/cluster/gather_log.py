@@ -1,22 +1,11 @@
-import os
-
 import logging
+import os
 import tarfile
 import tempfile
-import requests
-
 import subprocess
-
 import sys
 
-
-def get_cluster_doc(sd_url, pw):
-    full_url = sd_url + "/admin/cluster"
-    logging.info("Trying to contact %s" % full_url)
-    r = requests.get(sd_url + "/admin/cluster", auth=('admin', pw))
-    if r.status_code != 200:
-        raise Exception("Unable to get the cluster document %d" % r.status_code)
-    return r.json()
+import stardog.cluster.utils as utils
 
 
 def get_log(host, temp_dir, src_log):
@@ -56,7 +45,7 @@ def main():
     sd_url = sys.argv[1]
     dst_file = sys.argv[2]
     pw = sys.argv[3]
-    d = get_cluster_doc(sd_url, pw)
+    d = utils.get_cluster_doc(sd_url, pw)
     n, log_dir = get_all_logs(d)
     logging.info("Retrieved %d logs" % n)
     if n < 1:

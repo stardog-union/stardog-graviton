@@ -15,3 +15,7 @@ output "bastion_contact" {
 output "zookeeper_nodes" {
   value = ["${aws_elb.zookeeper.*.dns_name}"]
 }
+
+output "stardog_node_ip" {
+  value = ["${aws_elb.stardoginternal.instances}"]
+}

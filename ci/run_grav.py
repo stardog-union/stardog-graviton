@@ -40,9 +40,10 @@ def run_region(region):
 with open(os.path.expanduser("~/.graviton/base-amis-5.0.2.json")) as fptr:
     d = json.load(fptr)
 
-zones = ["ap-northeast-1", "ap-southeast-2"]
+zones = ["us-east-1", "sa-east-1", "ap-southeast-2"]
 thread_list = []
-for r in d.keys():
+#for r in d.keys():
+for r in zones:
     print(r)
     t = threading.Thread(target=run_region, args=(r,))
     thread_list.append(t)

@@ -20,7 +20,8 @@ setuptools.setup(name='stardog-cluster-utils',
               "stardog-wait-for-socket=stardog.cluster.wait_for_socket:main",
               "stardog-wait-for-pgm=stardog.cluster.test_program:main",
               "stardog-gather-logs=stardog.cluster.gather_log:main",
-              "stardog-monitor-zk=stardog.cluster.monitor_zk:main"
+              "stardog-monitor-zk=stardog.cluster.monitor_zk:main",
+              "stardog-spray-ssh=stardog.cluster.spray_command:main"
           ],
       },
       install_requires=["pyyaml == 3.10", "requests == 2.13.0"],

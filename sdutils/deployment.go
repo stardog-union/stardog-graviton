@@ -416,6 +416,97 @@ func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfi
 	return runSCPCommand(context, baseD, sd, outfile, dst_log_file, false)
 }
 
+func RunRestartStardogServer(context AppContext, baseD *BaseDeployment, dep Deployment, envList []string) error {
+	if os.Getenv("SSH_AUTH_SOCK") == "" {
+		return fmt.Errorf("ssh-agent needs to be setup for this command to work")
+	}
+	context.ConsoleLog(2, "Restarting Stardog...\n")
+	sd, err := dep.FullStatus()
+	if err != nil {
+		return err
+	}
+	sshBase, err := getSSHCommand(context, baseD, sd)
+	if err != nil {
+		return err
+	}
+	pw := os.Getenv("STARDOG_ADMIN_PASSWORD")
+	if pw == "" {
+		pw = "admin"
+	}
+
+	client := stardogClientImpl{
+		sdURL:    sd.StardogURL,
+		logger:   context,
+		username: "admin",
+		password: pw,
+	}
+	nodes, err := client.GetClusterInfo()
+	if err != nil {
+		return err
+	}
+	if len(*nodes) == 0 {
+		return fmt.Errorf("There are not healthy nodes to restart")
+	}
+
+	context.Logf(INFO, "Running command on nodes %s or \n", sd.StardogNodes, *nodes)
+	sprayStopCmd := append(sshBase, "/usr/local/bin/stardog-spray-ssh",)
+	for _, h := range *nodes {
+		sprayStopCmd = append(sprayStopCmd, "-h", h)
+	}
+	sprayStopCmd = append(
+		sprayStopCmd,
+		sd.StardogInternalURL,
+		pw,
+		"--",
+		"/usr/local/bin/stardog-admin",
+		"--server",
+		"http://localhost:5821",
+		"server",
+		"stop",
+		"-p",
+		pw,)
+
+	stopCmd := exec.Cmd{
+		Path: sprayStopCmd[0],
+		Args: sprayStopCmd,
+	}
+	context.Logf(INFO, "Running the Stardog stop command %s\n", stopCmd)
+	o, err := stopCmd.Output()
+	if err != nil {
+		context.Logf(ERROR, "Failed to stop the server: %s", string(o))
+		context.Logf(ERROR, "Error stopping the server: %s", err)
+		context.ConsoleLog(0, "Failed to stop the Stardog server, verify that ssh agent is working and that the ssh key has been added to the agent.  Please run:\n")
+		context.ConsoleLog(0, "\tssh-add %s\n", baseD.PrivateKey)
+		return err
+	}
+	context.ConsoleLog(1, "Successfully stopped Stardog.  Restarting...\n")
+	sprayStartCmd := []string{"/usr/local/bin/stardog-spray-ssh", sd.StardogInternalURL, pw,}
+	for _, e := range envList {
+		sprayStartCmd = append(sprayStartCmd, []string{"-e", e}...)
+	}
+	for _, h := range *nodes {
+		sprayStartCmd = append(sprayStartCmd, "-h", h)
+	}
+	sprayStartCmd = append(sprayStartCmd, []string{"--", "/usr/local/bin/stardog-admin", "server", "start", "--port", "5821",}...)
+	sshStartCmd := append(sshBase, sprayStartCmd...)
+	cmd := exec.Cmd{
+		Path: sshStartCmd[0],
+		Args: sshStartCmd,
+	}
+	context.Logf(DEBUG, "Running the Stardog start command...%s\n", sshStartCmd)
+	o, err = cmd.Output()
+	if err != nil {
+		context.Logf(ERROR, "Failed to get the logs: %s", string(o))
+		context.Logf(ERROR, "Error getting the logs: %s", err)
+		context.ConsoleLog(0, "Failed to gather the logs, verify that ssh agent is working and that the ssh key has been added to the agent.  Please run:\n")
+		context.ConsoleLog(02, "\tssh-add %s\n", baseD.PrivateKey)
+		return err
+	}
+	context.ConsoleLog(1, "Successfully restarted Stardog.")
+
+	return nil
+}
+
 // FullStatus inspects the state of a deployment and prints it out to the console.
 func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, internal bool, outfile string) error {
 	context.ConsoleLog(2, "Checking status...\n")

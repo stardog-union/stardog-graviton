@@ -94,6 +94,8 @@ type CommandOpts struct {
 	LaunchCmd            *kingpin.CmdClause
 	DestroyCmd           *kingpin.CmdClause
 	StatusCmd            *kingpin.CmdClause
+	GetLogsCmd           *kingpin.CmdClause
+	RestartStardogCmd    *kingpin.CmdClause
 	LeaksCmd             *kingpin.CmdClause
 	ClientCmd            *kingpin.CmdClause
 	SSHCmd               *kingpin.CmdClause
