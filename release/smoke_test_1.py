@@ -8,7 +8,7 @@ import sys
 
 def start_sd(exe_path):
     deployment_name = "gravtest%s" % str(uuid.uuid4()).split("-")[4]
-    p = subprocess.Popen("%s launch %s" % (exe_path, deployment_name),
+    p = subprocess.Popen("%s launch --force %s" % (exe_path, deployment_name),
                          shell=True)
     rc = p.wait()
     if rc != 0:

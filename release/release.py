@@ -78,7 +78,7 @@ def run_local(work_dir, ssh_key_name, release):
     print("Running in %s" % work_dir)
     cmd = "python %s %s %s %s %s" % (
         os.path.join(work_dir, "smoke_test_1.py"),
-        work_dir, release, ssh_key_name, this_location())
+        work_dir, release, ssh_key_name, os.path.dirname(this_location()))
     print("Running %s" % cmd)
     p = subprocess.Popen(cmd, shell=True, cwd=work_dir)
     rc = p.wait()
@@ -116,6 +116,27 @@ def print_usage():
           " <path to ssh private key> <aws key name>")
 
 
+def get_version():
+    cmd = "git describe --abbrev=0 --tags"
+    work_dir = os.path.dirname(this_location())
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, cwd=work_dir)
+    (o, e) = p.communicate()
+    rc = p.wait()
+    if rc != 0:
+        raise Exception("Failed to zip the file")
+    return o.strip()
+
+
+def zip_one(arch):
+    ver = get_version()
+    work_dir = os.path.join(this_location(), arch)
+    cmd = "zip stardog-graviton_%s_%s.zip stardog-graviton" % (ver, arch)
+    p = subprocess.Popen(cmd, shell=True, cwd=work_dir)
+    rc = p.wait()
+    if rc != 0:
+        raise Exception("Failed to zip the file")
+
+
 def darwin_test(sd_license, release, ssh_key_path, ssh_key_name):
     try:
         darwin_binary = os.path.join(this_location(),
@@ -129,6 +150,7 @@ def darwin_test(sd_license, release, ssh_key_path, ssh_key_name):
         global _g_failed
         _g_failed.append("Darwin failed: %s" % str(ex))
         print("TEST ERROR darwin %s" % str(ex))
+    zip_one("darwin_amd64")
 
 
 def linux_test(sd_license, release, ssh_key_path, ssh_key_name):
@@ -144,6 +166,7 @@ def linux_test(sd_license, release, ssh_key_path, ssh_key_name):
         global _g_failed
         _g_failed.append("Linus failed: %s" % str(ex))
         print("TEST ERROR linux %s" % str(ex))
+    zip_one("linux_amd64")
 
 
 def main():
