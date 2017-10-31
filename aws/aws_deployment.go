@@ -41,6 +41,7 @@ type awsDeploymentDescription struct {
 	HTTPMask        string `json:"http_mask,omitempty"`
 	VolumeType      string `json:"volume_type,omitempty"`
 	IoPsRatio       int    `json:"iops,omitempty"`
+	CustomScript    string `json:"custom_script,omitempty"`
 	Version         string `json:"-"`
 	Name            string `json:"-"`
 	deployDir       string
@@ -375,6 +376,7 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 		if err != nil {
 			return nil, err
 		}
+		awsDD.CustomScript = baseD.CustomScript
 		awsDD.environment = baseD.Environment
 		awsDD.disableSecurity = baseD.DisableSecurity
 		baseD.CloudOpts = awsDD

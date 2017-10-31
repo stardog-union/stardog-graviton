@@ -39,6 +39,7 @@ type BaseDeployment struct {
 	Environment     []string    `json:"environment,omitempty"`
 	DisableSecurity bool        `json:"disable_security,omitempty"`
 	CloudOpts       interface{} `json:"cloud_opts,omitempty"`
+	CustomScript    string      `json:"custom_script,omitempty"`
 }
 
 // AppContext provides and abstraction to logging, console interaction and

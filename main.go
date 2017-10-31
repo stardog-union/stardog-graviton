@@ -78,6 +78,7 @@ type CliContext struct {
 	ConsoleFile       string             `json:"-"`
 	ConsoleWriter     io.Writer          `json:"-"`
 	EnvList           []string           `json:"-"`
+	CustomExec        string             `json:"-"`
 	highlight         sdutils.ConsoleEffect
 	red               sdutils.ConsoleEffect
 	green             sdutils.ConsoleEffect
@@ -255,7 +256,9 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 		CustomLog4J:     cliContext.CustomLog4J,
 		Environment:     cliContext.EnvList,
 		DisableSecurity: cliContext.DisableSecurity,
+		CustomScript:    cliContext.CustomExec,
 	}
+	fmt.Println("XXX DDD " + baseD.CustomScript)
 	dep, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
 		cliContext.ConsoleLog(1, "Creating the new deployment %s\n", cliContext.DeploymentName)
@@ -332,6 +335,7 @@ func (cliContext *CliContext) newDeployment(c *kingpin.ParseContext) error {
 		CustomLog4J:     cliContext.CustomLog4J,
 		Environment:     cliContext.EnvList,
 		DisableSecurity: cliContext.DisableSecurity,
+		CustomScript:    cliContext.CustomExec,
 	}
 	_, err = sdutils.LoadDeployment(cliContext, &baseD, true)
 	return err
@@ -731,6 +735,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("memory-max", "The maximum amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryMax)
 	cmdOpts.LaunchCmd.Flag("memory-start", "The starting amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryStart)
 	cmdOpts.LaunchCmd.Flag("disable-security", "Run the Stardog servers without security.").Default(fmt.Sprintf("%t", cliContext.DisableSecurity)).BoolVar(&cliContext.DisableSecurity)
+	cmdOpts.LaunchCmd.Flag("custom-exec", "A custom script to run on Stardog nodes (experimental).").StringVar(&cliContext.CustomExec)
 	cmdOpts.LaunchCmd.Validate(cliContext.envValidate)
 	cmdOpts.LaunchCmd.Action(cliContext.interactive)
 

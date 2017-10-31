@@ -17,6 +17,7 @@ data "template_file" "stardog_properties" {
 data "template_file" "stardog_userdata" {
   template = "${file("stardog_userdata.tpl")}"
   vars {
+    custom_script = "${file(var.custom_script)}"
     stardog_conf = "${data.template_file.stardog_properties.rendered}"
     custom_log4j_data = "${var.custom_log4j_data}"
     deployment_name = "${var.deployment_name}"

@@ -49,6 +49,7 @@ type Ec2Instance struct {
 	StartOpts              string             `json:"stardog_start_opts,omitempty"`
 	RootVolumeSize         int                `json:"root_volume_size"`
 	RootVolumeType         string             `json:"root_volume_type"`
+	CustomScript           string             `json:"custom_script,omitempty"`
 	DeployDir              string             `json:"-"`
 	Ctx                    sdutils.AppContext `json:"-"`
 	BastionContact         string             `json:"-"`
@@ -66,7 +67,7 @@ type InstanceStatusDescription struct {
 // NewEc2Instance instanciates a AwsEc2Instance object which will be used to boot or
 // inspect a Stardog ec2 instance.
 func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2Instance, error) {
-
+	var err error
 	customData := ""
 	if dd.customPropFile != "" {
 		data, err := ioutil.ReadFile(dd.customPropFile)
@@ -89,6 +90,15 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 	for _, env := range dd.environment {
 		envBuffer.WriteString(fmt.Sprintf("export %s\n", env))
 	}
+	// The custom script cannot be null in terraform so make a temp one
+	if dd.CustomScript == "" {
+		dd.CustomScript = path.Join(dd.deployDir, "dummy.sh")
+		tmpScript := "#!/bin/bash\nexit 0\n"
+		err = ioutil.WriteFile(dd.CustomScript, []byte(tmpScript), 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
 	instance := Ec2Instance{
 		DeploymentName:  dd.Name,
 		Region:          dd.Region,
@@ -99,6 +109,7 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		AmiID:           dd.AmiID,
 		PrivateKey:      dd.PrivateKeyPath,
 		DeployDir:       dd.deployDir,
+		CustomScript:    dd.CustomScript,
 		Ctx:             ctx,
 		CustomPropsData: customData,
 		CustomLog4JData: customLog4J,
