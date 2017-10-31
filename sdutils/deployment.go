@@ -87,6 +87,10 @@ func LoadDeployment(context AppContext, baseD *BaseDeployment, new bool) (Deploy
 	}
 	os.MkdirAll(baseD.Directory, 0755)
 
+	if baseD.CustomScript != "" && !PathExists(baseD.CustomScript) {
+		return nil, fmt.Errorf("The path to the custom script %s does not exist", baseD.CustomScript)
+	}
+
 	d, err := plugin.DeploymentLoader(context, baseD, new)
 	return d, err
 }

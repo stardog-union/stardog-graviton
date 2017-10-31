@@ -98,7 +98,7 @@ resource "null_resource" "stardog_data" {
       "sudo mkfs -t ext4 /dev/xvdh",
       "sudo mkdir -p /mnt/data",
       "sudo mount /dev/xvdh /mnt/data",
-      "sudo mkdir -p /mnt/data/stardog-home",
+      "sudo mkdir -p /mnt/data/stardog-home/logs",
       "sudo chown -R ubuntu /mnt/data/"
     ]
   }

@@ -175,3 +175,9 @@ variable "root_volume_size" {
   description = "The size of the root partition"
   default = "16g"
 }
+
+variable "custom_script" {
+  type = "string"
+  description = "A custom script to execute on stardog nodes"
+  default = ""
+}

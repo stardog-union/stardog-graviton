@@ -33,6 +33,13 @@ while [ $rc -ne 0 ]; do
     /usr/local/bin/stardog-wait-for-socket 2 localhost:5821
     rc=$?
 done
-exit 0
+
+echo "Running the custom script..."
+CUSTOM_SCRIPT=/tmp/custom
+echo '${custom_script}' > $CUSTOM_SCRIPT
+chmod 755 $CUSTOM_SCRIPT
+$CUSTOM_SCRIPT
+echo "Done $?"
 
 date >> /tmp/boottime
+exit 0
