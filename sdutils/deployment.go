@@ -374,6 +374,7 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, v
 	return err
 }
 
+// GatherLogs sshes into the bastion node and collects logs from the stardog nodes
 func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfile string) error {
 	if os.Getenv("SSH_AUTH_SOCK") == "" {
 		return fmt.Errorf("ssh-agent needs to be setup for log gathering to work")
@@ -387,16 +388,16 @@ func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfi
 	if err != nil {
 		return err
 	}
-	pw := os.Getenv("STARDOG_ADMIN_PASSWORD")
-	if pw == "" {
-		pw = "admin"
+	clusterSize, err := dep.ClusterSize()
+	if err != nil {
+		return err
 	}
-	dst_log_file := fmt.Sprintf("/tmp/stardog%d.tar.gz", rand.Int())
+	dstLogFile := fmt.Sprintf("/tmp/stardog%d.tar.gz", rand.Int())
 	sshCmd := append(sshBase, []string{
 		"/usr/local/bin/stardog-gather-logs",
-		sd.StardogInternalURL,
-		dst_log_file,
-		pw,
+		baseD.Name,
+		fmt.Sprintf("%d", clusterSize),
+		dstLogFile,
 	}...)
 	cmd := exec.Cmd{
 		Path: sshCmd[0],
@@ -412,12 +413,12 @@ func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfi
 		return err
 	}
 	context.Logf(DEBUG, "Log gathering output: %s", string(o))
-	context.Logf(INFO, "Successfully gathered the logs on the bastion node at %s", dst_log_file)
+	context.Logf(INFO, "Successfully gathered the logs on the bastion node at %s", dstLogFile)
 	outfile = strings.TrimSpace(outfile)
 	if outfile == "" {
 		outfile = "stardoglogs.tar.gz"
 	}
-	return runSCPCommand(context, baseD, sd, outfile, dst_log_file, false)
+	return runSCPCommand(context, baseD, sd, outfile, dstLogFile, false)
 }
 
 // FullStatus inspects the state of a deployment and prints it out to the console.

@@ -11,6 +11,38 @@ import urllib.request
 
 import yaml
 
+import boto3
+import sys
+
+
+def get_instance_ids(deply_name, count, region_name):
+    found_instances = []
+    client = boto3.client('autoscaling', region_name=region_name)
+    for i in range(count):
+        asg_name = "%ssdasg%d" % (deply_name, i)
+
+        groups = client.describe_auto_scaling_groups(AutoScalingGroupNames=[asg_name])
+        for g in groups['AutoScalingGroups']:
+            for i in g['Instances']:
+                found_instances.append(i['InstanceId'])
+
+    return found_instances
+
+
+def get_internal_ips_from_instance(instances, region_name):
+    found_ips = []
+    client = boto3.client('ec2', region_name=region_name)
+    instances = client.describe_instances(InstanceIds=instances)
+    for r in instances['Reservations']:
+        for x in r['Instances']:
+            found_ips.append(x['PrivateIpAddress'])
+    return found_ips
+
+
+def get_internal_ips_by_asg(deply_name, count, region_name):
+    instance_ids = get_instance_ids(deply_name, count, region_name)
+    return get_internal_ips_from_instance(instance_ids, region_name)
+
 
 def get_cluster_doc(sd_url, pw):
     full_url = sd_url + "/admin/cluster"
@@ -20,6 +52,17 @@ def get_cluster_doc(sd_url, pw):
         raise Exception("Unable to get the cluster document %d" % r.status_code)
     return r.json()
 
+
+def get_availability_zone():
+    r = requests.get('http://169.254.169.254/latest/meta-data/placement/availability-zone')
+    if r.status_code != 200:
+        raise Exception("Unable to get the cluster document %d" % r.status_code)
+    return r.text
+
+
+def get_region():
+    az = get_availability_zone()
+    return az[:-1]
 
 
 def get_meta_data(key):

@@ -107,6 +107,11 @@ resource "aws_iam_role_policy" "stardog" {
         },
         {
             "Effect": "Allow",
+            "Action": "autoscaling:*",
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
             "Action": [
               "s3:List*",
               "s3:Get*"

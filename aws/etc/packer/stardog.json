@@ -3,6 +3,7 @@
     "stardog_release_file": "",
     "source_ami": "",
     "version": "",
+    "image_version": "",
     "region": ""
   },
   "builders": [{
@@ -17,7 +18,8 @@
     "ami_description": "stardog graviton virtual appliance base ami {{user `version`}} {{timestamp}}",
     "tags": {
       "OS_Version": "Ubuntu",
-      "Release": "{{user `version`}}"
+      "Release": "{{user `version`}}",
+      "ImageVersion": "{{user `image_version`}}"
     }
   }],
   "provisioners": [

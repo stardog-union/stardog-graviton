@@ -22,8 +22,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
 	"runtime"
+
+	"github.com/stardog-union/stardog-graviton/sdutils"
 )
 
 var (
@@ -41,6 +42,7 @@ var (
 		"us-west-1":      "ami-969ab1f6",
 		"us-west-2":      "ami-0a00ce72",
 	}
+	imageVersion = "2.0"
 )
 
 func getBaseAMI(cliContext sdutils.AppContext, region string) (string, error) {
@@ -134,6 +136,7 @@ func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath str
 		"-var", fmt.Sprintf("source_ami=%s", ami),
 		"-var", fmt.Sprintf("version=%s", version),
 		"-var", fmt.Sprintf("region=%s", a.Region),
+		"-var", fmt.Sprintf("image_version=%s", imageVersion),
 		"stardog.json"}
 
 	cmd := exec.Cmd{

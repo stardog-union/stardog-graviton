@@ -91,14 +91,20 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		envBuffer.WriteString(fmt.Sprintf("export %s\n", env))
 	}
 	// The custom script cannot be null in terraform so make a temp one
-	if dd.CustomScript == "" {
-		dd.CustomScript = path.Join(dd.deployDir, "dummy.sh")
-		tmpScript := "#!/bin/bash\nexit 0\n"
-		err = ioutil.WriteFile(dd.CustomScript, []byte(tmpScript), 0755)
+	scriptData := []byte("#!/bin/bash\nexit 0\n")
+	if dd.CustomScript != "" {
+		scriptData, err = ioutil.ReadFile(dd.CustomScript)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to read the script %s: %s", dd.CustomScript, err.Error())
 		}
 	}
+	base64CustomScriptData := base64.StdEncoding.EncodeToString(scriptData)
+	base64CustomScriptPath := path.Join(dd.deployDir, "custom-stardogscript.base64")
+	err = ioutil.WriteFile(base64CustomScriptPath, []byte(base64CustomScriptData), 0644)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create the base 64 encoded custom script")
+	}
+
 	instance := Ec2Instance{
 		DeploymentName:  dd.Name,
 		Region:          dd.Region,
@@ -109,7 +115,7 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		AmiID:           dd.AmiID,
 		PrivateKey:      dd.PrivateKeyPath,
 		DeployDir:       dd.deployDir,
-		CustomScript:    dd.CustomScript,
+		CustomScript:    base64CustomScriptPath,
 		Ctx:             ctx,
 		CustomPropsData: customData,
 		CustomLog4JData: customLog4J,

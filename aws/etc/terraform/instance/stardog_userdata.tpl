@@ -36,7 +36,7 @@ done
 
 echo "Running the custom script..."
 CUSTOM_SCRIPT=/tmp/custom
-echo '${custom_script}' > $CUSTOM_SCRIPT
+echo '${custom_script}' | /usr/bin/base64 -d > $CUSTOM_SCRIPT
 chmod 755 $CUSTOM_SCRIPT
 $CUSTOM_SCRIPT
 echo "Done $?"

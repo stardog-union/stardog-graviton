@@ -29,6 +29,7 @@ resource "aws_launch_configuration" "bastion" {
   key_name = "${var.aws_key_name}"
   security_groups = ["${aws_security_group.bastion.id}"]
   associate_public_ip_address = true
+  iam_instance_profile = "${aws_iam_instance_profile.stardog.id}"
 }
 
 resource "aws_security_group" "bastion" {
