@@ -258,7 +258,6 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 		DisableSecurity: cliContext.DisableSecurity,
 		CustomScript:    cliContext.CustomExec,
 	}
-	fmt.Println("XXX DDD " + baseD.CustomScript)
 	dep, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
 		cliContext.ConsoleLog(1, "Creating the new deployment %s\n", cliContext.DeploymentName)

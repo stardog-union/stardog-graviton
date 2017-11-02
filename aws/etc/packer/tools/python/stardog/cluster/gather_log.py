@@ -32,15 +32,17 @@ def get_log(host, temp_dir, src_log, src_is_dir=False):
     return True
 
 
-def get_all_logs(cluster_doc):
+def get_all_logs(ips):
     dst_dir = tempfile.mkdtemp()
     logs_copied = 0
-    for hp in cluster_doc['nodes']:
-        ha = hp.split(':')
-        b = get_log(ha[0], dst_dir, "/mnt/data/stardog-home/stardog.log")
+    for ip in ips:
+        b = get_log(ip, dst_dir, "/mnt/data/stardog-home/stardog.log")
         if b:
             logs_copied += 1
-        b = get_log(ha[0], dst_dir, "/mnt/data/stardog-home/logs/*", src_is_dir=True)
+        b = get_log(ip, dst_dir, "/mnt/data/stardog-home/logs/*", src_is_dir=True)
+        if b:
+            logs_copied += 1
+        b = get_log(ip, dst_dir, "/var/log/syslog")
         if b:
             logs_copied += 1
     return logs_copied, dst_dir
@@ -52,11 +54,13 @@ def create_tarball(src_dir, dst_file):
 
 
 def main():
-    sd_url = sys.argv[1]
-    dst_file = sys.argv[2]
-    pw = sys.argv[3]
-    d = utils.get_cluster_doc(sd_url, pw)
-    n, log_dir = get_all_logs(d)
+    deploy_name = sys.argv[1]
+    count = int(sys.argv[2])
+    dst_file = sys.argv[3]
+
+    region = utils.get_region()
+    ips = utils.get_internal_ips_by_asg(deploy_name, count, region)
+    n, log_dir = get_all_logs(ips)
     logging.info("Retrieved %d logs" % n)
     if n < 1:
         raise Exception("No logs were gathered")
