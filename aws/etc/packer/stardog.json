@@ -62,7 +62,7 @@
     {
       "type": "file",
       "source": "log4j.properties.zk",
-      "destination": "/usr/local/zookeeper-3.4.9/conf/log4j.properties"
+      "destination": "/usr/local/zookeeper-3.4.11/conf/log4j.properties"
     },
     {
       "type": "file",
