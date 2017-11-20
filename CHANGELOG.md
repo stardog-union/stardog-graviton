@@ -1,3 +1,13 @@
+# 1.0.2 (2017-11-20)
+
+Feature:
+* Allow the fetching of logs from nodes that failed to join the cluster.
+* Added the ability to run a custom script on stardog nodes.
+* Upgraded the version of Zookeeper used to 3.4.11
+
+Bug fixes:
+* Make the version a proper semver string.
+
 # 1.0.1 (2017-09-05)
 
 Feature
