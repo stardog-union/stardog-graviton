@@ -20,7 +20,7 @@ if [ $? -ne 0 ]; then
 fi
 set -e
 t=$(git rev-parse HEAD)
-echo $v-$t > etc/version
+echo $v+$t > etc/version
 
 export PATH=$GOPATH/bin:$PATH
 
