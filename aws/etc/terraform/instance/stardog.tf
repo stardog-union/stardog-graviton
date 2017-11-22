@@ -38,6 +38,7 @@ resource "aws_autoscaling_group" "stardog" {
   load_balancers = ["${aws_elb.stardog.name}", "${aws_elb.stardoginternal.name}"]
   health_check_grace_period = 300
   health_check_type = "ELB"
+
   tag {
     key = "StardogVirtualAppliance"
     value = "${var.deployment_name}"

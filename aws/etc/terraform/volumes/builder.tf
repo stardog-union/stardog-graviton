@@ -59,6 +59,13 @@ resource "aws_subnet" "stardog" {
 resource "aws_instance" "stardog_data" {
   availability_zone = "${element(data.aws_availability_zones.available.names, count.index % length(data.aws_availability_zones.available.names))}"
   count = "${var.cluster_size}"
+
+  timeouts {
+    create = "30m"
+    delete = "30m"
+    update = "30m"
+  }
+
   tags {
     Name = "Volume builder"
     DeploymentName = "${var.deployment_name}"
