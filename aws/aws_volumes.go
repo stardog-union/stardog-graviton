@@ -118,14 +118,26 @@ func (v *EbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, cluster
 		return err
 	}
 
-	cmdArray := []string{terraformPath, "apply",
+	cmdInitArray := []string{terraformPath, "init", "-input=false"}
+	cmdInit := exec.Cmd{
+		Path: cmdInitArray[0],
+		Args: cmdInitArray,
+		Dir:  v.VolumeDir,
+	}
+	spin := sdutils.NewSpinner(v.appContext, 1, "Initializing terraform...")
+	_, err = sdutils.RunCommand(v.appContext, cmdInit, nil, spin)
+	if err != nil {
+		return err
+	}
+
+	cmdArray := []string{terraformPath, "apply", "-input=false", "-auto-approve",
 		"-var-file", confFile}
 	cmd := exec.Cmd{
 		Path: cmdArray[0],
 		Args: cmdArray,
 		Dir:  v.VolumeDir,
 	}
-	spin := sdutils.NewSpinner(v.appContext, 1, "Calling out to terraform to create the volumes")
+	spin = sdutils.NewSpinner(v.appContext, 1, "Calling out to terraform to create the volumes")
 	_, err = sdutils.RunCommand(v.appContext, cmd, nil, spin)
 	if err != nil {
 		return err

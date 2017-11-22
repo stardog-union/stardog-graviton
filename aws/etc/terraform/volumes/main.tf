@@ -2,8 +2,12 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+data "aws_availability_zones" "available" {
+}
+
+
 resource "aws_ebs_volume" "stardog_data" {
-  availability_zone = "${element(var.aws_az[var.aws_region], count.index % length(var.aws_az[var.aws_region]))}"
+  availability_zone = "${element(data.aws_availability_zones.available.names, count.index % length(data.aws_availability_zones.available.names))}"
   count = "${var.cluster_size}"
   size = "${var.storage_size}"
   type = "${var.volume_type}"

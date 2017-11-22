@@ -54,7 +54,7 @@ type awsDeploymentDescription struct {
 }
 
 var (
-	TerraformVersion = "0.8.8"
+	TerraformVersion = "0.11.0"
 	PackerVersion    = "1.0.3"
 )
 
