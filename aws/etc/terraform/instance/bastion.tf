@@ -9,7 +9,7 @@ resource "aws_autoscaling_group" "bastion" {
   load_balancers       = ["${aws_elb.bastion.name}"]
   health_check_grace_period = 90
   health_check_type = "ELB"
-
+  
   tag {
     key = "StardogVirtualAppliance"
     value = "${var.deployment_name}"
