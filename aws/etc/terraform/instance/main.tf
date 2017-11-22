@@ -2,6 +2,9 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+data "aws_availability_zones" "available" {
+}
+
 resource "aws_vpc" "main" {
   cidr_block = "${var.internal_network}"
   enable_dns_support = true

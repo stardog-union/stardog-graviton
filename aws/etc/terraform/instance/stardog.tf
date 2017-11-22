@@ -69,7 +69,7 @@ resource "aws_launch_configuration" "stardog" {
 
 resource "aws_iam_instance_profile" "stardog" {
   name = "${var.deployment_name}test_profile"
-  roles = ["${aws_iam_role.stardog.name}"]
+  role = "${aws_iam_role.stardog.name}"
 }
 
 resource "aws_iam_role" "stardog" {
@@ -197,10 +197,10 @@ resource "aws_security_group" "stardoglb" {
 }
 
 resource "aws_subnet" "stardog" {
-  count = "${length(var.aws_az[var.aws_region])}"
+  count = "${length(data.aws_availability_zones.available.names)}"
   vpc_id = "${aws_vpc.main.id}"
   cidr_block = "${format("10.0.%d.0/24", count.index + 100)}"
-  availability_zone = "${element(var.aws_az[var.aws_region], count.index)}"
+  availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
 
   tags {
     StardogVirtualAppliance = "${var.deployment_name}"

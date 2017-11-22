@@ -139,6 +139,28 @@ func volumeLineScanner(cliContext sdutils.AppContext, line string) *sdutils.Scan
 	return nil
 }
 
+func (awsI *Ec2Instance) runTerraformInit() error {
+	terraformPath, err := GetTerraformPath(awsI.Ctx)
+	if err != nil {
+		return err
+	}
+
+	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")
+	cmdArray := []string{terraformPath, "init", "-input=false"}
+	cmd := exec.Cmd{
+		Path: cmdArray[0],
+		Args: cmdArray,
+		Dir:  instanceWorkingDir,
+	}
+	awsI.Ctx.Logf(sdutils.INFO, "Initializing terraform...\n")
+	spin := sdutils.NewSpinner(awsI.Ctx, 1, "Initializing terraform")
+	_, err = sdutils.RunCommand(awsI.Ctx, cmd, volumeLineScanner, spin)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, mask string, idleTimeout int, message string) error {
 	awsI.ZkSize = fmt.Sprintf("%d", zookeeperSize)
 	awsI.ELBIdleTimeout = fmt.Sprintf("%d", idleTimeout)
@@ -169,7 +191,7 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 		return err
 	}
 
-	cmdArray := []string{terraformPath, "apply", "-var-file",
+	cmdArray := []string{terraformPath, "apply", "-input=false", "-auto-approve", "-var-file",
 		instanceConfPath}
 	cmd := exec.Cmd{
 		Path: cmdArray[0],
@@ -187,7 +209,8 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 
 // CreateInstance will boot up a Stardog service in AWS.
 func (awsI *Ec2Instance) CreateInstance(volumeSize int, zookeeperSize int, idleTimeout int) error {
-	err := awsI.runTerraformApply(volumeSize, zookeeperSize, "0.0.0.0/32", idleTimeout, "Creating the instance VMs...")
+	err := awsI.runTerraformInit()
+	err = awsI.runTerraformApply(volumeSize, zookeeperSize, "0.0.0.0/32", idleTimeout, "Creating the instance VMs...")
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to create the instance.\n")
 		return err
