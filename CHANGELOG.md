@@ -1,3 +1,9 @@
+# 1.0.3 (2017-11-27)
+
+Bug fixes:
+* Query AWS for availability zones.
+* Add timeout to the creation of the instance builder VMs.
+
 # 1.0.2 (2017-11-20)
 
 Feature:
