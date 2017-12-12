@@ -42,7 +42,7 @@ var (
 		"us-west-1":      "ami-969ab1f6",
 		"us-west-2":      "ami-0a00ce72",
 	}
-	imageVersion = "2.0"
+	imageVersion = "3.0.0"
 )
 
 func getBaseAMI(cliContext sdutils.AppContext, region string) (string, error) {

@@ -222,12 +222,12 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 	}
 
 	if !plugin.HaveImage(cliContext) {
-		err = sdutils.AskUserInteractiveString("What is the path to the Stardog release?", cliContext.SdReleaseFilePath, !cliContext.Interactive, &cliContext.SdReleaseFilePath)
-		if err != nil {
-			return err
-		}
 		cliContext.ConsoleLog(0, "There is no base image for version %s.\n", cliContext.Version)
 		if cliContext.Force || sdutils.AskUserYesOrNo("Do you wish to build one?") {
+			err = sdutils.AskUserInteractiveString("What is the path to the Stardog release?", cliContext.SdReleaseFilePath, !cliContext.Interactive, &cliContext.SdReleaseFilePath)
+			if err != nil {
+				return err
+			}
 			err = plugin.BuildImage(cliContext, cliContext.SdReleaseFilePath, cliContext.Version)
 			if err != nil {
 				cliContext.ConsoleLog(0, "Failed to make the stardog base image: %s\n", err.Error())

@@ -44,19 +44,35 @@
       "destination": "/tmp/zookeeper_sv"
     },
     {
+      "type": "file",
+      "source": "stardog.service",
+      "destination": "/tmp/stardog.service"
+    },
+    {
+      "type": "file",
+      "source": "stardog-server.sh",
+      "destination": "/tmp/stardog-server.sh"
+    },
+    {
     "type": "shell",
     "inline": [
+      "set -uex",
       "chmod 755 /tmp/scripts/*.sh",
       "/tmp/scripts/build.sh",
       "sudo mv /tmp/scripts/mount_format.sh /usr/local/mount_format.sh",
       "sudo mv /tmp/stardog-tools /usr/local/",
       "ls /usr/local/",
       "cd /usr/local/stardog-tools/python",
-      "pwd",
+      "echo 'INSTALL PYTHON TOOLS'",
       "sudo -E python3 setup.py install",
+      "echo 'CONF ZK'",
       "sudo mkdir -p /etc/sv/zkmon",
       "sudo mv /tmp/zookeeper_sv /etc/sv/zkmon/run",
-      "sudo chmod 755 /etc/sv/zkmon/run"
+      "sudo chmod 755 /etc/sv/zkmon/run",
+      "sudo mv /tmp/stardog.service /etc/systemd/system/stardog.service",
+      "sudo mv /tmp/stardog-server.sh /opt/stardog/stardog-server.sh",
+      "sudo chmod 755 /opt/stardog/stardog-server.sh",
+      "sudo systemctl disable stardog"
     ]
     },
     {

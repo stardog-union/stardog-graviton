@@ -149,6 +149,29 @@ func getInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config,
 	return instList
 }
 
+func getAmiVersion(c sdutils.AppContext, sess *session.Session, conf *aws.Config, ami *string) (*string, error) {
+	input := ec2.DescribeImagesInput{ImageIds: []*string{ami}}
+	svc := ec2.New(sess, conf)
+	output, err := svc.DescribeImages(&input)
+	if err != nil {
+		return nil, err
+	}
+	if len(output.Images) != 1 {
+		return nil, fmt.Errorf("No images were found with that name")
+	}
+	tags := output.Images[0].Tags
+	if tags == nil || len(tags) < 1 {
+		return nil, fmt.Errorf("No version tag found for AMI %s", *ami)
+	}
+	// find version
+	for _, t := range tags {
+		if t != nil && *t.Key == "ImageVersion" {
+			return t.Value, nil
+		}
+	}
+	return nil, nil
+}
+
 // CheckKeyName will return true or false based on the existance of the keyname in the
 // configured AWS environment.  If an error occurs while communicating with AWS an
 // error will be returned.
