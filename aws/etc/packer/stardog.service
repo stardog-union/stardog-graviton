@@ -1,0 +1,16 @@
+[Unit]
+Description = Stardog Knowledge Graph
+After = network.target auditd.service
+
+[Service]
+Type = forking
+User = root
+Group = root
+ExecStart = /opt/stardog/stardog-server.sh start
+ExecStop = /opt/stardog/stardog-server.sh stop
+ExecReload = /opt/stardog/stardog-server.sh reload
+Restart = always
+RestartSec = 10s
+
+[Install]
+WantedBy = multi-user.target
