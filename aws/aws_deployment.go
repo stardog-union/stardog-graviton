@@ -82,11 +82,34 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		}
 		a.AmiID = ami
 	}
+
 	if a.Region == "" {
 		a.AwsKeyName, err = sdutils.AskUser("Region", "us-west-1")
 		if err != nil {
 			return nil, err
 		}
+	}
+	amiVersion, err := GetAmiVersion(c, a.Region, &a.AmiID)
+	if err != nil {
+		return nil, err
+	}
+	var vx int
+	var vy int
+	var vz int
+
+	sc, err := fmt.Sscanf(*amiVersion, "%d.%d.%d", &vx, &vy, &vz)
+	if sc != 3 {
+		return nil, fmt.Errorf("Unknown version in base AMI %s", *amiVersion)
+	}
+	var px int
+	var py int
+	var pz int
+	sc, err = fmt.Sscanf(imageVersion, "%d.%d.%d", &px, &py, &pz)
+	if sc != 3 {
+		return nil, fmt.Errorf("Unknown version in base AMI %s", *amiVersion)
+	}
+	if vx != px {
+		return nil, fmt.Errorf("This version of graviton cannot work with AMI version %s, please rebuild a base AMI with version %s", *amiVersion, imageVersion)
 	}
 	if a.AwsKeyName == "" && baseD.PrivateKey == "" {
 		if !c.GetInteractive() || sdutils.AskUserYesOrNo("Would you like to create an SSH key pair?") {
