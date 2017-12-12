@@ -124,3 +124,9 @@ variable "custom_script" {
   description = "A custom script to execute on stardog nodes"
   default = ""
 }
+
+variable "custom_zk_script" {
+  type = "string"
+  description = "A custom script to execute on zookeeper nodes"
+  default = ""
+}

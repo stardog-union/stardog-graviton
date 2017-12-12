@@ -79,6 +79,7 @@ type CliContext struct {
 	ConsoleWriter     io.Writer          `json:"-"`
 	EnvList           []string           `json:"-"`
 	CustomExec        string             `json:"-"`
+	CustomZkExec      string             `json:"-"`
 	highlight         sdutils.ConsoleEffect
 	red               sdutils.ConsoleEffect
 	green             sdutils.ConsoleEffect
@@ -257,6 +258,7 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 		Environment:     cliContext.EnvList,
 		DisableSecurity: cliContext.DisableSecurity,
 		CustomScript:    cliContext.CustomExec,
+		CustomZkScript:  cliContext.CustomZkExec,
 	}
 	dep, err := sdutils.LoadDeployment(cliContext, &baseD, false)
 	if err != nil {
@@ -335,6 +337,7 @@ func (cliContext *CliContext) newDeployment(c *kingpin.ParseContext) error {
 		Environment:     cliContext.EnvList,
 		DisableSecurity: cliContext.DisableSecurity,
 		CustomScript:    cliContext.CustomExec,
+		CustomZkScript:  cliContext.CustomZkExec,
 	}
 	_, err = sdutils.LoadDeployment(cliContext, &baseD, true)
 	return err
@@ -735,6 +738,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("memory-start", "The starting amount of memory to give the JVM that runs Stardog nodes.").StringVar(&cliContext.MemoryStart)
 	cmdOpts.LaunchCmd.Flag("disable-security", "Run the Stardog servers without security.").Default(fmt.Sprintf("%t", cliContext.DisableSecurity)).BoolVar(&cliContext.DisableSecurity)
 	cmdOpts.LaunchCmd.Flag("custom-exec", "A custom script to run on Stardog nodes (experimental).").StringVar(&cliContext.CustomExec)
+	cmdOpts.LaunchCmd.Flag("custom-zk-exec", "A custom script to run on Zookeeper nodes (experimental).").StringVar(&cliContext.CustomZkExec)
 	cmdOpts.LaunchCmd.Validate(cliContext.envValidate)
 	cmdOpts.LaunchCmd.Action(cliContext.interactive)
 

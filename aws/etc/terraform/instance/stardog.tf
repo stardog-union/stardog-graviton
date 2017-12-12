@@ -232,9 +232,9 @@ resource "aws_elb" "stardog" {
   health_check {
     healthy_threshold = 2
     unhealthy_threshold = 10
-    timeout = 60
+    timeout = 10
     target = "HTTP:5821/admin/healthcheck"
-    interval = 300
+    interval = 15
   }
 
   tags {
@@ -259,9 +259,9 @@ resource "aws_elb" "stardoginternal" {
   health_check {
     healthy_threshold = 2
     unhealthy_threshold = 10
-    timeout = 60
+    timeout = 10
     target = "HTTP:5821/admin/healthcheck"
-    interval = 300
+    interval = 15
   }
 
   tags {
