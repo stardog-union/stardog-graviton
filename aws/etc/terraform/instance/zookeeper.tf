@@ -117,9 +117,9 @@ resource "aws_elb" "zookeeper" {
   health_check {
     healthy_threshold = 2
     unhealthy_threshold = 5
-    timeout = 60
+    timeout = 5
     target = "HTTP:9000/"
-    interval = 300
+    interval = 10
   }
 
   tags {
