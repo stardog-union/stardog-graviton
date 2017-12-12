@@ -149,9 +149,16 @@ func getInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config,
 	return instList
 }
 
-func getAmiVersion(c sdutils.AppContext, sess *session.Session, conf *aws.Config, ami *string) (*string, error) {
+// GetAmiVersion returns the graviton version associated with the AMI
+func GetAmiVersion(c sdutils.AppContext, region string, ami *string) (*string, error) {
+	conf := aws.Config{Region: aws.String(region)}
+	sess, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+
 	input := ec2.DescribeImagesInput{ImageIds: []*string{ami}}
-	svc := ec2.New(sess, conf)
+	svc := ec2.New(sess, &conf)
 	output, err := svc.DescribeImages(&input)
 	if err != nil {
 		return nil, err
