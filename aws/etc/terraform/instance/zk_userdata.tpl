@@ -19,4 +19,13 @@ ${zk_health_wait}
 echo "$localip $elb_name" >> /etc/hosts
 /usr/local/zookeeper-3.4.11/bin/zkServer.sh start
 
+echo "Running the custom zk script..."
+CUSTOM_SCRIPT=/tmp/customzk
+echo '${custom_zk_script}' | /usr/bin/base64 -d > $CUSTOM_SCRIPT
+chmod 755 $CUSTOM_SCRIPT
+$CUSTOM_SCRIPT
+
+echo "Done $?"
+
+
 date >> /tmp/boottime

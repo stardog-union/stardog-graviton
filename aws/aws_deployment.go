@@ -42,6 +42,7 @@ type awsDeploymentDescription struct {
 	VolumeType      string `json:"volume_type,omitempty"`
 	IoPsRatio       int    `json:"iops,omitempty"`
 	CustomScript    string `json:"custom_script,omitempty"`
+	CustomZkScript  string `json:"custom_zk_script,omitempty"`
 	Version         string `json:"-"`
 	Name            string `json:"-"`
 	deployDir       string
@@ -400,6 +401,7 @@ func (a *awsPlugin) DeploymentLoader(context sdutils.AppContext, baseD *sdutils.
 			return nil, err
 		}
 		awsDD.CustomScript = baseD.CustomScript
+		awsDD.CustomZkScript = baseD.CustomZkScript
 		awsDD.environment = baseD.Environment
 		awsDD.disableSecurity = baseD.DisableSecurity
 		baseD.CloudOpts = awsDD

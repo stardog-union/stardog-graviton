@@ -90,6 +90,9 @@ func LoadDeployment(context AppContext, baseD *BaseDeployment, new bool) (Deploy
 	if baseD.CustomScript != "" && !PathExists(baseD.CustomScript) {
 		return nil, fmt.Errorf("The path to the custom script %s does not exist", baseD.CustomScript)
 	}
+	if baseD.CustomZkScript != "" && !PathExists(baseD.CustomZkScript) {
+		return nil, fmt.Errorf("The path to the custom zk script %s does not exist", baseD.CustomZkScript)
+	}
 
 	d, err := plugin.DeploymentLoader(context, baseD, new)
 	return d, err

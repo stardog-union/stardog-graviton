@@ -50,6 +50,7 @@ type Ec2Instance struct {
 	RootVolumeSize         int                `json:"root_volume_size"`
 	RootVolumeType         string             `json:"root_volume_type"`
 	CustomScript           string             `json:"custom_script,omitempty"`
+	CustomZkScript         string             `json:"custom_zk_script,omitempty"`
 	DeployDir              string             `json:"-"`
 	Ctx                    sdutils.AppContext `json:"-"`
 	BastionContact         string             `json:"-"`
@@ -105,6 +106,20 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		return nil, fmt.Errorf("Failed to create the base 64 encoded custom script")
 	}
 
+	scriptZkData := []byte("#!/bin/bash\nexit 0\n")
+	if dd.CustomZkScript != "" {
+		scriptZkData, err = ioutil.ReadFile(dd.CustomZkScript)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read the script %s: %s", dd.CustomZkScript, err.Error())
+		}
+	}
+	base64CustomZkScriptData := base64.StdEncoding.EncodeToString(scriptZkData)
+	base64CustomZkScriptPath := path.Join(dd.deployDir, "custom-zk-stardogscript.base64")
+	err = ioutil.WriteFile(base64CustomZkScriptPath, []byte(base64CustomZkScriptData), 0644)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create the base 64 encoded custom zk script")
+	}
+
 	instance := Ec2Instance{
 		DeploymentName:  dd.Name,
 		Region:          dd.Region,
@@ -116,6 +131,7 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 		PrivateKey:      dd.PrivateKeyPath,
 		DeployDir:       dd.deployDir,
 		CustomScript:    base64CustomScriptPath,
+		CustomZkScript:  base64CustomZkScriptPath,
 		Ctx:             ctx,
 		CustomPropsData: customData,
 		CustomLog4JData: customLog4J,

@@ -28,6 +28,7 @@ data "template_file" "zk_userdata" {
   count = "${var.zookeeper_size}"
   template = "${file("zk_userdata.tpl")}"
   vars {
+    custom_zk_script = "${file(var.custom_zk_script)}"
     index = "${count.index + 1}"
     zk_conf = "${data.template_file.zk_conf.rendered}"
     zk_health_wait = "${join("\n", data.template_file.zk_health_ping.*.rendered)}"
