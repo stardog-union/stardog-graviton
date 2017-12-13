@@ -203,3 +203,15 @@ variable "sd_internal_health_interval" {
   description = "Zookeeper ELB health checker interval"
   default = "15"
 }
+
+variable "zk_health_grace_period" {
+  type = "string"
+  description = "Zookeeper ELB health checker grace period"
+  default = "180"
+}
+
+variable "sd_health_grace_period" {
+  type = "string"
+  description = "Stardog ELB health checker grace period"
+  default = "300"
+}

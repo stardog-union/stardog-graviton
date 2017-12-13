@@ -43,7 +43,7 @@ resource "aws_autoscaling_group" "zookeeper" {
   min_size = 1
   desired_capacity = 1
   launch_configuration = "${element(aws_launch_configuration.zookeeper.*.name, count.index)}"
-  health_check_grace_period = 180
+  health_check_grace_period = "${var.zk_health_grace_period}"
   health_check_type = "ELB"
   load_balancers = ["${element(aws_elb.zookeeper.*.name, count.index)}"]
 

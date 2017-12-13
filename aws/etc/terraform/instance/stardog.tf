@@ -36,7 +36,7 @@ resource "aws_autoscaling_group" "stardog" {
   desired_capacity = "1"
   launch_configuration = "${aws_launch_configuration.stardog.name}"
   load_balancers = ["${aws_elb.stardog.name}", "${aws_elb.stardoginternal.name}"]
-  health_check_grace_period = 300
+  health_check_grace_period = "${var.sd_health_grace_period}"
   health_check_type = "ELB"
 
   tag {
