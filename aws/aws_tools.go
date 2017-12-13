@@ -151,6 +151,10 @@ func getInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config,
 
 // GetAmiVersion returns the graviton version associated with the AMI
 func GetAmiVersion(c sdutils.AppContext, region string, ami *string) (*string, error) {
+
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "gravitontest" {
+		return &imageVersion, nil
+	}
 	conf := aws.Config{Region: aws.String(region)}
 	sess, err := session.NewSession()
 	if err != nil {
