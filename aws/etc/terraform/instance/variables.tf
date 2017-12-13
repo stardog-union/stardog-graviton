@@ -130,3 +130,76 @@ variable "custom_zk_script" {
   description = "A custom script to execute on zookeeper nodes"
   default = ""
 }
+
+# The remaining variables can be overridden by ENVs
+variable "zk_unhealthy_threshold" {
+  type = "string"
+  description = "Zookeeper ELB unhealthy threshold"
+  default = "5"
+}
+
+variable "zk_healthy_threshold" {
+  type = "string"
+  description = "Zookeeper ELB unhealthy threshold"
+  default = "5"
+}
+
+variable "zk_health_timeout" {
+  type = "string"
+  description = "Zookeeper ELB health checker timeout"
+  default = "5"
+}
+
+variable "zk_health_interval" {
+  type = "string"
+  description = "Zookeeper ELB health checker interval"
+  default = "10"
+}
+
+variable "sd_unhealthy_threshold" {
+  type = "string"
+  description = "Zookeeper ELB unhealthy threshold"
+  default = "10"
+}
+
+variable "sd_healthy_threshold" {
+  type = "string"
+  description = "Zookeeper ELB unhealthy threshold"
+  default = "2"
+}
+
+variable "sd_health_timeout" {
+  type = "string"
+  description = "Zookeeper ELB health checker timeout"
+  default = "10"
+}
+
+variable "sd_health_interval" {
+  type = "string"
+  description = "Zookeeper ELB health checker interval"
+  default = "15"
+}
+
+variable "sd_internal_unhealthy_threshold" {
+  type = "string"
+  description = "Zookeeper ELB unhealthy threshold"
+  default = "10"
+}
+
+variable "sd_internal_healthy_threshold" {
+  type = "string"
+  description = "Zookeeper ELB unhealthy threshold"
+  default = "2"
+}
+
+variable "sd_internal_health_timeout" {
+  type = "string"
+  description = "Zookeeper ELB health checker timeout"
+  default = "10"
+}
+
+variable "sd_internal_health_interval" {
+  type = "string"
+  description = "Zookeeper ELB health checker interval"
+  default = "15"
+}

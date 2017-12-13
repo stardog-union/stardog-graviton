@@ -230,11 +230,11 @@ resource "aws_elb" "stardog" {
   }
 
   health_check {
-    healthy_threshold = 2
-    unhealthy_threshold = 10
-    timeout = 10
+    healthy_threshold = "${var.sd_healthy_threshold}"
+    unhealthy_threshold = "${var.sd_unhealthy_threshold}"
+    timeout = "${var.sd_health_timeout}"
     target = "HTTP:5821/admin/healthcheck"
-    interval = 15
+    interval = "${var.sd_health_interval}"
   }
 
   tags {
@@ -257,11 +257,11 @@ resource "aws_elb" "stardoginternal" {
   }
 
   health_check {
-    healthy_threshold = 2
-    unhealthy_threshold = 10
-    timeout = 10
+    healthy_threshold = "${var.sd_internal_healthy_threshold}"
+    unhealthy_threshold = "${var.sd_internal_unhealthy_threshold}"
+    timeout = "${var.sd_internal_health_timeout}"
     target = "HTTP:5821/admin/healthcheck"
-    interval = 15
+    interval = "${var.sd_internal_health_interval}"
   }
 
   tags {
