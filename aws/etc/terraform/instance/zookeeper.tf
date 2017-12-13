@@ -116,11 +116,11 @@ resource "aws_elb" "zookeeper" {
   }
 
   health_check {
-    healthy_threshold = 2
-    unhealthy_threshold = 5
-    timeout = 5
+    healthy_threshold = "${var.zk_healthy_threshold}"
+    unhealthy_threshold = "${var.zk_unhealthy_threshold}"
+    timeout = "${var.zk_health_timeout}"
     target = "HTTP:9000/"
-    interval = 10
+    interval = "${var.zk_health_interval}"
   }
 
   tags {
