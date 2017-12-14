@@ -6,6 +6,7 @@ date > /tmp/boottime
 
 export STARDOG_HOME=/mnt/data/stardog-home
 ${environment_variables}
+echo '${environment_variables}' > /etc/stardog.env.sh
 /usr/local/bin/stardog-find-volume ${deployment_name} /mnt/data /dev/xvdh
 
 echo '${stardog_conf}' > $STARDOG_HOME/stardog.properties
