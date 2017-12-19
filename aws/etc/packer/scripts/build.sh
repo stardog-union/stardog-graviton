@@ -5,7 +5,7 @@ set -e
 echo "Getting dependencies"
 sudo apt-get update
 sudo add-apt-repository ppa:vbernat/haproxy-1.6 -y
-sudo apt-get install unzip openjdk-8-jdk haproxy awscli python3 python3-pip jq libyaml-dev python3-yaml runit python3-boto3 -y
+sudo apt-get install python3-psutil unzip openjdk-8-jdk haproxy awscli python3 python3-pip jq libyaml-dev python3-yaml runit python3-boto3 -y
 
 # Make some directories writable for the main user
 sudo chmod 775 -R /usr/local
