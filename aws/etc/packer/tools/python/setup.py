@@ -8,7 +8,7 @@ requirements_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
 install_reqs = pip.req.parse_requirements(requirements_path)
 
 setuptools.setup(name='stardog-cluster-utils',
-      version="1.0",
+      version="1.1",
       description="Tools for automating a stardog cluster",
       author="Stardog Union",
       url="http://www.stardog.com/",
@@ -20,7 +20,8 @@ setuptools.setup(name='stardog-cluster-utils',
               "stardog-wait-for-socket=stardog.cluster.wait_for_socket:main",
               "stardog-wait-for-pgm=stardog.cluster.test_program:main",
               "stardog-gather-logs=stardog.cluster.gather_log:main",
-              "stardog-monitor-zk=stardog.cluster.monitor_zk:main"
+              "stardog-monitor-zk=stardog.cluster.monitor_zk:main",
+              "stardog-jstack=stardog.cluster.run_jstack:main"
           ],
       },
       install_requires=["pyyaml == 3.10", "requests == 2.13.0"],

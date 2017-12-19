@@ -36,6 +36,18 @@ def get_all_logs(ips):
     dst_dir = tempfile.mkdtemp()
     logs_copied = 0
     for ip in ips:
+        try:
+            ssh_cmd = "ssh %s -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null sudo /usr/local/bin/stardog-jstack" % ip
+            p = subprocess.Popen(ssh_cmd, shell=True)
+            o, e = p.communicate()
+            logging.info("jstack stdout output %s" % o)
+            logging.info("jstack stderr output %s" % e)
+            if p.returncode != 0:
+                logging.warning("jstack failed on %s" % ip)
+        except Exception as ex:
+            logging.error("Failed to get jstack info on %s" % ip, ex)
+
+
         b = get_log(ip, dst_dir, "/mnt/data/stardog-home/stardog.log")
         if b:
             logs_copied += 1
@@ -46,7 +58,9 @@ def get_all_logs(ips):
             '/var/log/syslog', 
             '/var/log/auth.log',
             '/var/log/kern.log',
+            '/etc/stardog.env.sh',
             '/var/log/cloud-init.log',
+            '/mnt/data/stardog-home/stardog.properties',
             '/var/log/cloud-init-output.log']
         for l in source_log_files:
             b = get_log(ip, dst_dir, l)

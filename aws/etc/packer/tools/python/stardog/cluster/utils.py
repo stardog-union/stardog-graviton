@@ -2,6 +2,7 @@ import json
 import logging
 import logging.config
 import os
+import psutil
 import random
 import requests
 import subprocess
@@ -148,3 +149,25 @@ def setup_logging(logging_configfile=None):
     with open(logging_configfile, 'rt') as f:
         config = yaml.load(f.read())
         logging.config.dictConfig(config)
+
+
+def get_stardog_pid():
+    for proc in psutil.process_iter():
+        if proc.name() == 'java':
+            for i in proc.cmdline():
+                if i.find('stardog') >= 0:
+                    return proc.pid
+    raise Exception('Stardog process was not found')
+
+
+def run_jstack(fname):
+    pid = get_stardog_pid()
+    cmd = "/usr/bin/jstack %d" % pid
+    with open(fname, 'w') as fptr:
+        p = subprocess.Popen(cmd, shell=True, stdout=fptr)
+        o, e = p.communicate()
+        rc = p.wait()
+        if rc != 0:
+            print(o)
+            print(e)
+            raise Exception('failed to get jstack')
