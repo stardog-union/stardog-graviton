@@ -561,7 +561,11 @@ func (cliContext *CliContext) Logf(level int, format string, v ...interface{}) {
 
 func (cliContext *CliContext) nameValidate(a *kingpin.CmdClause) error {
 	if len(cliContext.DeploymentName) > 20 {
-		return fmt.Errorf("Could the deployment name must be less than 20 characters")
+		return fmt.Errorf("The deployment name must be less than 20 characters")
+	}
+	// We may want to make this into a regex if otehr characters are problematic
+	if strings.Contains(cliContext.DeploymentName, "_") {
+		return fmt.Errorf("The deployment name must not contain a _")
 	}
 	return nil
 }
@@ -577,7 +581,6 @@ func (cliContext *CliContext) envValidate(a *kingpin.CmdClause) error {
 			return fmt.Errorf("The environment variable must have the form 'key=value'")
 		}
 	}
-
 	return nil
 }
 
