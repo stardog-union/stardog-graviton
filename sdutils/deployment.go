@@ -443,6 +443,7 @@ func FullStatus(context AppContext, baseD *BaseDeployment, dep Deployment, inter
 	}
 
 	context.ConsoleLog(1, "Stardog is available here: %s\n", context.HighlightString(sd.StardogURL))
+	context.ConsoleLog(1, "Stardog is internally available here: %s\n", context.HighlightString(sd.StardogInternalURL))
 	context.ConsoleLog(1, "ssh is available here: %s\n", sd.SSHHost)
 
 	pw := os.Getenv("STARDOG_ADMIN_PASSWORD")
