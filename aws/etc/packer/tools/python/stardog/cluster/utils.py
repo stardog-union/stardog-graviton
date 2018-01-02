@@ -30,6 +30,20 @@ def get_instance_ids(deply_name, count, region_name):
     return found_instances
 
 
+def get_zk_instance_ids(deply_name, region_name):
+    found_instances = []
+    client = boto3.client('autoscaling', region_name=region_name)
+    asg_name = "%szkasg" % deply_name
+
+    groups = client.describe_auto_scaling_groups()
+    for g in groups['AutoScalingGroups']:
+        if g['AutoScalingGroupName'].find(asg_name) >= 0:
+            for i in g['Instances']:
+                found_instances.append(i['InstanceId'])
+
+    return found_instances
+
+
 def get_internal_ips_from_instance(instances, region_name):
     found_ips = []
     client = boto3.client('ec2', region_name=region_name)
@@ -42,6 +56,11 @@ def get_internal_ips_from_instance(instances, region_name):
 
 def get_internal_ips_by_asg(deply_name, count, region_name):
     instance_ids = get_instance_ids(deply_name, count, region_name)
+    return get_internal_ips_from_instance(instance_ids, region_name)
+
+
+def get_internal_zk_ips_by_asg(deply_name, region_name):
+    instance_ids = get_zk_instance_ids(deply_name, region_name)
     return get_internal_ips_from_instance(instance_ids, region_name)
 
 
