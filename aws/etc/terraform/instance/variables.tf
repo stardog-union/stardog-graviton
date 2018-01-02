@@ -215,3 +215,28 @@ variable "sd_health_grace_period" {
   description = "Stardog ELB health checker grace period"
   default = "300"
 }
+
+variable "zk_tickTime" {
+  type = "string"
+  default = "3000"
+}
+
+variable "zk_initLimit" {
+  type = "string"
+  default = "10"
+}
+
+variable "zk_syncLimit" {
+  type = "string"
+  default = "5"
+}
+
+variable "zk_dataDir" {
+  type = "string"
+  default = "/var/zkdata"
+}
+
+variable "zk_dataLogDir" {
+  type = "string"
+  default = "/var/zkdata"
+}

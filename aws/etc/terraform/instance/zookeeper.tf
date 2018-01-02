@@ -11,6 +11,11 @@ data "template_file" "zk_server" {
 data "template_file" "zk_conf" {
   template = "${file("zoo.cfg.tpl")}"
   vars {
+    zk_tickTime="${var.zk_tickTime}"
+    zk_initLimit="${var.zk_initLimit}"
+    zk_syncLimit="${var.zk_syncLimit}"
+    zk_dataDir="${var.zk_dataDir}"
+    zk_dataLogDir="${var.zk_dataLogDir}"
     zk_server_list = "${join("", data.template_file.zk_server.*.rendered)}"
   }
 }
