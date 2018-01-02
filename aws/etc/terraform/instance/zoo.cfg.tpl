@@ -1,17 +1,17 @@
 # http://hadoop.apache.org/zookeeper/docs/current/zookeeperAdmin.html
 
 # The number of milliseconds of each tick
-tickTime=3000
+tickTime=${zk_tickTime}
 # The number of ticks that the initial
 # synchronization phase can take
-initLimit=10
+initLimit=${zk_initLimit}
 # The number of ticks that can pass between
 # sending a request and getting an acknowledgement
-syncLimit=5
+syncLimit=${zk_syncLimit}
 # the directory where the snapshot is stored.
-dataDir=/var/zkdata
+dataDir=${zk_dataDir}
 # Place the dataLogDir to a separate physical disc for better performance
-# dataLogDir=/disk2/zookeeper
+dataLogDir=${zk_dataLogDir}
 
 # the port at which the clients will connect
 clientPort=2181
