@@ -1,3 +1,16 @@
+# 1.0.4 (2018-01-02)
+
+Features:
+* Make internal LB host for Stardog easily accessible on stdout #43
+* End logs with .log instead of ip address of node #42
+* Get ZK logs as part of log gathering #41
+* Validate deployment name against AWS naming rules #30
+* Run Stardog nodes under systemd with auto-restart.
+* Switched AWS Autoscaling health check to EC2 checks.  This helps prevent
+  ASG from rebooting VMs during node joins.
+* Added a version check for base AMIs.
+* Added the ability to control Zookeeper's configuration.
+
 # 1.0.3 (2017-11-27)
 
 Bug fixes:
