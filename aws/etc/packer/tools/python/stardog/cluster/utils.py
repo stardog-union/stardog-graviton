@@ -190,3 +190,16 @@ def run_jstack(fname):
             print(o)
             print(e)
             raise Exception('failed to get jstack')
+
+
+def run_jmap(fname):
+    pid = get_stardog_pid()
+    cmd = "/usr/bin/jmap %d" % pid
+    with open(fname, 'w') as fptr:
+        p = subprocess.Popen(cmd, shell=True, stdout=fptr)
+        o, e = p.communicate()
+        rc = p.wait()
+        if rc != 0:
+            print(o)
+            print(e)
+            raise Exception('failed to get jstack')

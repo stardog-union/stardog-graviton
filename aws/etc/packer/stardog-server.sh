@@ -9,11 +9,12 @@ fi
 
 STARDOG_BIN=/usr/local/stardog/bin
 PORT=5821
+DAEMON="@@DAEMON@@"
 
 start()
 {
    echo "Starting stardog"
-   ${STARDOG_BIN}/stardog-admin server start --home ${STARDOG_HOME} --port ${PORT}
+   ${STARDOG_BIN}/stardog-admin server start ${DAEMON} --home ${STARDOG_HOME} --port ${PORT}
    exit $?
 }
 

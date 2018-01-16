@@ -59,7 +59,7 @@ def get_all_logs(ips, get_jstack=True, node_type="stardog", dst_dir=None):
             except Exception as ex:
                 logging.error("Failed to get jstack info on %s" % ip, ex)
 
-        b = get_log(ip, dst_dir, "/mnt/data/stardog-home/stardog.log", node_type=node_type)
+        b = get_log(ip, dst_dir, "/mnt/data/stardog-home/stardog.log*", node_type=node_type)
         if b:
             logs_copied += 1
         b = get_log(ip, dst_dir, "/mnt/data/stardog-home/logs/*", src_is_dir=True, node_type=node_type)

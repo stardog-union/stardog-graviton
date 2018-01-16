@@ -58,7 +58,7 @@
     "inline": [
       "set -uex",
       "chmod 755 /tmp/scripts/*.sh",
-      "/tmp/scripts/build.sh",
+      "/tmp/scripts/build.sh {{user `version`}} {{user `image_version`}}",
       "sudo mv /tmp/scripts/mount_format.sh /usr/local/mount_format.sh",
       "sudo mv /tmp/stardog-tools /usr/local/",
       "ls /usr/local/",
