@@ -2,6 +2,9 @@
 
 set -e
 
+STARDOG_VERSION=${1}
+IMAGE_VERSION=${2}
+
 echo "Getting dependencies"
 sudo apt-get update
 sudo add-apt-repository ppa:vbernat/haproxy-1.6 -y
@@ -67,4 +70,18 @@ sudo chmod 775 -R /usr/local/zookeeper-${zookeeper_version}
 sudo mkdir -p /var/zkdata
 sudo chgrp -R ubuntu /var/zkdata
 sudo chmod 775 -R /var/zkdata
+
+echo "Setting up version dependent information"
+semver=( ${STARDOG_VERSION//./ } )
+major="${semver[0]}"
+minor="${semver[1]}"
+
+if [ $major -gt 5 ]; then
+    sudo sed -i 's/@@DAEMON@@/--daemon/' /tmp/stardog-server.sh
+elif [[ $major -eq 5 && $minor -gt 1 ]]; then
+    sudo sed -i 's/@@DAEMON@@/--daemon/' /tmp/stardog-server.sh
+else
+    sudo sed -i 's/@@DAEMON@@//' /tmp/stardog-server.sh
+fi
+
 echo "Success!"
