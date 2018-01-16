@@ -1,3 +1,11 @@
+# 1.0.5 (2018-01-16)
+
+Features:
+* Add jmap output to the Stardog node log fetching.
+* Use the --daemon flag soun Stardog version 5.2.0 and higher to avoid systemd
+  restarts while nodes are joining.
+* Set environment variables on Zookeeper nodes as well as Stardog nodes.
+
 # 1.0.4 (2018-01-02)
 
 Features:
