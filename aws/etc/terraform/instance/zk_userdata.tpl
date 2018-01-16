@@ -16,6 +16,9 @@ elb_name=`grep server.$num /usr/local/zookeeper-3.4.11/conf/zoo.cfg | sed 's/.*=
 ln -s /etc/sv/zkmon /etc/service/
 ${zk_health_wait}
 
+${environment_variables}
+echo '${environment_variables}' > /etc/zookeeper.env.sh
+
 echo "$localip $elb_name" >> /etc/hosts
 /usr/local/zookeeper-3.4.11/bin/zkServer.sh start
 
