@@ -110,13 +110,19 @@ variable "stardog_start_opts" {
 variable "root_volume_type" {
   type = "string"
   description = "The type of volume to use for the root partition"
-  default = "standard"
+  default = "io1"
 }
 
 variable "root_volume_size" {
   type = "string"
   description = "The size of the root partition"
-  default = "16g"
+  default = "16"
+}
+
+variable "root_volume_iops" {
+  type = "string"
+  description = "The IOPS for the root volume"
+  default = "800"
 }
 
 variable "custom_script" {
@@ -239,4 +245,19 @@ variable "zk_dataDir" {
 variable "zk_dataLogDir" {
   type = "string"
   default = "/var/zkdata"
+}
+
+variable "zk_root_volume_type" {
+  type = "string"
+  default = "io1"
+}
+
+variable "zk_root_volume_size" {
+  type = "string"
+  default = "16"
+}
+
+variable "zk_root_volume_iops" {
+  type = "string"
+  default = "800"
 }

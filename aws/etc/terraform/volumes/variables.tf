@@ -1,8 +1,3 @@
-variable "storage_size" {
-  type = "string"
-  description = "The size of the volume in gigabytes."
-}
-
 variable "cluster_size" {
   type = "string"
   description = "The number of stardog nodes to use (must be odd and greater than 1)."
@@ -43,13 +38,20 @@ variable "stardog_license" {
   description = "The path to your stardog license"
 }
 
-variable "volume_type" {
+variable "stardog_home_volume_type" {
   type = "string"
-  description = "The EBS storage type"
-  default = "gp2"
+  description = "The EBS storage type for the Stardog home volume"
+  default = "io1"
 }
 
-variable "iops" {
+variable "stardog_home_volume_size" {
   type = "string"
-  description = "The IOPS to provision the volume with"
+  description = "The size of the Stardog home volume in gigabytes."
+  default = "10"
+}
+
+variable "stardog_home_volume_iops" {
+  type = "string"
+  description = "The IOPS to provision the Stardog home volume with"
+  default = "500"
 }

@@ -49,7 +49,6 @@ func TestVolumesNotThere(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
-		VolumeType:     "gp2",
 	}
 	baseD := sdutils.BaseDeployment{
 		Type:       plugin.GetName(),
@@ -158,7 +157,6 @@ func TestVolumesThroughDD(t *testing.T) {
 		AwsKeyName:     "somekey",
 		ZkInstanceType: "m3.large",
 		SdInstanceType: "m3.large",
-		VolumeType:     "gp2",
 	}
 	baseD := sdutils.BaseDeployment{
 		Type:       plugin.GetName(),
