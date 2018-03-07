@@ -48,7 +48,7 @@ type Ec2Instance struct {
 	Environment            string             `json:"environment_variables,omitempty"`
 	StartOpts              string             `json:"stardog_start_opts,omitempty"`
 	RootVolumeSize         int                `json:"root_volume_size"`
-	RootVolumeType         string             `json:"root_volume_type"`
+	RootVolumeIops         int                `json:"root_volume_iops,omitempty"`
 	CustomScript           string             `json:"custom_script,omitempty"`
 	CustomZkScript         string             `json:"custom_zk_script,omitempty"`
 	DeployDir              string             `json:"-"`
@@ -188,8 +188,14 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 
 	awsI.SdSize = vol.ClusterSize
 	awsI.HTTPMask = mask
-	awsI.RootVolumeType = "standard"
 	awsI.RootVolumeSize = volumeSize
+
+	envVolType := os.Getenv("TF_VAR_root_volume_type")
+	if envVolType != "" && envVolType != "io1" {
+		awsI.RootVolumeIops = 0
+	} else {
+		awsI.RootVolumeIops = volumeSize * 50
+	}
 
 	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")
 	instanceConfPath := path.Join(instanceWorkingDir, "instance.json")

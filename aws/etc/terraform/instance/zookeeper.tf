@@ -75,6 +75,13 @@ resource "aws_launch_configuration" "zookeeper" {
   security_groups = ["${aws_security_group.zookeeper.id}"]
   # XXX TODO figure out why we need a public ip for external routing
   associate_public_ip_address = true
+
+  root_block_device {
+    volume_type = "${var.zk_root_volume_type}"
+    volume_size = "${var.zk_root_volume_size}"
+    iops = "${var.zk_root_volume_type == "io1" ? var.zk_root_volume_iops : 0}"
+    delete_on_termination = "true"
+  }
 }
 
 resource "aws_elb" "zookeeper" {

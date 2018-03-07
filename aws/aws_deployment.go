@@ -39,8 +39,6 @@ type awsDeploymentDescription struct {
 	PrivateKeyPath  string `json:"private_key_path,omitempty"`
 	CreatedKey      bool   `json:"created_key,omitempty"`
 	HTTPMask        string `json:"http_mask,omitempty"`
-	VolumeType      string `json:"volume_type,omitempty"`
-	IoPsRatio       int    `json:"iops,omitempty"`
 	CustomScript    string `json:"custom_script,omitempty"`
 	CustomZkScript  string `json:"custom_zk_script,omitempty"`
 	Version         string `json:"-"`
@@ -166,14 +164,6 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 	}
 	c.ConsoleLog(2, "Terraform configuration extracted to %s\n", assertDir)
 
-	iops := a.IoPs
-	if iops == 0 {
-		var ok bool
-		iops, ok = ValidVolumeTypes[a.VolumeType]
-		if !ok {
-			return nil, fmt.Errorf("%s is not a valid volume type", a.VolumeType)
-		}
-	}
 	dd := awsDeploymentDescription{
 		Region:          a.Region,
 		AmiID:           a.AmiID,
@@ -190,8 +180,6 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 		environment:     baseD.Environment,
 		disableSecurity: baseD.DisableSecurity,
 		CreatedKey:      createdKey,
-		VolumeType:      a.VolumeType,
-		IoPsRatio:       iops,
 	}
 	return &dd, nil
 }
@@ -320,8 +308,6 @@ func (dd *awsDeploymentDescription) InstanceExists() bool {
 
 type awsPlugin struct {
 	Region         string `json:"region,omitempty"`
-	VolumeType     string `json:"volume_type,omitempty"`
-	IoPs           int    `json:"iops,omitempty"`
 	AmiID          string `json:"ami_id,omitempty"`
 	AwsKeyName     string `json:"aws_key_name,omitempty"`
 	ZkInstanceType string `json:"zk_instance_type,omitempty"`
@@ -338,8 +324,6 @@ func GetPlugin() sdutils.Plugin {
 		ZkInstanceType: "t2.small",
 		SdInstanceType: "t2.medium",
 		BastionType:    "t2.small",
-		VolumeType:     "gp2",
-		IoPs:           0,
 	}
 }
 
@@ -359,15 +343,10 @@ func (a *awsPlugin) LoadDefaults(defaultCliOpts interface{}) error {
 func (a *awsPlugin) Register(cmdOpts *sdutils.CommandOpts) error {
 	cmdOpts.BuildCmd.Flag("region", fmt.Sprintf("The aws region to use [%s].", strings.Join(ValidRegions, " | "))).Default(a.Region).StringVar(&a.Region)
 
-	cmdOpts.NewVolumesCmd.Flag("volume-type", fmt.Sprintf("The EBS volume type to use [%s]", strings.Join(GetValidVolumeTypes(), " | "))).Default(a.VolumeType).StringVar(&a.VolumeType)
-	cmdOpts.NewVolumesCmd.Flag("iops", "The IOPS for the volume type").IntVar(&a.IoPs)
-
 	cmdOpts.LaunchCmd.Flag("region", fmt.Sprintf("The aws region to use [%s]", strings.Join(ValidRegions, " | "))).Default(a.Region).StringVar(&a.Region)
 	cmdOpts.LaunchCmd.Flag("zk-instance-type", "The instance type to use for zookeeper VMs").Default(a.ZkInstanceType).StringVar(&a.ZkInstanceType)
 	cmdOpts.LaunchCmd.Flag("sd-instance-type", "The instance type to use for stardog VMs").Default(a.SdInstanceType).StringVar(&a.SdInstanceType)
 	cmdOpts.LaunchCmd.Flag("aws-key-name", "The AWS ssh key name.").Default(a.AwsKeyName).StringVar(&a.AwsKeyName)
-	cmdOpts.LaunchCmd.Flag("volume-type", fmt.Sprintf("The EBS volume type to use [%s]", strings.Join(GetValidVolumeTypes(), " | "))).Default(a.VolumeType).StringVar(&a.VolumeType)
-	cmdOpts.LaunchCmd.Flag("iops", "The IOPS for the volume type").IntVar(&a.IoPs)
 
 	cmdOpts.LeaksCmd.Flag("region", fmt.Sprintf("The aws region to use [%s]", strings.Join(ValidRegions, " | "))).Default(a.Region).StringVar(&a.Region)
 

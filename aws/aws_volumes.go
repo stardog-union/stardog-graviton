@@ -35,17 +35,16 @@ type VolumeStatusDescription struct {
 type EbsVolumes struct {
 	DeploymentName   string `json:"deployment_name,omitempty"`
 	Region           string `json:"aws_region,omitempty"`
-	SizeOfEachVolume string `json:"storage_size,omitempty"`
+	SizeOfEachVolume string `json:"stardog_home_volume_size,omitempty"`
 	ClusterSize      string `json:"cluster_size,omitempty"`
 	AwsKeyName       string `json:"aws_key_name,omitempty"`
 	KeyPath          string `json:"key_path,omitempty"`
 	AmiID            string `json:"ami,omitempty"`
 	InstanceType     string `json:"instance_type,omitempty"`
 	LicensePath      string `json:"stardog_license,omitempty"`
-	VolumeType       string `json:"volume_type,omitempty"`
-	IoPs             string `json:"iops,omitempty"`
+	VolumeType       string `json:"stardog_home_volume_type,omitempty"`
+	IoPs             string `json:"stardog_home_volume_iops,omitempty"`
 	VolumeDir        string `json:"-"`
-	iopsRatio        int
 	appContext       sdutils.AppContext
 }
 
@@ -63,8 +62,6 @@ func NewAwsEbsVolumeManager(ac sdutils.AppContext, dd *awsDeploymentDescription)
 		InstanceType:   dd.SdInstanceType,
 		VolumeDir:      volumeDir,
 		appContext:     ac,
-		VolumeType:     dd.VolumeType,
-		iopsRatio:      dd.IoPsRatio,
 	}
 }
 
@@ -98,16 +95,14 @@ func (v *EbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, cluster
 	v.ClusterSize = fmt.Sprintf("%d", clusterSize)
 	v.SizeOfEachVolume = fmt.Sprintf("%d", sizeOfEachVolume)
 	v.LicensePath = licensePath
-	normalizedIOPS := v.iopsRatio * sizeOfEachVolume
-	if normalizedIOPS > 0 {
-		if normalizedIOPS < 100 {
-			normalizedIOPS = 100
-		}
-		if normalizedIOPS > 20000 {
-			normalizedIOPS = 20000
-		}
+
+	envVolType := os.Getenv("TF_VAR_stardog_home_volume_type")
+	if envVolType != "" && envVolType != "io1" {
+		v.IoPs = fmt.Sprintf("%d", 0)
+	} else {
+		v.IoPs = fmt.Sprintf("%d", sizeOfEachVolume * 50)
 	}
-	v.IoPs = fmt.Sprintf("%d", normalizedIOPS)
+
 	confFile := path.Join(v.VolumeDir, "config.json")
 	if _, err := os.Stat(confFile); err == nil {
 		v.appContext.ConsoleLog(1, "Volumes have already been created for the %s deployment, running terraform apply again.", v.DeploymentName)
