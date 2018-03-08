@@ -19,18 +19,16 @@ def get_log(host, temp_dir, src_log, src_is_dir=False, node_type="stardog"):
         else:
             raise
 
+    new_dst = dst_dir
     if src_is_dir:
         name = os.path.basename(os.path.dirname(src_log))
-        dst_name = os.path.join(dst_dir, name)
+        new_dst = os.path.join(dst_dir, name)
         try:
-            os.makedirs(dst_name)
+            os.makedirs(new_dst)
         except OSError:
             pass
-    else:
-        name = os.path.basename(src_log)
-        dst_name = os.path.join(dst_dir, name)
     scp_opts = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-    cmd = "scp -r %s %s:%s %s" % (scp_opts, host, src_log, dst_name)
+    cmd = "scp -r %s %s:%s %s" % (scp_opts, host, src_log, new_dst)
     print(cmd)
     p = subprocess.Popen(cmd, shell=True, cwd=dst_dir)
     o, e = p.communicate()
@@ -59,15 +57,13 @@ def get_all_logs(ips, get_jstack=True, node_type="stardog", dst_dir=None):
             except Exception as ex:
                 logging.error("Failed to get jstack info on %s" % ip, ex)
 
-        b = get_log(ip, dst_dir, "/mnt/data/stardog-home/stardog.log*", node_type=node_type)
-        if b:
-            logs_copied += 1
         b = get_log(ip, dst_dir, "/mnt/data/stardog-home/logs/*", src_is_dir=True, node_type=node_type)
         if b:
             logs_copied += 1
         source_log_files = [
-            '/zookeeper.log',
-            '/var/log/syslog', 
+            '/mnt/data/stardog-home/stardog.log*',
+            '/zookeeper.log*',
+            '/var/log/syslog',
             '/var/log/auth.log',
             '/var/log/kern.log',
             '/etc/stardog.env.sh',
