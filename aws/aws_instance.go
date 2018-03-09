@@ -25,6 +25,7 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"strconv"
 
 	"github.com/stardog-union/stardog-graviton/sdutils"
 )
@@ -194,7 +195,19 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 	if envVolType != "" && envVolType != "io1" {
 		awsI.RootVolumeIops = 0
 	} else {
-		awsI.RootVolumeIops = volumeSize * 50
+		envVolIops := os.Getenv("TF_VAR_root_volume_iops")
+		var iops int
+
+		if envVolIops != "" {
+			iops, err = strconv.Atoi(envVolIops)
+			if err != nil {
+				return err
+			}
+		} else {
+			iops = volumeSize * sdutils.GetMaxIopsRatio()
+		}
+
+		awsI.RootVolumeIops = iops
 	}
 
 	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")

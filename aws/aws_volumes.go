@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 
 	"github.com/stardog-union/stardog-graviton/sdutils"
 )
@@ -100,7 +101,19 @@ func (v *EbsVolumes) CreateSet(licensePath string, sizeOfEachVolume int, cluster
 	if envVolType != "" && envVolType != "io1" {
 		v.IoPs = fmt.Sprintf("%d", 0)
 	} else {
-		v.IoPs = fmt.Sprintf("%d", sizeOfEachVolume * 50)
+		envVolIops := os.Getenv("TF_VAR_stardog_home_volume_iops")
+		var iops int
+
+		if envVolIops != "" {
+			iops, err = strconv.Atoi(envVolIops)
+			if err != nil {
+				return err
+			}
+		} else {
+			iops = sizeOfEachVolume * sdutils.GetMaxIopsRatio()
+		}
+
+		v.IoPs = fmt.Sprintf("%d", iops)
 	}
 
 	confFile := path.Join(v.VolumeDir, "config.json")
