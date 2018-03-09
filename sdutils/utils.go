@@ -117,6 +117,10 @@ func stringToStringValidator(key string) (interface{}, error) {
 	return key, nil
 }
 
+func GetMaxIopsRatio() (int) {
+	return 50
+}
+
 // Spinner is an object used to show progress on the console.
 type Spinner struct {
 	nextMap  map[string]string
