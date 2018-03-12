@@ -1,3 +1,10 @@
+# 1.0.6 (2018-03-12)
+
+Features:
+* Use io1 volumes as the default instead of gp2.
+* Gather all rotated out logs as well as current logs.
+* Allow advanced setting of IO options with TF_VAR environment variables.
+
 # 1.0.5 (2018-01-16)
 
 Features:
