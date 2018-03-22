@@ -9,7 +9,7 @@ resource "aws_autoscaling_group" "bastion" {
   load_balancers       = ["${aws_elb.bastion.name}"]
   health_check_grace_period = 90
   health_check_type = "ELB"
-  
+
   tag {
     key = "StardogVirtualAppliance"
     value = "${var.deployment_name}"
@@ -30,6 +30,13 @@ resource "aws_launch_configuration" "bastion" {
   security_groups = ["${aws_security_group.bastion.id}"]
   associate_public_ip_address = true
   iam_instance_profile = "${aws_iam_instance_profile.stardog.id}"
+
+  root_block_device {
+    volume_type = "${var.bastion_root_volume_type}"
+    volume_size = "${var.bastion_root_volume_size}"
+    iops = "${var.bastion_root_volume_type == "io1" ? var.bastion_root_volume_iops : 0}"
+    delete_on_termination = "true"
+  }
 }
 
 resource "aws_security_group" "bastion" {
