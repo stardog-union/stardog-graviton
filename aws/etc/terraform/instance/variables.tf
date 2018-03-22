@@ -125,6 +125,24 @@ variable "root_volume_iops" {
   default = "800"
 }
 
+variable "bastion_root_volume_type" {
+  type = "string"
+  description = "The type of volume to use for the root partition"
+  default = "gp2"
+}
+
+variable "bastion_root_volume_size" {
+  type = "string"
+  description = "The size of the root partition"
+  default = "16"
+}
+
+variable "bastion_root_volume_iops" {
+  type = "string"
+  description = "The IOPS for the root volume"
+  default = "800"
+}
+
 variable "custom_script" {
   type = "string"
   description = "A custom script to execute on stardog nodes"
