@@ -63,6 +63,7 @@ def get_all_logs(ips, get_jstack=True, node_type="stardog", dst_dir=None):
         source_log_files = [
             '/mnt/data/stardog-home/stardog.log*',
             '/zookeeper.log*',
+            '/var/log/zookeeper.log*'
             '/var/log/syslog',
             '/var/log/auth.log',
             '/var/log/kern.log',
