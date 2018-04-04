@@ -20,6 +20,8 @@ ${environment_variables}
 echo '${environment_variables}' > /etc/zookeeper.env.sh
 
 echo "$localip $elb_name" >> /etc/hosts
+export ZOO_LOG_DIR=/var/log/
+export ZOO_LOG4J_PROP=INFO,ROLLINGFILE
 /usr/local/zookeeper-3.4.11/bin/zkServer.sh start
 
 echo "Running the custom zk script..."
