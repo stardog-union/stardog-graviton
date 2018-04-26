@@ -53,8 +53,8 @@ type awsDeploymentDescription struct {
 }
 
 var (
-	TerraformVersion = "0.11.0"
-	PackerVersion    = "1.0.3"
+	TerraformVersion = "0.11.7"
+	PackerVersion    = "1.2.3"
 )
 
 func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeployment, a *awsPlugin) (*awsDeploymentDescription, error) {
