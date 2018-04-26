@@ -43,6 +43,8 @@ var (
 		"us-west-2":      "ami-0a00ce72",
 	}
 	imageVersion = "3.0.0"
+	shortAMILen = 12
+	longAMILen = 21
 )
 
 func getBaseAMI(cliContext sdutils.AppContext, region string) (string, error) {
@@ -66,16 +68,20 @@ func getBaseAMI(cliContext sdutils.AppContext, region string) (string, error) {
 
 func lineScanner(cliContext sdutils.AppContext, line string) *sdutils.ScanResult {
 	if strings.Contains(line, "amazon-ebs,artifact,0,string,AMIs were created:") {
-		startNdx := strings.Index(line, "ami-")
+		trimmedLine := strings.TrimSuffix(line, "\\n")
+		startNdx := strings.Index(trimmedLine, "ami-")
 		if startNdx == -1 {
 			cliContext.Logf(sdutils.ERROR, "Did not found the AMI in the expected packer output.")
 			return nil
 		}
-		if len(line) < startNdx+12 {
-			cliContext.Logf(sdutils.ERROR, "The ami string is too short.")
-		} else {
-			amiID := line[startNdx : startNdx+12]
+		if len(trimmedLine) - startNdx == shortAMILen {
+			amiID := trimmedLine[startNdx : startNdx + shortAMILen]
 			return &sdutils.ScanResult{Key: "AMI", Value: amiID}
+		} else if len(trimmedLine) - startNdx == longAMILen {
+			amiID := trimmedLine[startNdx : startNdx + longAMILen]
+			return &sdutils.ScanResult{Key: "AMI", Value: amiID}
+		} else {
+			cliContext.Logf(sdutils.ERROR, "The AMI string length is unsupported. AMIs are expected to be 12 or 21 chars.")
 		}
 	}
 	return nil
