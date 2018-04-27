@@ -386,6 +386,23 @@ func (cliContext *CliContext) destroyDeployment(c *kingpin.ParseContext) error {
 	return nil
 }
 
+func (cliContext *CliContext) updateStardog(c *kingpin.ParseContext) error {
+	baseD := sdutils.BaseDeployment{
+		Name:            cliContext.DeploymentName,
+		Version:         cliContext.Version,
+		Type:            strings.ToLower(cliContext.CloudType),
+		Directory:       sdutils.DeploymentDir(cliContext.GetConfigDir(), cliContext.DeploymentName),
+		PrivateKey:      cliContext.PrivateKeyPath,
+		CustomPropsFile: cliContext.CustomSdProps,
+		CustomLog4J:     cliContext.CustomLog4J,
+	}
+	d, err := sdutils.LoadDeployment(cliContext, &baseD, false)
+	if err != nil {
+		return err
+	}
+	return sdutils.UpdateStardog(cliContext, &baseD, d, cliContext.SdReleaseFilePath)
+}
+
 func (cliContext *CliContext) gatherLogs(c *kingpin.ParseContext) error {
 	baseD := sdutils.BaseDeployment{
 		Name:            cliContext.DeploymentName,
@@ -755,6 +772,11 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.StatusCmd.Flag("json-file", "The path to the json output file.").StringVar(&cliContext.OutputFile)
 	cmdOpts.StatusCmd.Flag("internal-health", "Do not verify with the destruction.").Default("false").BoolVar(&cliContext.InternalHealth)
 	cmdOpts.StatusCmd.Action(cliContext.fullStatus)
+
+	cmdOpts.StatusCmd = cli.Command("update-stardog", "Update and restart Stardog on all of the nodes")
+	cmdOpts.StatusCmd.Arg("deployment name", "The name of the deployment to use.").Required().StringVar(&cliContext.DeploymentName)
+	cmdOpts.StatusCmd.Arg("release", "The new Stardog release file to deploy.").Required().StringVar(&cliContext.SdReleaseFilePath)
+	cmdOpts.StatusCmd.Action(cliContext.updateStardog)
 
 	cmdOpts.StatusCmd = cli.Command("logs", "Gather the logs of all the Stardog nodes.")
 	cmdOpts.StatusCmd.Arg("deployment name", "The name of the deployment to inspect.").Required().StringVar(&cliContext.DeploymentName)

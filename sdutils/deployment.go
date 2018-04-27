@@ -377,6 +377,57 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, v
 	return err
 }
 
+// Upload a new Stardog release zip to the nodes and restart Stardog
+func UpdateStardog(context AppContext, baseD *BaseDeployment, dep Deployment, sdReleaseFile string) error {
+	if os.Getenv("SSH_AUTH_SOCK") == "" {
+		return fmt.Errorf("ssh-agent needs to be setup to update Stardog binaries")
+	}
+	context.ConsoleLog(1, "Updating Stardog (this may take a few minutes)...\n")
+	sd, err := dep.FullStatus()
+	if err != nil {
+		return err
+	}
+	sshBase, err := getSSHCommand(context, baseD, sd)
+	if err != nil {
+		return err
+	}
+	context.Logf(INFO, "sshBase: %s", sshBase)
+
+	clusterSize, err := dep.ClusterSize()
+	if err != nil {
+		return err
+	}
+	context.Logf(INFO, "clusterSize: %d", clusterSize)
+
+	remoteDir := "/tmp"
+	output := runSCPCommand(context, baseD, sd, sdReleaseFile, remoteDir, true)
+	context.Logf(DEBUG, "SCP output: %s", output)
+
+	// Run SSH command to call python:
+	remotes := []string{remoteDir, path.Base(sdReleaseFile)}
+	remoteFile := strings.Join(remotes, "/")
+	sshCmd := append(sshBase, []string{
+		"/usr/local/bin/stardog-update",
+		baseD.Name,
+		fmt.Sprintf("%d", clusterSize),
+		remoteFile,
+	}...)
+	cmd := exec.Cmd{
+		Path: sshCmd[0],
+		Args: sshCmd,
+	}
+	context.Logf(DEBUG, "Running the update Stardog command: %s", strings.Join(sshCmd[:len(sshCmd)-1], " "))
+	o, err := cmd.Output()
+	if err != nil {
+		context.Logf(ERROR, "Failed to update Stardog: %s", string(o))
+		context.Logf(ERROR, "Error updating Stardog: %s", err)
+		context.ConsoleLog(0, "Failed to update Stardog, verify that ssh agent is working and that the ssh key has been added to the agent.  Please run:\n")
+		context.ConsoleLog(0, "\tssh-add %s\n", baseD.PrivateKey)
+		return err
+	}
+	return nil
+}
+
 // GatherLogs sshes into the bastion node and collects logs from the stardog nodes
 func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfile string) error {
 	if os.Getenv("SSH_AUTH_SOCK") == "" {
