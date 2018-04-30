@@ -59,6 +59,9 @@ def mount_format(device, mount_point):
         except FileExistsError:
             pass
         chown_rc, chown_err = utils.command("chown -R ubuntu %s" % home_dir)
+        if chown_rc != 0:
+            e_msg = "Failed to chown Stardog home: %s" % chown_err
+            raise Exception(e_msg)
 
 
 def main():

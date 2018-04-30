@@ -20,14 +20,14 @@ def refresh_stardog_binaries(ip, release_file):
 
 def stop_stardog(ip):
     ssh_opts = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-    refresh_cmd = "/usr/local/bin/stardog-stop"
+    refresh_cmd = "sudo systemctl stop stardog"
     cmd = "ssh %s %s '%s'" % (ssh_opts, ip, refresh_cmd)
     return utils.command(cmd)
 
 
 def start_stardog(ip):
     ssh_opts = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-    refresh_cmd = "/usr/local/bin/stardog-start"
+    refresh_cmd = "sudo systemctl start stardog"
     cmd = "ssh %s %s '%s'" % (ssh_opts, ip, refresh_cmd)
     return utils.command(cmd)
 
