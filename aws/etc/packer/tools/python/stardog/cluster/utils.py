@@ -150,9 +150,17 @@ def attach_volume(volume_id, device, instance_id):
     return rc
 
 
-def command(cmd):
-    rc = subprocess.call(cmd, shell=True)
-    return rc == 0
+def command(cmd, cmd_dir="./"):
+    logging.debug("Running command: %s in directory %s" % (cmd, cmd_dir))
+    p = subprocess.Popen(cmd, shell=True, cwd=cmd_dir)
+    o, e = p.communicate()
+    logging.debug("%s output: %s" % (cmd, o))
+    logging.debug("%s error: %s" % (cmd, e))
+    if p.returncode != 0:
+        logging.warning("%s failed" % cmd)
+        error = {'cmd': cmd, 'rc': p.returncode, 'output': o, 'error': e}
+        return p.returncode, error
+    return p.returncode, {}
 
 
 def setup_logging(logging_configfile=None):
