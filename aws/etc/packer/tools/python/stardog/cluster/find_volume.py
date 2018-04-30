@@ -39,13 +39,16 @@ def mount_format(device, mount_point):
     except FileExistsError:
         pass
     logging.debug("Attempting to mount, may not be formatted yet")
-    if not utils.command("mount %s %s" % (device, mount_point)):
+    mount_rc, mount_err = utils.command("mount %s %s" % (device, mount_point))
+    if mount_rc != 0:
         logging.info("Failed to mount the disk, formatting first")
-        if not utils.command("mkfs -t ext4 %s" % device):
+        mkfs_rc, mkfs_err = utils.command("mkfs -t ext4 %s" % device)
+        if mkfs_rc != 0:
             e_msg = "Failed to format the disk"
             logging.error(e_msg)
             raise Exception(e_msg)
-        if not utils.command("mount %s %s" % (device, mount_point)):
+        mount2_rc, mount2_err = utils.command("mount %s %s" % (device, mount_point))
+        if mount2_rc != 0:
             e_msg = "Failed to mount the disk after format"
             logging.error(e_msg)
             raise Exception(e_msg)
@@ -55,7 +58,7 @@ def mount_format(device, mount_point):
             os.makedirs(home_dir, 0o775)
         except FileExistsError:
             pass
-        utils.command("chown -R ubuntu %s" % home_dir)
+        chown_rc, chown_err = utils.command("chown -R ubuntu %s" % home_dir)
 
 
 def main():
