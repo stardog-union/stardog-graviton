@@ -1,3 +1,18 @@
+# 1.0.7 (2018-05-07)
+
+Features:
+* Added `update-stardog` command.  This updates a running cluster with a new
+  version of Stardog making the development cycle much shorter.
+* Allow JMX metrics reporting in stardog.properties.tpl.
+* Updates terraform and packer to the latest versions.
+* Fixes ZK log gathering, also gathers extra syslogs if it was rotated
+* Configure bastion root volume with tf vars. Fixes (#54)
+
+Fixes:
+* Respect the --config-dir option.  Fixes (#67)
+* Support long-form AMI. Fixes (#63)
+* Updates ZK version since 3.4.11 was pulled from mirrors. Fixes (#61)
+
 # 1.0.6 (2018-03-12)
 
 Features:
