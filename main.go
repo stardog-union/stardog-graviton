@@ -646,17 +646,19 @@ func (cliContext *CliContext) topValidate(a *kingpin.Application) error {
 	return nil
 }
 
-func loadDefaultCliOptions() *CliContext {
+func loadDefaultCliOptions(confDir string) *CliContext {
 	var err error
 
 	usr, err := user.Current()
-	confDir := os.Getenv("STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR")
 	if confDir == "" {
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get a current user home directory.  Using the current directory.\n")
-			confDir = ".graviton"
-		} else {
-			confDir = filepath.Join(usr.HomeDir, ".graviton")
+		confDir = os.Getenv("STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR")
+		if confDir == "" {
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to get a current user home directory.  Using the current directory.\n")
+				confDir = ".graviton"
+			} else {
+				confDir = filepath.Join(usr.HomeDir, ".graviton")
+			}
 		}
 	}
 	// Setup defaults here
@@ -711,7 +713,16 @@ func loadDefaultCliOptions() *CliContext {
 
 func parseParameters(args []string) (*CliContext, error) {
 	// Setup defaults here
-	cliContext := loadDefaultCliOptions()
+	argConfDir := ""
+	for i, opt := range args {
+		if opt == "--config-dir" && i < len(args) - 1 {
+			argConfDir = args[i+1]
+		} else if strings.HasPrefix(opt, "--config-dir=") {
+			argConfDir = strings.SplitN(opt, "=", 2)[1]
+		}
+	}
+
+	cliContext := loadDefaultCliOptions(argConfDir)
 
 	cmdOpts := sdutils.CommandOpts{}
 	cli := kingpin.New("stardog-graviton", "The stardog virtual appliance manager.")
@@ -726,7 +737,7 @@ func parseParameters(args []string) (*CliContext, error) {
 
 	cli.Flag("console-file", "Instead of sending console output to stdout send it here").StringVar(&cliContext.ConsoleFile)
 	cli.Flag("log-level", fmt.Sprintf("Log level [%s]", strings.Join(sdutils.LogLevelNames, " | "))).Default(cliContext.LogLevel).StringVar(&cliContext.LogLevel)
-	cli.Flag("config-dir", "The path for the log file").Default(cliContext.ConfigDir).StringVar(&cliContext.ConfigDir)
+	cli.Flag("config-dir", "The path for the configuration information").Default(cliContext.ConfigDir).StringVar(&cliContext.ConfigDir)
 	cli.Flag("verbose", "How much output to send to the console").CounterVar(&cliContext.VerboseLevel)
 	cli.Flag("quiet", "Minimal console output").Default(fmt.Sprintf("%t", cliContext.Quiet)).BoolVar(&cliContext.Quiet)
 	cli.Validate(cliContext.topValidate)
