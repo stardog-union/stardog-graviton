@@ -231,7 +231,7 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 	cmd := exec.Cmd{
 		Path: cmdArray[0],
 		Args: cmdArray,
-		Dir:  instanceWorkingDir,
+		Dir: instanceWorkingDir,
 	}
 	awsI.Ctx.Logf(sdutils.INFO, "Running terraform...\n")
 	spin := sdutils.NewSpinner(awsI.Ctx, 1, message)
@@ -243,8 +243,20 @@ func (awsI *Ec2Instance) runTerraformApply(volumeSize int, zookeeperSize int, ma
 }
 
 // CreateInstance will boot up a Stardog service in AWS.
-func (awsI *Ec2Instance) CreateInstance(volumeSize int, zookeeperSize int, idleTimeout int) error {
+func (awsI *Ec2Instance) CreateInstance(volumeSize int, zookeeperSize int, idleTimeout int, bastionVolSnapshotId string) error {
 	err := awsI.runTerraformInit()
+
+	if (bastionVolSnapshotId != "") {
+		bastionVolData, err := Asset("etc/extras/bastion_volume.tf")
+		if err != nil {
+			awsI.Ctx.ConsoleLog(0, "Error while initializing terraform for the additional bastion volume: %s\n", err)
+			return nil
+		}
+		bastionVolumePath := path.Join(awsI.DeployDir, "etc", "terraform", "instance", "bastion_volume.tf")
+		bastionVolContents := string(bastionVolData[:])
+		sdutils.WriteFile(bastionVolumePath, fmt.Sprintf(bastionVolContents, bastionVolSnapshotId, awsI.PrivateKey))
+	}
+
 	err = awsI.runTerraformApply(volumeSize, zookeeperSize, "0.0.0.0/32", idleTimeout, "Creating the instance VMs...")
 	if err != nil {
 		awsI.Ctx.ConsoleLog(1, "Failed to create the instance.\n")

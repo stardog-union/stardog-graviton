@@ -235,6 +235,15 @@ func RunCommand(cliContext AppContext, cmd exec.Cmd, lineScanner LineScanner, sp
 	return &scanResults, nil
 }
 
+func WriteFile(path string, contents string) error {
+	data := []byte(contents)
+	err := ioutil.WriteFile(path, data, 0600)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // WriteJSON will take an interface object and serialize it into JSON and store it
 // in a file at the given path.
 func WriteJSON(obj interface{}, path string) error {

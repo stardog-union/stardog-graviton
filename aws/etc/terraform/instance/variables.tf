@@ -143,6 +143,18 @@ variable "bastion_root_volume_iops" {
   default = "800"
 }
 
+variable "bastion_volume_type" {
+  type = "string"
+  description = "The EBS storage type for the Stardog home volume"
+  default = "gp2"
+}
+
+variable "bastion_volume_iops" {
+  type = "string"
+  description = "The IOPS to provision the Stardog home volume with"
+  default = "500"
+}
+
 variable "custom_script" {
   type = "string"
   description = "A custom script to execute on stardog nodes"

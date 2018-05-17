@@ -114,7 +114,7 @@ func (tstDep *tpDeployment) VolumeExists() bool {
 	return tstDep.TstVolumeExists
 }
 
-func (tstDep *tpDeployment) CreateInstance(rootSize int, zookeeperSize int, idleTimeout int) error {
+func (tstDep *tpDeployment) CreateInstance(rootSize int, zookeeperSize int, idleTimeout int, bastionVolSnapshotId string) error {
 	return nil
 }
 

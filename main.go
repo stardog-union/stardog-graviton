@@ -54,6 +54,7 @@ type CliContext struct {
 	CustomSdProps     string             `json:"custom_stardog_properties,omitempty"`
 	CustomLog4J       string             `json:"custom_log4j,omitempty"`
 	OutputFile        string             `json:"output_file,omitempty"`
+	BastionVolSnapshotId  string         `json:"bastion_volume_snapshot_id,omitempty"`
 	HTTPMask          string             `json:"http_mask,omitempty"`
 	ConnectionTimeout int                `json:"connection_timeout,omitempty"`
 	Memory            string             `json:"memory,omitempty"`
@@ -290,7 +291,7 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 	if err != nil {
 		return err
 	}
-	err = sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.RootVolumeSize, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
+	err = sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.RootVolumeSize, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.BastionVolSnapshotId, cliContext.NoWaitForHealthy)
 	if err != nil {
 		return err
 	}
@@ -506,7 +507,7 @@ func (cliContext *CliContext) launchInstance(c *kingpin.ParseContext) error {
 		return err
 	}
 
-	return sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.RootVolumeSize, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.NoWaitForHealthy)
+	return sdutils.CreateInstance(cliContext, &baseD, dep, cliContext.RootVolumeSize, cliContext.ZkClusterSize, cliContext.WaitMaxTimeSec, cliContext.ConnectionTimeout, cliContext.HTTPMask, cliContext.BastionVolSnapshotId, cliContext.NoWaitForHealthy)
 }
 
 func (cliContext *CliContext) destroyInstance(c *kingpin.ParseContext) error {
@@ -753,6 +754,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.LaunchCmd.Flag("release", "Path to the stardog release zip file.").Default(cliContext.SdReleaseFilePath).StringVar(&cliContext.SdReleaseFilePath)
 	cmdOpts.LaunchCmd.Flag("volume-size", "The size of each storage volume in gigabytes.").Default(fmt.Sprintf("%d", cliContext.VolumeSize)).IntVar(&cliContext.VolumeSize)
 	cmdOpts.LaunchCmd.Flag("root-volume-size", "The size of each stardog node root volume in gigabytes.").Default(fmt.Sprintf("%d", cliContext.RootVolumeSize)).IntVar(&cliContext.RootVolumeSize)
+	cmdOpts.LaunchCmd.Flag("bastion-volume-snapshot-id", "Snapshot ID to create a bastion volume from.").Default(cliContext.BastionVolSnapshotId).StringVar(&cliContext.BastionVolSnapshotId)
 	cmdOpts.LaunchCmd.Flag("node-count", "The number storage volume.  This will be the size of the stardog cluster").Default(fmt.Sprintf("%d", cliContext.ClusterSize)).IntVar(&cliContext.ClusterSize)
 	cmdOpts.LaunchCmd.Flag("zk-count", "The number of zookeeper nodes.").Default(fmt.Sprintf("%d", cliContext.ZkClusterSize)).IntVar(&cliContext.ZkClusterSize)
 	cmdOpts.LaunchCmd.Flag("stardog-properties", "A custom stardog properties file.").Default(cliContext.CustomSdProps).StringVar(&cliContext.CustomSdProps)
