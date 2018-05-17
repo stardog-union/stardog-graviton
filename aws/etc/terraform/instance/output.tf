@@ -9,7 +9,7 @@ output "stardog_internal_contact" {
 }
 
 output "bastion_contact" {
-  value = "${aws_elb.bastion.dns_name}"
+  value = "${aws_instance.bastion.public_dns}"
 }
 
 output "zookeeper_nodes" {

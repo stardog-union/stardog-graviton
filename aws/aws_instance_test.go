@@ -74,7 +74,7 @@ func TestInstanceNotThere(t *testing.T) {
 	if err == nil {
 		t.Fatalf("The instance should not exist for status")
 	}
-	err = inst.CreateInstance(8, 1, 60)
+	err = inst.CreateInstance(8, 1, 60, "")
 	if err == nil {
 		t.Fatalf("The instance should not exist for client")
 	}
@@ -169,7 +169,7 @@ func TestInstanceFakeTerraform(t *testing.T) {
 		t.Fatalf("The create should have worked %s", err)
 	}
 
-	err = inst.CreateInstance(8, 1, 60)
+	err = inst.CreateInstance(8, 1, 60, "")
 	if err != nil {
 		t.Fatalf("The instance should exist for client %s", err)
 	}
@@ -265,7 +265,7 @@ func TestInstanceFakeTerraformThroughDeployment(t *testing.T) {
 		t.Fatalf("The create should have worked")
 	}
 
-	err = dd.CreateInstance(8, 1, 60)
+	err = dd.CreateInstance(8, 1, 60, "")
 	if err != nil {
 		t.Fatalf("The instance should exist for client %s", err)
 	}
@@ -338,7 +338,7 @@ func TestInstanceNotThereThroughDd(t *testing.T) {
 	if err == nil {
 		t.Fatalf("The instance should not exist for status")
 	}
-	err = dd.CreateInstance(8, 1, 60)
+	err = dd.CreateInstance(8, 1, 60, "")
 	if err == nil {
 		t.Fatalf("The instance should not exist for client")
 	}
