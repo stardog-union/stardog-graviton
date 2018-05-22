@@ -3,8 +3,8 @@ language: go
 jobs:
   include:
     - stage: unit tests
-      script: make && go test -v github.com/stardog-union/stardog-graviton/sdutils
+      script: make && go test -v github.com/stardog-union/stardog-graviton
     - script: make && go test -v github.com/stardog-union/stardog-graviton/aws
-    - script: make && go test -v github.com/stardog-union/stardog-graviton
+    - script: make && go test -v github.com/stardog-union/stardog-graviton/cmd/stardog-graviton
     - stage: integration tests
       script: make && go test -v github.com/stardog-union/stardog-graviton/integration

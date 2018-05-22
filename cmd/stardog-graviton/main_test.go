@@ -29,7 +29,8 @@ import (
 	"path/filepath"
 
 	"github.com/stardog-union/stardog-graviton/aws"
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
+	"errors"
 )
 
 var (
@@ -71,7 +72,7 @@ func TestAbout(t *testing.T) {
 
 	rc := realMain([]string{"--config-dir", confDir, "about"})
 	if rc != 0 {
-		t.Fatalf("About should return 0")
+		t.Fatal("About should return 0")
 	}
 	if !sdutils.PathExists(confDir) {
 		t.Fatalf("The conf dir should have been created %s", confDir)
@@ -99,14 +100,14 @@ func TestDeploymentList(t *testing.T) {
 
 	rc := realMain([]string{"--quiet", "--config-dir", confDir, "--console-file", consoleLog, "deployment", "list"})
 	if rc != 0 {
-		t.Fatalf("About should return 0")
+		t.Fatal("About should return 0")
 	}
 	b, err := ioutil.ReadFile(consoleLog)
 	if err != nil {
-		t.Fatalf("the console log was not created")
+		t.Fatal("the console log was not created")
 	}
 	if strings.TrimSpace(string(b)) != "" {
-		t.Fatalf("There should have been no output")
+		t.Fatal("There should have been no output")
 	}
 
 	err = buildImage("ami-beefwest", confDir, "4.2", "/etc/group", "us-west-1")
@@ -116,20 +117,20 @@ func TestDeploymentList(t *testing.T) {
 
 	rc = realMain([]string{"--quiet", "--config-dir", confDir, "deployment", "new", "--private-key", sshKeyFile, "--aws-key-name", "keyname", depname1, "4.2"})
 	if rc != 0 {
-		t.Fatalf("dep new should return 0")
+		t.Fatal("dep new should return 0")
 	}
 	rc = realMain([]string{"--quiet", "--config-dir", confDir, "deployment", "new", "--private-key", sshKeyFile, "--aws-key-name", "keyname", depname2, "4.2"})
 	if rc != 0 {
-		t.Fatalf("dep new should return 0")
+		t.Fatal("dep new should return 0")
 	}
 
 	rc = realMain([]string{"--quiet", "--config-dir", confDir, "--console-file", consoleLog, "deployment", "list"})
 	if rc != 0 {
-		t.Fatalf("About should return 0")
+		t.Fatal("About should return 0")
 	}
 	b, err = ioutil.ReadFile(consoleLog)
 	if err != nil {
-		t.Fatalf("the console log was not created")
+		t.Fatal("the console log was not created")
 	}
 	output := string(b)
 	if !strings.Contains(output, depname1) {
@@ -141,18 +142,18 @@ func TestDeploymentList(t *testing.T) {
 
 	rc = realMain([]string{"--quiet", "--config-dir", confDir, "deployment", "destroy", "--force", depname1})
 	if rc != 0 {
-		t.Fatalf("dep destroy should return 0")
+		t.Fatal("dep destroy should return 0")
 	}
 	rc = realMain([]string{"--quiet", "--config-dir", confDir, "deployment", "destroy", "--force", depname2})
 	if rc != 0 {
-		t.Fatalf("dep destroy should return 0")
+		t.Fatal("dep destroy should return 0")
 	}
 }
 
 func TestStatusNoDeploy(t *testing.T) {
 	rc := realMain([]string{"--quiet", "status"})
 	if rc == 0 {
-		t.Fatalf("Should have failed")
+		t.Fatal("Should have failed")
 	}
 }
 
@@ -164,7 +165,7 @@ func buildImage(amiName string, confDir string, version string, releasefile stri
 
 	rc := realMain([]string{"--quiet", "--config-dir", confDir, "baseami", "--region", region, releasefile, version})
 	if rc != 0 {
-		return fmt.Errorf("Build image failed")
+		return errors.New("Build image failed")
 	}
 	return nil
 }
@@ -220,17 +221,17 @@ func TestBuildImageTop(t *testing.T) {
 	}
 	ent, ok := m42["us-west-1"]
 	if !ok {
-		t.Fatalf("The expected region was not there")
+		t.Fatal("The expected region was not there")
 	}
 	if ent != "ami-beefwest" {
-		t.Fatalf("The wrong ami was found")
+		t.Fatal("The wrong ami was found")
 	}
 	ent, ok = m42["us-east-1"]
 	if !ok {
-		t.Fatalf("The expected region was not there")
+		t.Fatal("The expected region was not there")
 	}
 	if ent != "ami-beefeast" {
-		t.Fatalf("The wrong ami was found")
+		t.Fatal("The wrong ami was found")
 	}
 
 	ami43Path := path.Join(confDir, "amis-4.3.json")
@@ -243,10 +244,10 @@ func TestBuildImageTop(t *testing.T) {
 	}
 	ent, ok = m43["us-east-1"]
 	if !ok {
-		t.Fatalf("The expected region was not there")
+		t.Fatal("The expected region was not there")
 	}
 	if ent != "ami-43xxeast" {
-		t.Fatalf("The wrong ami was found")
+		t.Fatal("The wrong ami was found")
 	}
 }
 
@@ -283,22 +284,22 @@ func TestBasicDeploy(t *testing.T) {
 		"--region", region, "--aws-key-name", "keyname", "--private-key", sshKeyFile,
 		"--sd-version", "50.10", "--license", "/etc/group", depName})
 	if rc != 0 {
-		t.Fatalf("launch failed")
+		t.Fatal("launch failed")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "status", depName})
 	if rc != 0 {
-		t.Fatalf("status failed")
+		t.Fatal("status failed")
 	}
 	if !sdutils.PathExists(path.Join(confDir, "deployments", depName)) {
-		t.Fatalf("The deployment directory should exist")
+		t.Fatal("The deployment directory should exist")
 	}
 	rc = realMain([]string{"--console-file", consoleLog, "--config-dir", confDir, "volume", "status", depName})
 	if rc != 0 {
-		t.Fatalf("volume status failed")
+		t.Fatal("volume status failed")
 	}
 	b, err := ioutil.ReadFile(consoleLog)
 	if err != nil {
-		t.Fatalf("the console log was not created")
+		t.Fatal("the console log was not created")
 	}
 	vols := []string{"vol-46313ce8", "vol-a34ba11c", "vol-50313cfe"}
 	output1 := string(b)
@@ -309,11 +310,11 @@ func TestBasicDeploy(t *testing.T) {
 	}
 	rc = realMain([]string{"--console-file", consoleLog, "--config-dir", confDir, "instance", "status", depName})
 	if rc != 0 {
-		t.Fatalf("instance status failed")
+		t.Fatal("instance status failed")
 	}
 	b, err = ioutil.ReadFile(consoleLog)
 	if err != nil {
-		t.Fatalf("the console log was not created")
+		t.Fatal("the console log was not created")
 	}
 	instances := []string{"stardog.sometest.com", "bastion.sometest.com"}
 	output1 = string(b)
@@ -325,10 +326,10 @@ func TestBasicDeploy(t *testing.T) {
 
 	rc = realMain([]string{"--config-dir", confDir, "destroy", "--force", depName})
 	if rc != 0 {
-		t.Fatalf("status failed")
+		t.Fatal("status failed")
 	}
 	if sdutils.PathExists(path.Join(confDir, "deployments", depName)) {
-		t.Fatalf("The deployment directory should not exist")
+		t.Fatal("The deployment directory should not exist")
 	}
 }
 
@@ -363,40 +364,40 @@ func TestSteppedOutDeploy(t *testing.T) {
 	depName := randDeployName()
 	rc := realMain([]string{"--config-dir", confDir, "deployment", "new", "--private-key", sshKeyFile, "--aws-key-name", "keyname", "--region", region, depName, "4.2"})
 	if rc != 0 {
-		t.Fatalf("depl new failed")
+		t.Fatal("depl new failed")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "volume", "new", depName, "/etc/group", "1", "1"})
 	if rc != 0 {
-		t.Fatalf("status failed")
+		t.Fatal("status failed")
 	}
 	if !sdutils.PathExists(path.Join(confDir, "deployments", depName)) {
-		t.Fatalf("The deployment directory should exist")
+		t.Fatal("The deployment directory should exist")
 	}
 	os.Setenv("STARDOG_GRAVITON_HEALTHY", "false")
 	rc = realMain([]string{"--config-dir", confDir, "instance", "new", "--wait-timeout", "2", depName, "1"})
 	os.Unsetenv("STARDOG_GRAVITON_HEALTHY")
 	if rc == 0 {
-		t.Fatalf("instance start should have failed with timeout")
+		t.Fatal("instance start should have failed with timeout")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "instance", "status", depName})
 	if rc != 0 {
-		t.Fatalf("instance status failed")
+		t.Fatal("instance status failed")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "instance", "destroy", "--force", depName})
 	if rc != 0 {
-		t.Fatalf("Should be able to destroy the instance")
+		t.Fatal("Should be able to destroy the instance")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "volume", "destroy", "--force", depName})
 	if rc != 0 {
-		t.Fatalf("Should be able to destroy the volume")
+		t.Fatal("Should be able to destroy the volume")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "deployment", "destroy", "--force", depName})
 	if rc != 0 {
-		t.Fatalf("Should be able to destroy the deployment")
+		t.Fatal("Should be able to destroy the deployment")
 	}
 
 	if sdutils.PathExists(path.Join(confDir, "deployments", depName)) {
-		t.Fatalf("The deployment directory should not exist")
+		t.Fatal("The deployment directory should not exist")
 	}
 }
 
@@ -407,36 +408,36 @@ func TestDestroyNoExist(t *testing.T) {
 	depName := randDeployName()
 	rc := realMain([]string{"--config-dir", confDir, "deployment", "destroy", "--force", depName})
 	if rc == 0 {
-		t.Fatalf("Should fail when deleting a non existing deployment")
+		t.Fatal("Should fail when deleting a non existing deployment")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "volume", "destroy", "--force", depName})
 	if rc == 0 {
-		t.Fatalf("Should fail when deleting a non existing volume")
+		t.Fatal("Should fail when deleting a non existing volume")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "instance", "destroy", "--force", depName})
 	if rc == 0 {
-		t.Fatalf("Should fail when deleting a non existing instance")
+		t.Fatal("Should fail when deleting a non existing instance")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "instance", "status", depName})
 	if rc == 0 {
-		t.Fatalf("Should fail when status a non existing instance")
+		t.Fatal("Should fail when status a non existing instance")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "volume", "status", depName})
 	if rc == 0 {
-		t.Fatalf("Should fail when status a non existing instance")
+		t.Fatal("Should fail when status a non existing instance")
 	}
 
 	rc = realMain([]string{"--config-dir", confDir, "volume", "new", depName, "/etc/group", "/etc/group", "1", "1"})
 	if rc == 0 {
-		t.Fatalf("Should fail when deleting a non existing volume")
+		t.Fatal("Should fail when deleting a non existing volume")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "instance", "new", depName, "1"})
 	if rc == 0 {
-		t.Fatalf("Should fail when deleting a non existing instance")
+		t.Fatal("Should fail when deleting a non existing instance")
 	}
 	rc = realMain([]string{"--config-dir", confDir, "client", depName, "hostname"})
 	if rc == 0 {
-		t.Fatalf("client command should have failed")
+		t.Fatal("client command should have failed")
 	}
 }
 

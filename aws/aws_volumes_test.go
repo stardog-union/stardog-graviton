@@ -22,7 +22,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
 )
 
 func TestVolumesNotThere(t *testing.T) {
@@ -63,19 +63,19 @@ func TestVolumesNotThere(t *testing.T) {
 	}
 	ebs := NewAwsEbsVolumeManager(&app, dd)
 	if ebs.VolumeExists() {
-		t.Fatalf("The volume shouldn't exist yet")
+		t.Fatal("The volume shouldn't exist yet")
 	}
 	err = ebs.Status()
 	if err == nil {
-		t.Fatalf("The volume shouldn't exist yet, status should fail")
+		t.Fatal("The volume shouldn't exist yet, status should fail")
 	}
 	err = ebs.DeleteSet()
 	if err == nil {
-		t.Fatalf("The delete should have failed")
+		t.Fatal("The delete should have failed")
 	}
 	err = ebs.CreateSet("/path/", 1, 3)
 	if err == nil {
-		t.Fatalf("The create should have failed")
+		t.Fatal("The create should have failed")
 	}
 
 	startPath := os.Getenv("PATH")
@@ -94,10 +94,10 @@ func TestVolumesNotThere(t *testing.T) {
 
 	err = ebs.CreateSet("/path/", 1, 3)
 	if err != nil {
-		t.Fatalf("The create should have worked")
+		t.Fatal("The create should have worked")
 	}
 	if !ebs.VolumeExists() {
-		t.Fatalf("The volume should exist yet")
+		t.Fatal("The volume should exist yet")
 	}
 
 	deployDir := sdutils.DeploymentDir(dir, baseD.Name)
@@ -107,12 +107,12 @@ func TestVolumesNotThere(t *testing.T) {
 		t.Fatalf("The re-load should not have failed %s", err)
 	}
 	if loadedEbs.VolumeExists() {
-		t.Fatalf("The volume reload should exist yet")
+		t.Fatal("The volume reload should exist yet")
 	}
 
 	err = ebs.Status()
 	if err == nil {
-		t.Fatalf("The status should have bad output")
+		t.Fatal("The status should have bad output")
 	}
 	// Add in good status
 	data := `{"volumes": { "sensitive": false, "type": "list", "value": ["vol-46313ce8", "vol-a34ba11c", "vol-50313cfe"]}}`
@@ -129,7 +129,7 @@ func TestVolumesNotThere(t *testing.T) {
 
 	err = ebs.DeleteSet()
 	if err != nil {
-		t.Fatalf("The delete should not have failed")
+		t.Fatal("The delete should not have failed")
 	}
 }
 
@@ -170,19 +170,19 @@ func TestVolumesThroughDD(t *testing.T) {
 		t.Fatalf("Failed to make the deployment manager %s", err)
 	}
 	if dd.VolumeExists() {
-		t.Fatalf("The volume shouldn't exist yet")
+		t.Fatal("The volume shouldn't exist yet")
 	}
 	err = dd.StatusVolumeSet()
 	if err == nil {
-		t.Fatalf("The volume shouldn't exist yet, status should fail")
+		t.Fatal("The volume shouldn't exist yet, status should fail")
 	}
 	err = dd.DeleteVolumeSet()
 	if err == nil {
-		t.Fatalf("The delete should have failed")
+		t.Fatal("The delete should have failed")
 	}
 	err = dd.CreateVolumeSet("/path/", 1, 3)
 	if err == nil {
-		t.Fatalf("The create should have failed")
+		t.Fatal("The create should have failed")
 	}
 
 	startPath := os.Getenv("PATH")
@@ -201,10 +201,10 @@ func TestVolumesThroughDD(t *testing.T) {
 
 	err = dd.CreateVolumeSet("/path/", 1, 3)
 	if err != nil {
-		t.Fatalf("The create should have worked")
+		t.Fatal("The create should have worked")
 	}
 	if !dd.VolumeExists() {
-		t.Fatalf("The volume should exist yet")
+		t.Fatal("The volume should exist yet")
 	}
 
 	deployDir := sdutils.DeploymentDir(dir, baseD.Name)
@@ -214,12 +214,12 @@ func TestVolumesThroughDD(t *testing.T) {
 		t.Fatalf("The re-load should not have failed %s", err)
 	}
 	if loadedEbs.VolumeExists() {
-		t.Fatalf("The volume reload should exist yet")
+		t.Fatal("The volume reload should exist yet")
 	}
 
 	err = dd.StatusVolumeSet()
 	if err == nil {
-		t.Fatalf("The status should have bad output")
+		t.Fatal("The status should have bad output")
 	}
 	// Add in good status
 	data := `{"volumes": { "sensitive": false, "type": "list", "value": ["vol-46313ce8", "vol-a34ba11c", "vol-50313cfe"]}}`
@@ -236,6 +236,6 @@ func TestVolumesThroughDD(t *testing.T) {
 
 	err = dd.DeleteVolumeSet()
 	if err != nil {
-		t.Fatalf("The delete should not have failed")
+		t.Fatal("The delete should not have failed")
 	}
 }

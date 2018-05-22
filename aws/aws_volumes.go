@@ -23,7 +23,8 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
+	"errors"
 )
 
 // VolumeStatusDescription is an opaque way to pass AWS specific information to
@@ -215,7 +216,7 @@ func (v *EbsVolumes) getStatusInformation() (*VolumeStatusDescription, error) {
 	volStatus := VolumeStatusDescription{}
 	volsEnt, ok := try["volumes"]
 	if !ok {
-		return nil, fmt.Errorf("Invalid volume results in terraform output")
+		return nil, errors.New("Invalid volume results in terraform output")
 	}
 	interList := volsEnt.Value.([]interface{})
 

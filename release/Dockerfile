@@ -1,7 +1,7 @@
-FROM ubuntu:latest
+FROM ubuntu:16.04
 
 RUN apt-get update
-RUN apt-get install -y python python-pip zip curl ssh openjdk-9-jre
+RUN apt-get install -y python python-pip zip curl ssh openjdk-9-jre golang-1.10-go golang-1.10
 
 RUN curl -o terraform.zip https://releases.hashicorp.com/terraform/0.7.9/terraform_0.7.9_linux_amd64.zip
 RUN unzip terraform.zip

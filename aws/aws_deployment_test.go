@@ -22,7 +22,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
 )
 
 func TestDeploymentLoadDefaults(t *testing.T) {
@@ -46,19 +46,19 @@ func TestDeploymentLoadDefaults(t *testing.T) {
 		t.Fatalf("Failed to load defaults %s", err)
 	}
 	if plugin.Region != i["region"] {
-		t.Fatalf("Region not set right")
+		t.Fatal("Region not set right")
 	}
 	if plugin.AmiID != i["ami_id"] {
-		t.Fatalf("ami_id not set right")
+		t.Fatal("ami_id not set right")
 	}
 	if plugin.AwsKeyName != i["aws_key_name"] {
-		t.Fatalf("aws_key_name not set right")
+		t.Fatal("aws_key_name not set right")
 	}
 	if plugin.ZkInstanceType != i["zk_instance_type"] {
-		t.Fatalf("zk_instance_type not set right")
+		t.Fatal("zk_instance_type not set right")
 	}
 	if plugin.SdInstanceType != i["sd_instance_type"] {
-		t.Fatalf("sd_instance_type not set right")
+		t.Fatal("sd_instance_type not set right")
 	}
 }
 
@@ -101,12 +101,12 @@ func TestDeploymentLoadEnvs(t *testing.T) {
 	}
 	_, err := plugin.DeploymentLoader(&app, &baseD, true)
 	if err == nil {
-		t.Fatalf("The deployment should have failed")
+		t.Fatal("The deployment should have failed")
 	}
 	os.Setenv("AWS_SECRET_ACCESS_KEY", keySave)
 	_, err = plugin.DeploymentLoader(&app, &baseD, true)
 	if err == nil {
-		t.Fatalf("The deployment should have failed")
+		t.Fatal("The deployment should have failed")
 	}
 }
 

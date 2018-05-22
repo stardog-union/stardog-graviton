@@ -1,5 +1,6 @@
 package sdutils
 
+
 import (
 	"io"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"time"
+	"errors"
 )
 
 type stardogClientImpl struct {
@@ -54,7 +56,7 @@ func (s *stardogClientImpl) GetClusterInfo() (*[]string, error) {
 	content, code, err := s.doRequest("GET", dbURL, bodyBuf, "application/json", 200)
 	for i := 0; code == 503; i++ {
 		if i > 10 {
-			return nil, fmt.Errorf("timeout waiting to get cluster information")
+			return nil, errors.New("timeout waiting to get cluster information")
 		}
 		s.logger.Logf(WARN, "The first request to admin/cluster failed")
 		time.Sleep(2 * time.Second)
@@ -70,7 +72,7 @@ func (s *stardogClientImpl) GetClusterInfo() (*[]string, error) {
 	}
 	nodeList := nodesMap["nodes"]
 	if nodeList == nil {
-		return nil, fmt.Errorf("There is no available cluster information")
+		return nil, errors.New("There is no available cluster information")
 	}
 
 	var ifaceList []interface{}
