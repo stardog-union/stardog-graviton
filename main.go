@@ -654,7 +654,7 @@ func loadDefaultCliOptions(confDir string) *CliContext {
 		confDir = os.Getenv("STARDOG_VIRTUAL_APPLIANCE_CONFIG_DIR")
 		if confDir == "" {
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to get a current user home directory.  Using the current directory.\n")
+				fmt.Fprintf(os.Stderr, "Failed to get a current user home directory. Using the current directory. Error: %s\n", err)
 				confDir = ".graviton"
 			} else {
 				confDir = filepath.Join(usr.HomeDir, ".graviton")
