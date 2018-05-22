@@ -13,7 +13,7 @@ bin/stardog-graviton: env
 bin: bin/stardog-graviton
 
 test: bin/stardog-graviton
-	go test -v -cover github.com/stardog-union/stardog-graviton/integration github.com/stardog-union/stardog-graviton/aws github.com/stardog-union/stardog-graviton/sdutils github.com/stardog-union/stardog-graviton
+	go test -v -cover github.com/stardog-union/stardog-graviton/integration github.com/stardog-union/stardog-graviton/aws github.com/stardog-union/stardog-graviton github.com/stardog-union/stardog-graviton/cmd/stardog-graviton
 
 clean:
 	rm -f aws/data.go

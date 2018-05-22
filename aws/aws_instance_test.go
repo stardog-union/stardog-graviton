@@ -21,7 +21,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
 	"fmt"
 )
 
@@ -64,23 +64,23 @@ func TestInstanceNotThere(t *testing.T) {
 
 	inst, err := NewEc2Instance(&app, dd)
 	if inst.InstanceExists() {
-		t.Fatalf("The instance should not exist")
+		t.Fatal("The instance should not exist")
 	}
 	err = inst.DeleteInstance()
 	if err == nil {
-		t.Fatalf("The instance should not exist for deletion")
+		t.Fatal("The instance should not exist for deletion")
 	}
 	err = inst.Status()
 	if err == nil {
-		t.Fatalf("The instance should not exist for status")
+		t.Fatal("The instance should not exist for status")
 	}
 	err = inst.CreateInstance(8, 1, 60, "")
 	if err == nil {
-		t.Fatalf("The instance should not exist for client")
+		t.Fatal("The instance should not exist for client")
 	}
 	err = inst.OpenInstance(8, 1, "0.0.0.0/0", 60)
 	if err == nil {
-		t.Fatalf("The instance should not exist for client")
+		t.Fatal("The instance should not exist for client")
 	}
 }
 
@@ -123,7 +123,7 @@ func TestInstanceFakeTerraform(t *testing.T) {
 
 	inst, err := NewEc2Instance(&app, dd)
 	if inst.InstanceExists() {
-		t.Fatalf("The instance should not exist")
+		t.Fatal("The instance should not exist")
 	}
 
 	data := `{
@@ -262,7 +262,7 @@ func TestInstanceFakeTerraformThroughDeployment(t *testing.T) {
 	ebs := NewAwsEbsVolumeManager(&app, dd)
 	err = ebs.CreateSet("/path/", 1, 3)
 	if err != nil {
-		t.Fatalf("The create should have worked")
+		t.Fatal("The create should have worked")
 	}
 
 	err = dd.CreateInstance(8, 1, 60, "")
@@ -285,7 +285,7 @@ func TestInstanceFakeTerraformThroughDeployment(t *testing.T) {
 		t.Fatalf("The instance should exist for deletion %s", err)
 	}
 	if sd.SSHHost != "bastion.com" {
-		t.Fatalf("The bastion host was not correct")
+		t.Fatal("The bastion host was not correct")
 	}
 	err = dd.DeleteInstance()
 	if err != nil {
@@ -332,14 +332,14 @@ func TestInstanceNotThereThroughDd(t *testing.T) {
 
 	err = dd.DeleteInstance()
 	if err == nil {
-		t.Fatalf("The instance should not exist for deletion")
+		t.Fatal("The instance should not exist for deletion")
 	}
 	err = dd.StatusInstance()
 	if err == nil {
-		t.Fatalf("The instance should not exist for status")
+		t.Fatal("The instance should not exist for status")
 	}
 	err = dd.CreateInstance(8, 1, 60, "")
 	if err == nil {
-		t.Fatalf("The instance should not exist for client")
+		t.Fatal("The instance should not exist for client")
 	}
 }

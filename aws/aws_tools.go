@@ -28,7 +28,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
+	"errors"
 )
 
 var (
@@ -129,7 +130,7 @@ func destroyAsgLc(c sdutils.AppContext, sess *session.Session, conf *aws.Config,
 	return nil
 }
 
-func getInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config, tagVal string, possibleDelpoyNames *map[string]bool) []*ec2.Instance {
+func getInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config, tagVal string, possibleDeployNames *map[string]bool) []*ec2.Instance {
 	instList := []*ec2.Instance{}
 	svc := ec2.New(sess, conf)
 	resp, err := svc.DescribeInstances(nil)
@@ -140,7 +141,7 @@ func getInstances(c sdutils.AppContext, sess *session.Session, conf *aws.Config,
 
 	for idx := range resp.Reservations {
 		for _, inst := range resp.Reservations[idx].Instances {
-			if hasTag(inst.Tags, tagVal, possibleDelpoyNames) && *inst.State.Code != 48 {
+			if hasTag(inst.Tags, tagVal, possibleDeployNames) && *inst.State.Code != 48 {
 				instList = append(instList, inst)
 				c.Logf(sdutils.DEBUG, "Found instance %s with tag %s", *inst.InstanceId, tagVal)
 			}
@@ -168,7 +169,7 @@ func GetAmiVersion(c sdutils.AppContext, region string, ami *string) (*string, e
 		return nil, err
 	}
 	if len(output.Images) != 1 {
-		return nil, fmt.Errorf("No images were found with that name")
+		return nil, errors.New("No images were found with that name")
 	}
 	tags := output.Images[0].Tags
 	if tags == nil || len(tags) < 1 {
@@ -353,8 +354,8 @@ func (a *awsPlugin) FindLeaks(c sdutils.AppContext, deploymentName string, destr
 		c.ConsoleLog(1, "\t%s\n", *lc.LaunchConfigurationName)
 	}
 	c.ConsoleLog(1, "Found %d load balancers\n", len(elbList))
-	for _, elb := range elbList {
-		c.ConsoleLog(1, "\t%s\n", *elb.LoadBalancerName)
+	for _, aElb := range elbList {
+		c.ConsoleLog(1, "\t%s\n", *aElb.LoadBalancerName)
 	}
 	c.ConsoleLog(1, "Found %d instances\n", len(instList))
 	for _, inst := range instList {

@@ -17,6 +17,7 @@ package sdutils
 
 import (
 	"fmt"
+	"errors"
 )
 
 // TestContext is used for mocking out a context in many tests
@@ -67,7 +68,7 @@ func (tp *tstPlugin) Register(cmdOpts *CommandOpts) error {
 
 func (tp *tstPlugin) DeploymentLoader(context AppContext, baseD *BaseDeployment, new bool) (Deployment, error) {
 	if tp.Dep == nil {
-		return nil, fmt.Errorf("This test plugin loads no deployment")
+		return nil, errors.New("This test plugin loads no deployment")
 	}
 	return tp.Dep, nil
 }

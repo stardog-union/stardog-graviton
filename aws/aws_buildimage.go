@@ -24,7 +24,8 @@ import (
 
 	"runtime"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
+	"errors"
 )
 
 var (
@@ -159,7 +160,7 @@ func (a *awsPlugin) BuildImage(context sdutils.AppContext, sdReleaseFilePath str
 		return err
 	}
 	if len(*results) < 1 {
-		return fmt.Errorf("Failed to find the AMI in the packer output")
+		return errors.New("Failed to find the AMI in the packer output")
 	}
 	if len(*results) > 1 {
 		context.Logf(sdutils.WARN, "We found more than 1 AMI")

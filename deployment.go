@@ -27,6 +27,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"errors"
 )
 
 var (
@@ -284,7 +285,7 @@ func WaitForHealth(context AppContext, baseD *BaseDeployment, d Deployment, wait
 	}
 	for i := 0; !IsHealthy(context, baseD, d, internal); i++ {
 		if i >= itCnt {
-			return fmt.Errorf("Timed out waiting for the instance to get healthy")
+			return errors.New("Timed out waiting for the instance to get healthy")
 		}
 		spin.EchoNext()
 		context.ConsoleLog(1, "\r%s", last)
@@ -311,7 +312,7 @@ func WaitForNClusterNodes(context AppContext, size int, sdURL string, pw string,
 	for i := 0; len(*nodes) < size; i++ {
 		context.ConsoleLog(2, "%d nodes waiting for %d\n", len(*nodes), size)
 		if i >= itCnt {
-			return fmt.Errorf("Timed out waiting for all the cluster nodes")
+			return errors.New("Timed out waiting for all the cluster nodes")
 		}
 		spinner.EchoNext()
 		time.Sleep(time.Duration(pollInterval) * time.Second)
@@ -380,7 +381,7 @@ func CreateInstance(context AppContext, baseD *BaseDeployment, dep Deployment, v
 // Upload a new Stardog release zip to the nodes and restart Stardog
 func UpdateStardog(context AppContext, baseD *BaseDeployment, dep Deployment, sdReleaseFile string) error {
 	if os.Getenv("SSH_AUTH_SOCK") == "" {
-		return fmt.Errorf("ssh-agent needs to be setup to update Stardog binaries")
+		return errors.New("ssh-agent needs to be setup to update Stardog binaries")
 	}
 	context.ConsoleLog(1, "Updating Stardog (this may take a few minutes)...\n")
 	sd, err := dep.FullStatus()
@@ -431,7 +432,7 @@ func UpdateStardog(context AppContext, baseD *BaseDeployment, dep Deployment, sd
 // GatherLogs sshes into the bastion node and collects logs from the stardog nodes
 func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfile string) error {
 	if os.Getenv("SSH_AUTH_SOCK") == "" {
-		return fmt.Errorf("ssh-agent needs to be setup for log gathering to work")
+		return errors.New("ssh-agent needs to be setup for log gathering to work")
 	}
 	context.ConsoleLog(2, "Gathering logs...\n")
 	sd, err := dep.FullStatus()

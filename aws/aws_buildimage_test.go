@@ -22,7 +22,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
 )
 
 func makeTestTerraformAndPacker(dir string, rc int) error {
@@ -44,7 +44,7 @@ func makeTestTerraformAndPacker(dir string, rc int) error {
 		echo %s
 		exit 0
 	fi
-	exit 0`
+	exit %d`
 	fakeTerraform = fmt.Sprintf(fakeTerraform, TerraformVersion, rc)
 	terraformFile := path.Join(dir, "terraform")
 	return ioutil.WriteFile(terraformFile, []byte(fakeTerraform), 0755)
@@ -86,7 +86,7 @@ func TestGoodPacker(t *testing.T) {
 		t.Fatalf("Packer failed %s", err)
 	}
 	if !awsP.HaveImage(&app) {
-		t.Fatalf("The image should be there")
+		t.Fatal("The image should be there")
 	}
 }
 
@@ -122,10 +122,10 @@ func TestBadRcPacker(t *testing.T) {
 	awsP := GetPlugin()
 	err = awsP.BuildImage(&app, "/etc/group", "4.2")
 	if err == nil {
-		t.Fatalf("Should have failed")
+		t.Fatal("Should have failed")
 	}
 	if awsP.HaveImage(&app) {
-		t.Fatalf("The image should not be there")
+		t.Fatal("The image should not be there")
 	}
 }
 
@@ -155,10 +155,10 @@ func TestBadAMIPacker(t *testing.T) {
 	awsP := GetPlugin()
 	err = awsP.BuildImage(&app, "/etc/group", "4.2")
 	if err == nil {
-		t.Fatalf("Should have failed")
+		t.Fatal("Should have failed")
 	}
 	if awsP.HaveImage(&app) {
-		t.Fatalf("The image should not be there")
+		t.Fatal("The image should not be there")
 	}
 }
 
@@ -172,6 +172,6 @@ func TestHaveNoAmi(t *testing.T) {
 	}
 	awsP := GetPlugin()
 	if awsP.HaveImage(&app) {
-		t.Fatalf("The image should not be there")
+		t.Fatal("The image should not be there")
 	}
 }

@@ -28,8 +28,9 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/stardog-union/stardog-graviton/aws"
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"errors"
 )
 
 var (
@@ -102,7 +103,7 @@ func realMain(args []string) int {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s %s\n", app.FailString("Failed:"), err.Error())
-		fmt.Fprintf(os.Stderr, "Please check the log files:\n")
+		fmt.Fprint(os.Stderr, "Please check the log files:\n")
 		baseLog := fmt.Sprintf("%s/logs/graviton.log", app.ConfigDir)
 		fmt.Fprintf(os.Stderr, "\t%s\n", app.FailString(baseLog))
 		if app.DeploymentName != "" {
@@ -133,7 +134,7 @@ func (cliContext *CliContext) sshIn(c *kingpin.ParseContext) error {
 }
 
 func (cliContext *CliContext) aboutCommand(c *kingpin.ParseContext) error {
-	v, err := Asset("etc/version")
+	v, err := sdutils.Asset("etc/version")
 	if err != nil {
 		return err
 	}
@@ -141,7 +142,7 @@ func (cliContext *CliContext) aboutCommand(c *kingpin.ParseContext) error {
 	cliContext.ConsoleLog(0, "              Stardog Graviton\n")
 	cliContext.ConsoleLog(0, "              Version %s\n", cliContext.GetVersion())
 	cliContext.ConsoleLog(0, "              Git hash %s\n", string(v))
-	colorDog, err := Asset("etc/stardog.bb")
+	colorDog, err := sdutils.Asset("etc/stardog.bb")
 	sdutils.BbCode(string(colorDog))
 	cliContext.ConsoleLog(1, "For a quick start run:\n")
 	cliContext.ConsoleLog(1, "%s launch mystardog\n", os.Args[0])
@@ -154,7 +155,7 @@ func envNormalize(cliContext *CliContext) error {
 	for ndx, env := range cliContext.EnvList {
 		i := strings.Index(env, "=")
 		if i < 1 || i > len(env)-2 {
-			return fmt.Errorf("The environment variable must have the form 'key=value'")
+			return errors.New("The environment variable must have the form 'key=value'")
 		}
 		kvArray := strings.Split(env, "=")
 		if kvArray[1][0] != '\'' && kvArray[1][0] != '"' {
@@ -236,7 +237,7 @@ func (cliContext *CliContext) interactive(c *kingpin.ParseContext) error {
 				return err
 			}
 		} else {
-			return fmt.Errorf("A base image is needed in order to launch a stardog-graviton cluster")
+			return errors.New("A base image is needed in order to launch a stardog-graviton cluster")
 		}
 	}
 	err = sdutils.AskUserInteractiveString("What would you like to name this deployment?", cliContext.DeploymentName, !cliContext.Interactive, &cliContext.DeploymentName)
@@ -364,10 +365,10 @@ func (cliContext *CliContext) destroyDeployment(c *kingpin.ParseContext) error {
 		return err
 	}
 	if d.InstanceExists() {
-		return fmt.Errorf("An instance exist in this deployment.  Please destroy it before removing the deployment")
+		return errors.New("An instance exist in this deployment.  Please destroy it before removing the deployment")
 	}
 	if d.VolumeExists() {
-		return fmt.Errorf("Volumes exist in this deployment.  Please destroy them before removing the deployment")
+		return errors.New("Volumes exist in this deployment.  Please destroy them before removing the deployment")
 	}
 	cliContext.Force = true
 	err = cliContext.destroyInstance(c)
@@ -579,11 +580,11 @@ func (cliContext *CliContext) Logf(level int, format string, v ...interface{}) {
 
 func (cliContext *CliContext) nameValidate(a *kingpin.CmdClause) error {
 	if len(cliContext.DeploymentName) > 20 {
-		return fmt.Errorf("The deployment name must be less than 20 characters")
+		return errors.New("The deployment name must be less than 20 characters")
 	}
 	// We may want to make this into a regex if otehr characters are problematic
 	if strings.Contains(cliContext.DeploymentName, "_") {
-		return fmt.Errorf("The deployment name must not contain a _")
+		return errors.New("The deployment name must not contain a _")
 	}
 	return nil
 }
@@ -596,7 +597,7 @@ func (cliContext *CliContext) envValidate(a *kingpin.CmdClause) error {
 	for _, env := range cliContext.EnvList {
 		i := strings.Index(env, "=")
 		if i < 1 || i > len(env)-2 {
-			return fmt.Errorf("The environment variable must have the form 'key=value'")
+			return errors.New("The environment variable must have the form 'key=value'")
 		}
 	}
 	return nil
@@ -730,7 +731,7 @@ func parseParameters(args []string) (*CliContext, error) {
 	cmdOpts.Cli = cli
 
 	versionString := "unknown"
-	b, err := Asset("etc/version")
+	b, err := sdutils.Asset("etc/version")
 	if err == nil {
 		versionString = strings.TrimSpace(string(b))
 	}

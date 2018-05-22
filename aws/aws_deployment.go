@@ -27,7 +27,8 @@ import (
 
 	"time"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
+	"errors"
 )
 
 type awsDeploymentDescription struct {
@@ -76,7 +77,7 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 				return nil, err
 			}
 			if ami == "" {
-				return nil, fmt.Errorf("An AMI is required.  Please see the 'baseami' subcommand")
+				return nil, errors.New("An AMI is required.  Please see the 'baseami' subcommand")
 			}
 		}
 		a.AmiID = ami
@@ -138,7 +139,7 @@ func newAwsDeploymentDescription(c sdutils.AppContext, baseD *sdutils.BaseDeploy
 			return nil, err
 		}
 		if baseD.PrivateKey == "" {
-			return nil, fmt.Errorf("A path to a private key must be provided")
+			return nil, errors.New("A path to a private key must be provided")
 		}
 	}
 	// Check the key name and key path
@@ -220,7 +221,7 @@ func (dd *awsDeploymentDescription) ClusterSize() (int, error) {
 		return -1, err
 	}
 	if c != 1 {
-		return -1, fmt.Errorf("Internal error: the cluster size is not coherent")
+		return -1, errors.New("Internal error: the cluster size is not coherent")
 	}
 	return size, nil
 }
@@ -421,11 +422,11 @@ func (a *awsPlugin) GetName() string {
 }
 
 func GetGravitonDependencyExe(context sdutils.AppContext, program string) (string, error) {
-	path := filepath.Join(context.GetConfigDir(), program)
-	if !sdutils.PathExists(path) {
+	aPath := filepath.Join(context.GetConfigDir(), program)
+	if !sdutils.PathExists(aPath) {
 		return "", fmt.Errorf("%s is not configure correctly", program)
 	}
-	return path, nil
+	return aPath, nil
 }
 
 func GetTerraformPath(context sdutils.AppContext) (string, error) {

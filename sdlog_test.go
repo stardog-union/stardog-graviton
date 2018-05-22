@@ -35,13 +35,13 @@ func TestWarnLevel(t *testing.T) {
 	sdLog.Logf(DEBUG, msg)
 
 	if !strings.Contains(buf.String(), "WARN") {
-		t.Fatalf("A warning should have been found")
+		t.Fatal("A warning should have been found")
 	}
 	if !strings.Contains(buf.String(), "ERROR") {
-		t.Fatalf("A error should have been found")
+		t.Fatal("A error should have been found")
 	}
 	if strings.Contains(buf.String(), "DEBUG") {
-		t.Fatalf("Debug should not have been found")
+		t.Fatal("Debug should not have been found")
 	}
 }
 
@@ -59,16 +59,16 @@ func TestErrorLevel(t *testing.T) {
 	sdLog.Logf(DEBUG, msg)
 
 	if !strings.Contains(buf.String(), "ERROR") {
-		t.Fatalf("A error should have been found")
+		t.Fatal("A error should have been found")
 	}
 	if strings.Contains(buf.String(), "WARN") {
-		t.Fatalf("A warning should not have been found")
+		t.Fatal("A warning should not have been found")
 	}
 	if strings.Contains(buf.String(), "INFO") {
-		t.Fatalf("A info should not have been found")
+		t.Fatal("A info should not have been found")
 	}
 	if strings.Contains(buf.String(), "DEBUG") {
-		t.Fatalf("Debug should not have been found")
+		t.Fatal("Debug should not have been found")
 	}
 }
 
@@ -86,13 +86,13 @@ func TestInfoLevel(t *testing.T) {
 	sdLog.Logf(INFO, msg)
 
 	if !strings.Contains(buf.String(), "WARN") {
-		t.Fatalf("A warn should have been found")
+		t.Fatal("A warn should have been found")
 	}
 	if !strings.Contains(buf.String(), "ERROR") {
-		t.Fatalf("A error should have been found")
+		t.Fatal("A error should have been found")
 	}
 	if strings.Contains(buf.String(), "DEBUG") {
-		t.Fatalf("Debug should not have been found")
+		t.Fatal("Debug should not have been found")
 	}
 }
 
@@ -110,16 +110,16 @@ func TestDebugLevel(t *testing.T) {
 	sdLog.Logf(INFO, msg)
 
 	if !strings.Contains(buf.String(), "WARN") {
-		t.Fatalf("A warning should have been found")
+		t.Fatal("A warning should have been found")
 	}
 	if !strings.Contains(buf.String(), "ERROR") {
-		t.Fatalf("A error should have been found")
+		t.Fatal("A error should have been found")
 	}
 	if !strings.Contains(buf.String(), "DEBUG") {
-		t.Fatalf("A debug should have been found")
+		t.Fatal("A debug should have been found")
 	}
 	if !strings.Contains(buf.String(), "INFO") {
-		t.Fatalf("A info should have been found")
+		t.Fatal("A info should have been found")
 	}
 }
 
@@ -128,6 +128,6 @@ func TestInvalidLevel(t *testing.T) {
 	realLogger := log.New(buf, "", log.Ldate|log.Ltime)
 	_, err := NewSdVaLogger(realLogger, "NOGOOD")
 	if err == nil {
-		t.Fatalf("The logger should not have loaded")
+		t.Fatal("The logger should not have loaded")
 	}
 }

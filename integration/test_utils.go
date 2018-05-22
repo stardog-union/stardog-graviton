@@ -2,7 +2,7 @@ package integration
 
 import (
 	//"os"
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
 	"math/rand"
 	"fmt"
 	"mime/multipart"
@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"errors"
 )
 
 func getStardogUrl() (string, error) {
@@ -65,8 +66,8 @@ func makeDb(sdURL string, dbName string) error {
 		return fmt.Errorf("Failed do the post %s", err)
 	}
 	if resp.StatusCode != 201 {
-		fmt.Printf("ERROR %d %s\n", resp.ContentLength, resp)
-		return fmt.Errorf("Failed to create the database")
+		fmt.Printf("ERROR %d %s\n", resp.ContentLength, resp.Status)
+		return errors.New("Failed to create the database")
 	}
 	return nil
 }
@@ -88,9 +89,9 @@ func startTransaction(sdURL string, dbName string) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Failed to do the begin %s", resp)
+		return "", fmt.Errorf("Failed to do the begin %s", resp.Status)
 	}
-	fmt.Printf("Begin Resp %s\n", resp)
+	fmt.Printf("Begin Resp %s\n", resp.Status)
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("Failed to read the id %s", err)
@@ -121,7 +122,7 @@ func postRows(sdURL string, dbName string, txId string, dataPath string) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed to do the begin %s", resp)
+		return fmt.Errorf("Failed to do the begin %s", resp.Status)
 	}
 
 	return nil
@@ -144,7 +145,7 @@ func commitTransaction(sdURL string, dbName string, txId string) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed to do the begin %s", resp)
+		return fmt.Errorf("Failed to do the begin %s", resp.Status)
 	}
 
 	return nil
@@ -175,7 +176,7 @@ func queryAll(sdURL string, dbName string) (string, error)  {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		fmt.Printf("ERROR %d %s\n", resp.ContentLength, resp)
+		fmt.Printf("ERROR %d %s\n", resp.ContentLength, resp.Status)
 		return "", fmt.Errorf("Query failed with mode %d", resp.StatusCode)
 	}
 	content, err := ioutil.ReadAll(resp.Body)

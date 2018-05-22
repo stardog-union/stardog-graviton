@@ -102,7 +102,7 @@ func AskUserInteractiveString(prompt string, defaultValue string, skipIfDefault 
 		}
 		c = v.(string)
 		if c == "" {
-			fmt.Printf("A value must be provided.\n")
+			fmt.Print("A value must be provided.\n")
 		}
 	}
 	*val = c

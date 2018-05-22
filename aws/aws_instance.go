@@ -27,7 +27,8 @@ import (
 	"strings"
 	"strconv"
 
-	"github.com/stardog-union/stardog-graviton/sdutils"
+	"github.com/stardog-union/stardog-graviton"
+	"errors"
 )
 
 // Ec2Instance represents an instance of a Stardog service in AWS.
@@ -104,7 +105,7 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 	base64CustomScriptPath := path.Join(dd.deployDir, "custom-stardogscript.base64")
 	err = ioutil.WriteFile(base64CustomScriptPath, []byte(base64CustomScriptData), 0644)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create the base 64 encoded custom script")
+		return nil, errors.New("Failed to create the base 64 encoded custom script")
 	}
 
 	scriptZkData := []byte("#!/bin/bash\nexit 0\n")
@@ -118,7 +119,7 @@ func NewEc2Instance(ctx sdutils.AppContext, dd *awsDeploymentDescription) (*Ec2I
 	base64CustomZkScriptPath := path.Join(dd.deployDir, "custom-zk-stardogscript.base64")
 	err = ioutil.WriteFile(base64CustomZkScriptPath, []byte(base64CustomZkScriptData), 0644)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create the base 64 encoded custom zk script")
+		return nil, errors.New("Failed to create the base 64 encoded custom zk script")
 	}
 
 	instance := Ec2Instance{
@@ -283,7 +284,7 @@ func (awsI *Ec2Instance) DeleteInstance() error {
 	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")
 	instanceConfPath := path.Join(instanceWorkingDir, "instance.json")
 	if !sdutils.PathExists(instanceConfPath) {
-		return fmt.Errorf("There is no configured instance")
+		return errors.New("There is no configured instance")
 	}
 	terraformPath, err := GetTerraformPath(awsI.Ctx)
 	if err != nil {
@@ -327,7 +328,7 @@ func getInstanceValues(awsI *Ec2Instance) (*InstanceStatusDescription, error) {
 	instanceWorkingDir := path.Join(awsI.DeployDir, "etc", "terraform", "instance")
 	instanceConfPath := path.Join(instanceWorkingDir, "instance.json")
 	if !sdutils.PathExists(instanceConfPath) {
-		return nil, fmt.Errorf("There is no configured instance")
+		return nil, errors.New("There is no configured instance")
 	}
 	terraformPath, err := GetTerraformPath(awsI.Ctx)
 	if err != nil {

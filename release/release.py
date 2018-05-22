@@ -38,7 +38,8 @@ def checkenv(sd_license, release, ssh_key_path):
 def build_with_gox():
     base_dir = os.path.dirname(this_location())
     cmd = 'gox -osarch="linux/amd64" -osarch="darwin/amd64" ' \
-          '-output=release/{{.OS}}_{{.Arch}}/stardog-graviton'
+          '-output=release/{{.OS}}_{{.Arch}}/stardog-graviton '\
+          'github.com/stardog-union/stardog-graviton/cmd/stardog-graviton'
     p = subprocess.Popen(cmd, shell=True, cwd=base_dir)
     rc = p.wait()
     if rc != 0:
@@ -87,14 +88,35 @@ def run_local(work_dir, ssh_key_name, release):
     print ("XXX Local run was successful")
 
 
-def run_docker(work_dir, ssh_key_name, release):
-    image_name = "graviton-release-tester"
+def build_docker(image_name):
+    print("Building the docker container")
     cmd = "docker build -t %s ." % image_name
     p = subprocess.Popen(cmd, shell=True, cwd=this_location())
     rc = p.wait()
     if rc != 0:
         raise Exception("Failed build the container")
 
+
+def compile_linux(image_name):
+    print("Compiling in a docker container")
+    top_dir = os.path.join(this_location(), "..")
+    try:
+        os.makedirs(os.path.join(this_location(), "release", "linux_amd64"))
+    except:
+        pass
+
+    internal_gopath = "/opt/go/src/"
+    docker_cmd = "/usr/lib/go-1.10/bin/go build -o release/linux_amd64/stardog-graviton github.com/stardog-union/stardog-graviton/cmd/stardog-graviton"
+    cmd = "docker run -e GOPATH=%s -v %s:%s/src/github.com/stardog-union/stardog-graviton -it %s %s" % (internal_gopath, top_dir, internal_gopath, image_name, docker_cmd)
+    print(cmd)
+    p = subprocess.Popen(cmd, shell=True, cwd=this_location())
+    rc = p.wait()
+    if rc != 0:
+        raise Exception("Failed build the container")
+
+
+def run_docker(work_dir, ssh_key_name, release, image_name):
+    print("Running docker for testing...")
     cmd = "docker run -v %s:/smoke " \
           "-e AWS_SECRET_ACCESS_KEY=%s " \
           "-e AWS_ACCESS_KEY_ID=%s " \
@@ -156,10 +178,12 @@ def darwin_test(sd_license, release, ssh_key_path, ssh_key_name):
 def linux_test(sd_license, release, ssh_key_path, ssh_key_name):
     try:
         linux_binary = os.path.join(this_location(),
-                                     "linux_amd64", "stardog-graviton")
+                                    "linux_amd64", "stardog-graviton")
         release_name = os.path.basename(release)
         work_dir = prep_run(sd_license, release, linux_binary, ssh_key_path)
-        run_docker(work_dir, ssh_key_name, release_name)
+        build_docker("graviton-release-tester")
+        compile_linux("graviton-release-tester")
+        run_docker(work_dir, ssh_key_name, release_name, "graviton-release-tester")
         print("Successfully smoke tested for darwin.")
         print("Exe: linux_amd64/stardog-graviton")
     except Exception as ex:
