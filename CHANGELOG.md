@@ -1,3 +1,14 @@
+# 1.0.8 (2018-05-22)
+
+Features:
+* Added support for a volume from a snapshot id mounted on the bastion.
+* Refactored the code layout to be more inline with Go best practices.
+
+Fixes:
+* Fixed a bug related to the linux cross compile.  When cross compile
+  for Linux on OSX it results in the user.Current() function to not
+  be available.  Now the release process will not cross compile for linux.
+
 # 1.0.7 (2018-05-07)
 
 Features:
