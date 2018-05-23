@@ -106,7 +106,7 @@ def compile_linux(image_name):
         pass
 
     internal_gopath = "/opt/go/src/"
-    docker_cmd = "/usr/lib/go-1.10/bin/go build -o release/linux_amd64/stardog-graviton github.com/stardog-union/stardog-graviton/cmd/stardog-graviton"
+    docker_cmd = "/usr/lib/go-1.10/bin/go build -o %s/src/github.com/stardog-union/stardog-graviton/release/linux_amd64/stardog-graviton github.com/stardog-union/stardog-graviton/cmd/stardog-graviton" % internal_gopath
     cmd = "docker run -e GOPATH=%s -v %s:%s/src/github.com/stardog-union/stardog-graviton -it %s %s" % (internal_gopath, top_dir, internal_gopath, image_name, docker_cmd)
     print(cmd)
     p = subprocess.Popen(cmd, shell=True, cwd=this_location())
@@ -177,12 +177,12 @@ def darwin_test(sd_license, release, ssh_key_path, ssh_key_name):
 
 def linux_test(sd_license, release, ssh_key_path, ssh_key_name):
     try:
+        build_docker("graviton-release-tester")
+        compile_linux("graviton-release-tester")
         linux_binary = os.path.join(this_location(),
                                     "linux_amd64", "stardog-graviton")
         release_name = os.path.basename(release)
         work_dir = prep_run(sd_license, release, linux_binary, ssh_key_path)
-        build_docker("graviton-release-tester")
-        compile_linux("graviton-release-tester")
         run_docker(work_dir, ssh_key_name, release_name, "graviton-release-tester")
         print("Successfully smoke tested for darwin.")
         print("Exe: linux_amd64/stardog-graviton")
