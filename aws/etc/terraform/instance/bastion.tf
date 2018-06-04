@@ -12,6 +12,7 @@ resource "aws_instance" "bastion" {
 	ami = "${var.baseami}"
 	key_name = "${var.aws_key_name}"
 	security_groups = ["${aws_security_group.bastion.id}"]
+	iam_instance_profile = "${aws_iam_instance_profile.stardog.id}"
 	subnet_id = "${aws_subnet.bastion.id}"
 
   root_block_device {
