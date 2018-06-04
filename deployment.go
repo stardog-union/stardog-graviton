@@ -471,8 +471,9 @@ func GatherLogs(context AppContext, baseD *BaseDeployment, dep Deployment, outfi
 	context.Logf(INFO, "Successfully gathered the logs on the bastion node at %s", dstLogFile)
 	outfile = strings.TrimSpace(outfile)
 	if outfile == "" {
-		outfile = "stardoglogs.tar.gz"
+		outfile = "./stardoglogs.tar.gz"
 	}
+	context.ConsoleLog(0, "Saving logs to: %s\n", outfile)
 	return runSCPCommand(context, baseD, sd, outfile, dstLogFile, false)
 }
 
