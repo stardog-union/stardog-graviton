@@ -76,6 +76,20 @@ def run_basic_query_test(conf_path, sd_dir, sd_url):
         raise Exception("Couldn't find 462 rows")
 
 
+def run_log_gather_test(graviton_exe, deployment_name):
+    output_file = "/tmp/stardog-logs-%s.tar.gz" % deployment_name
+    cmd = "%s logs %s --output-file=%s" % (graviton_exe, deployment_name, output_file)
+    p = subprocess.Popen(cmd, shell=True)
+    rc = p.wait()
+    if rc != 0:
+        raise Exception("Failed to gather logs for the deployment")
+    if not os.path.isfile(output_file):
+        raise Exception("Failed to gather logs: output file does not exist")
+    if os.stat(output_file).st_size <= 0:
+        raise Exception("Failed to gather logs: output file is empty")
+    print("Successfully gathered logs")
+
+
 def make_defaults_file(working_dir, sd_license, release_full_path, release_name,
                        ssh_key_path, ssh_key_name):
     suffix = ".zip"
@@ -160,6 +174,8 @@ def main():
         print("Stardog is running at %s" % sd_url)
         print("Start basic query tests")
         run_basic_query_test(working_dir, sd_dir, sd_url)
+        print("Start log gather test")
+        run_log_gather_test(graviton_exe, deployment_name)
         print("Start integration tests")
         if source_dir is not None:
             run_integration_tests(source_dir, sd_url)
