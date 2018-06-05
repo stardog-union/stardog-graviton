@@ -174,8 +174,11 @@ def main():
         print("Stardog is running at %s" % sd_url)
         print("Start basic query tests")
         run_basic_query_test(working_dir, sd_dir, sd_url)
-        print("Start log gather test")
-        run_log_gather_test(graviton_exe, deployment_name)
+        if os.environ.get('SSH_AUTH_SOCK'):
+            print("Start log gather test")
+            run_log_gather_test(graviton_exe, deployment_name)
+        else:
+            print("SSH AGENT IS NOT RUNNING, SKIPPING LOG GATHERING TEST")
         print("Start integration tests")
         if source_dir is not None:
             run_integration_tests(source_dir, sd_url)

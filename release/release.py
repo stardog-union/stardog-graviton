@@ -90,7 +90,7 @@ def run_local(work_dir, ssh_key_name, release):
 
 def build_docker(image_name):
     print("Building the docker container")
-    cmd = "docker build -t %s ." % image_name
+    cmd = "docker build -t %s . --no-cache" % image_name
     p = subprocess.Popen(cmd, shell=True, cwd=this_location())
     rc = p.wait()
     if rc != 0:
