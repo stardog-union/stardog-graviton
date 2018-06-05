@@ -1,3 +1,8 @@
+# 1.0.9 (2018-06-05)
+
+Fixes:
+* Fixes bug that broke log gathering. Adds log gathering release test.
+
 # 1.0.8 (2018-05-22)
 
 Features:
