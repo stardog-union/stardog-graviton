@@ -59,7 +59,7 @@ resource "aws_security_group" "bastion" {
 
 resource "aws_subnet" "bastion" {
   vpc_id = "${aws_vpc.main.id}"
-  cidr_block = "${format("10.0.%d.0/24", count.index + 200)}"
+  cidr_block = "10.0.50.0/24"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
 
   tags {
