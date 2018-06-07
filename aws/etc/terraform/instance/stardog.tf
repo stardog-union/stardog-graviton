@@ -2,7 +2,7 @@ data "template_file" "stardog_zk_server" {
   count = "${var.zookeeper_size}"
   template = "$${host}:2181"
   vars {
-    host = "${element(aws_elb.zookeeper.*.dns_name, count.index)}"
+    host = "${element(aws_instance.zookeeper.*.private_ip, count.index)}"
   }
 }
 

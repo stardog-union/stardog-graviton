@@ -4,7 +4,7 @@ data "template_file" "zk_server" {
   template = "${file("server-spec.tpl")}"
   vars {
     id = "${count.index + 1}"
-    host = "${element(aws_elb.zookeeper.*.dns_name, count.index)}"
+    host = "${format("10.0.%d.%d", count.index + 200, count.index + 200)}"
   }
 }
 
@@ -25,7 +25,7 @@ data "template_file" "zk_health_ping" {
   template = "/usr/local/bin/stardog-wait-for-pgm 100 ping -c 1 $${host}"
   vars {
     id = "${count.index + 1}"
-    host = "${element(aws_elb.zookeeper.*.dns_name, count.index)}"
+    host = "${format("10.0.%d.%d", count.index + 200, count.index + 200)}"
   }
 }
 
@@ -41,40 +41,25 @@ data "template_file" "zk_userdata" {
   }
 }
 
-resource "aws_autoscaling_group" "zookeeper" {
-  name = "${var.deployment_name}zkasg${count.index}"
+resource "aws_instance" "zookeeper" {
   count = "${var.zookeeper_size}"
-  vpc_zone_identifier = ["${element(aws_subnet.zk.*.id, count.index % length(aws_subnet.zk.*.id))}"]
-  max_size = 1
-  min_size = 1
-  desired_capacity = 1
-  launch_configuration = "${element(aws_launch_configuration.zookeeper.*.name, count.index)}"
-  health_check_grace_period = "${var.zk_health_grace_period}"
-  health_check_type = "ELB"
-  load_balancers = ["${element(aws_elb.zookeeper.*.name, count.index)}"]
+  availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
 
-  tag {
-    key = "StardogVirtualAppliance"
-    value = "${var.deployment_name}"
-    propagate_at_launch = true
-  }
-    tag {
-    key = "Name"
-    value = "ZookeeperNode"
-    propagate_at_launch = true
-  }
-}
+  private_ip = "${format("10.0.%d.%d", count.index + 200, count.index + 200)}"
 
-resource "aws_launch_configuration" "zookeeper" {
-  count = "${var.zookeeper_size}"
-  name_prefix = "${var.deployment_name}zklc${count.index}"
-  image_id = "${var.baseami}"
+  timeouts {
+	  create = "30m"
+	  delete = "30m"
+	  update = "30m"
+	}
+
+  ami = "${var.baseami}"
   instance_type = "${var.zk_instance_type}"
   user_data = "${element(data.template_file.zk_userdata.*.rendered, count.index)}"
   key_name = "${var.aws_key_name}"
   security_groups = ["${aws_security_group.zookeeper.id}"]
-  # XXX TODO figure out why we need a public ip for external routing
-  associate_public_ip_address = true
+  iam_instance_profile = "${aws_iam_instance_profile.stardog.id}"
+  subnet_id = "${element(aws_subnet.zk.*.id, count.index)}"
 
   root_block_device {
     volume_type = "${var.zk_root_volume_type}"
@@ -82,68 +67,17 @@ resource "aws_launch_configuration" "zookeeper" {
     iops = "${var.zk_root_volume_type == "io1" ? var.zk_root_volume_iops : 0}"
     delete_on_termination = "true"
   }
-}
-
-resource "aws_elb" "zookeeper" {
-  name = "${var.deployment_name}zkelb${count.index}"
-
-  count = "${var.zookeeper_size}"
-  internal = true
-
-  subnets = ["${element(aws_subnet.zk.*.id, count.index % length(aws_subnet.zk.*.id))}"]
-  security_groups = ["${aws_security_group.zookeeper.id}"]
-
-  listener {
-    instance_port     = 2181
-    instance_protocol = "tcp"
-    lb_port           = 2181
-    lb_protocol       = "tcp"
-  }
-
-  listener {
-    instance_port     = 2888
-    instance_protocol = "tcp"
-    lb_port           = 2888
-    lb_protocol       = "tcp"
-  }
-
-  listener {
-    instance_port     = 3888
-    instance_protocol = "tcp"
-    lb_port           = 3888
-    lb_protocol       = "tcp"
-  }
-
-  listener {
-    instance_port     = 9000
-    instance_protocol = "tcp"
-    lb_port           = 9000
-    lb_protocol       = "tcp"
-  }
-
-  listener {
-    instance_port     = 22
-    instance_protocol = "tcp"
-    lb_port           = 22
-    lb_protocol       = "tcp"
-  }
-
-  health_check {
-    healthy_threshold = "${var.zk_healthy_threshold}"
-    unhealthy_threshold = "${var.zk_unhealthy_threshold}"
-    timeout = "${var.zk_health_timeout}"
-    target = "HTTP:9000/"
-    interval = "${var.zk_health_interval}"
-  }
 
   tags {
-    StardogVirtualAppliance = "${var.deployment_name}"
-  }
+	  Name = "ZookeeperNode"
+	  DeploymentName = "${var.deployment_name}"
+	  StardogVirtualAppliance = "${var.deployment_name}"
+	}
 }
 
 resource "aws_security_group" "zookeeper" {
   name = "${var.deployment_name}zksg"
-  description = "Allow stardog traffic"
+  description = "Allow zookeeper traffic"
   vpc_id = "${aws_vpc.main.id}"
 
   tags {
@@ -207,9 +141,9 @@ resource "aws_security_group" "zookeeper" {
 }
 
 resource "aws_subnet" "zk" {
-  count = "${length(data.aws_availability_zones.available.names)}"
+  count = "${var.zookeeper_size}"
   vpc_id = "${aws_vpc.main.id}"
-  cidr_block = "${format("10.0.%d.0/24", count.index)}"
+  cidr_block = "${format("10.0.%d.0/24", count.index + 200)}"
   availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
 
   tags {

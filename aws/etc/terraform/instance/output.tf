@@ -13,5 +13,5 @@ output "bastion_contact" {
 }
 
 output "zookeeper_nodes" {
-  value = ["${aws_elb.zookeeper.*.dns_name}"]
+  value = ["${aws_instance.zookeeper.*.private_ip}"]
 }
