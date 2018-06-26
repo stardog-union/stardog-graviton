@@ -30,16 +30,18 @@ def get_instance_ids(deply_name, count, region_name):
     return found_instances
 
 
-def get_zk_instance_ids(deply_name, region_name):
+def get_zk_instance_ids(deploy_name, region_name):
     found_instances = []
-    client = boto3.client('autoscaling', region_name=region_name)
-    asg_name = "%szkasg" % deply_name
+    client = boto3.client('ec2', region_name=region_name)
 
-    groups = client.describe_auto_scaling_groups()
-    for g in groups['AutoScalingGroups']:
-        if g['AutoScalingGroupName'].find(asg_name) >= 0:
-            for i in g['Instances']:
-                found_instances.append(i['InstanceId'])
+    reservations = client.describe_instances(Filters=[
+        {'Name':'tag:DeploymentName', 'Values':[deploy_name]},
+        {'Name':'tag:Name', 'Values':['ZookeeperNode']},
+        {'Name':'instance-state-name', 'Values':['running']}])
+    for r in reservations['Reservations']:
+        for x in r['Instances']:
+            if 'InstanceId' in x:
+                found_instances.append(x['InstanceId'])
 
     return found_instances
 
@@ -50,7 +52,10 @@ def get_internal_ips_from_instance(instances, region_name):
     instances = client.describe_instances(InstanceIds=instances)
     for r in instances['Reservations']:
         for x in r['Instances']:
-            found_ips.append(x['PrivateIpAddress'])
+            if 'PrivateIpAddress' in x:
+                found_ips.append(x['PrivateIpAddress'])
+            else:
+                print("PrivateIpAddress not found for instance: %s" % x)
     return found_ips
 
 
@@ -59,7 +64,7 @@ def get_internal_ips_by_asg(deply_name, count, region_name):
     return get_internal_ips_from_instance(instance_ids, region_name)
 
 
-def get_internal_zk_ips_by_asg(deply_name, region_name):
+def get_internal_zk_ips_by_deploy_name(deply_name, region_name):
     instance_ids = get_zk_instance_ids(deply_name, region_name)
     return get_internal_ips_from_instance(instance_ids, region_name)
 

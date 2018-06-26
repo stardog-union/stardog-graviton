@@ -91,7 +91,7 @@ def main():
     region = utils.get_region()
     ips = utils.get_internal_ips_by_asg(deploy_name, count, region)
     n, log_dir = get_all_logs(ips, node_type="stardog")
-    zk_ips = utils.get_internal_zk_ips_by_asg(deploy_name, region)
+    zk_ips = utils.get_internal_zk_ips_by_deploy_name(deploy_name, region)
     m, log_dir = get_all_logs(zk_ips, get_jstack=False, node_type="zookeeper", dst_dir=log_dir)
     logging.info("Retrieved %d logs" % (n+m))
     if n < 1:
