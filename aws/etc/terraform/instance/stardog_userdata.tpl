@@ -13,6 +13,12 @@ echo '${stardog_conf}' > $STARDOG_HOME/stardog.properties
 MY_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
 sed -i "s/@@LOCAL_IP@@/$MY_IP/" $STARDOG_HOME/stardog.properties
 
+SERVER_OPTS="${server_opts}"
+
+if [ -n $SERVER_OPTS ]; then
+    sed -i "s/server start/server start $SERVER_OPTS/" /opt/stardog/stardog-server.sh
+fi
+
 /usr/local/bin/stardog-wait-for-socket 100 ${zk_servers}
 
 set +e
