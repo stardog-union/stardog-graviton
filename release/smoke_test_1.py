@@ -6,14 +6,13 @@ import subprocess
 import sys
 
 
-def start_sd(exe_path):
-    deployment_name = "gravtest%s" % str(uuid.uuid4()).split("-")[4]
-    p = subprocess.Popen("%s launch --force %s" % (exe_path, deployment_name),
+def start_sd(exe_path, extra_args, deployment_name):
+    p = subprocess.Popen("%s launch --force %s %s" % (exe_path, extra_args, deployment_name),
                          shell=True)
     rc = p.wait()
     if rc != 0:
         raise Exception("Failed to start stardog")
-    return deployment_name
+    return
 
 
 def get_status(exe_path, deployment_name):
@@ -90,6 +89,25 @@ def run_log_gather_test(graviton_exe, deployment_name):
     print("Successfully gathered logs")
 
 
+def run_security_test(sd_dir, sd_url, security_enabled=True):
+    sd_adim = os.path.join(sd_dir, "bin", "stardog-admin")
+    cmd = "%s --server %s server status -u baduser -p badpassword" % (sd_adim, sd_url)
+    print(cmd)
+    p = subprocess.Popen(cmd, shell=True)
+    o, e = p.communicate()
+    rc = p.wait()
+    print("return code=%s" % rc)
+    print("output=%s" % o)
+    print("error=%s" % e)
+    # command with bad user/password should fail with security enabled
+    if security_enabled and rc == 0:
+        raise Exception("Stardog command with bad user/password succeeded with security enabled")
+    # command with bad user/password should pass with security disabled
+    if not security_enabled and rc != 0:
+        raise Exception("Stardog command with bad user/password failed even though security is disabled")
+    print("Security check passed (security_enabled=%s)" % security_enabled)
+
+
 def make_defaults_file(working_dir, sd_license, release_full_path, release_name,
                        ssh_key_path, ssh_key_name):
     suffix = ".zip"
@@ -150,28 +168,19 @@ def run_integration_tests(source_dir, sd_url):
         raise Exception("Failed to run the integration tests")
 
 
-def main():
-    working_dir = sys.argv[1]
-    release = sys.argv[2]
-    ssh_key_name = sys.argv[3]
-    source_dir = None
-    if len(sys.argv) > 4:
-        source_dir = sys.argv[4]
-
-    release_full_path = os.path.join(working_dir, release)
-    sd_license = os.path.join(working_dir, "stardog-license-key.bin")
-    ssh_key_path = os.path.join(working_dir, "ssh_key")
-
-    make_defaults_file(working_dir, sd_license, release_full_path, release,
-                       ssh_key_path, ssh_key_name)
-    sd_dir = unzip_release(working_dir, release_full_path)
+def deploy_and_run_tests(working_dir, source_dir, sd_dir,
+                         deployment_name, security_enabled=True):
+    extra_args = ""
+    if not security_enabled:
+        extra_args = "--disable-security"
     graviton_exe = os.path.join(working_dir, "stardog-graviton")
-    setup(working_dir)
-    deployment_name = start_sd(graviton_exe)
+    start_sd(graviton_exe, extra_args, deployment_name)
     try:
         print("Started the deployment %s" % deployment_name)
         sd_url = get_status(graviton_exe, deployment_name)
         print("Stardog is running at %s" % sd_url)
+        print("Start security test")
+        run_security_test(sd_dir, sd_url, security_enabled)
         print("Start basic query tests")
         run_basic_query_test(working_dir, sd_dir, sd_url)
         if os.environ.get('SSH_AUTH_SOCK'):
@@ -188,6 +197,29 @@ def main():
     finally:
         print("Cleaning up %s" % deployment_name)
         stop_sd(graviton_exe, deployment_name)
+
+
+def main():
+    working_dir = sys.argv[1]
+    release = sys.argv[2]
+    ssh_key_name = sys.argv[3]
+    source_dir = None
+    if len(sys.argv) > 4:
+        source_dir = sys.argv[4]
+
+    release_full_path = os.path.join(working_dir, release)
+    sd_license = os.path.join(working_dir, "stardog-license-key.bin")
+    ssh_key_path = os.path.join(working_dir, "ssh_key")
+
+    make_defaults_file(working_dir, sd_license, release_full_path, release,
+                       ssh_key_path, ssh_key_name)
+    sd_dir = unzip_release(working_dir, release_full_path)
+
+    setup(working_dir)
+    deployment_name = "gravtest%s" % str(uuid.uuid4()).split("-")[4]
+    deploy_and_run_tests(working_dir, source_dir, sd_dir, deployment_name, security_enabled=True)
+    deploy_and_run_tests(working_dir, source_dir, sd_dir, deployment_name, security_enabled=False)
+
     return 0
 
 
