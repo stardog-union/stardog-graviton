@@ -61,7 +61,8 @@ def get_all_logs(ips, get_jstack=True, node_type="stardog", dst_dir=None):
         if b:
             logs_copied += 1
         source_log_files = [
-            '/mnt/data/stardog-home/stardog.log*',
+            '/mnt/data/stardog-home/*.log*',
+            '/mnt/data/stardog-home/data/LOG*',
             '/zookeeper.log*',
             '/var/log/zookeeper.log*',
             '/var/log/syslog*',
