@@ -61,7 +61,7 @@ sudo chown -R ubuntu /usr/local/bin
 echo "Installing Zookeeper"
 # Install ZooKeeper
 zookeeper_version=3.4.12
-sudo wget http://mirrors.ocf.berkeley.edu/apache/zookeeper/zookeeper-${zookeeper_version}/zookeeper-${zookeeper_version}.tar.gz && sudo tar -xvzf zookeeper-${zookeeper_version}.tar.gz
+sudo wget https://archive.apache.org/dist/zookeeper/zookeeper-${zookeeper_version}/zookeeper-${zookeeper_version}.tar.gz && sudo tar -xvzf zookeeper-${zookeeper_version}.tar.gz
 sudo mv zookeeper-${zookeeper_version} /usr/local
 sudo chgrp -R ubuntu /usr/local/zookeeper-${zookeeper_version}
 sudo chmod 775 -R /usr/local/zookeeper-${zookeeper_version}
