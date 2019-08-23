@@ -1,3 +1,13 @@
+# 1.0.10 (2019-08-23)
+
+Modifications:
+* Removed ASGs and ELBs for ZooKeeper instances
+* Gather additional log files for Stardog 7
+
+Fixes:
+* Preserve arguments passed to stardog server start
+* Download ZooKeeper from archive instead of mirrors
+
 # 1.0.9 (2018-06-05)
 
 Fixes:
