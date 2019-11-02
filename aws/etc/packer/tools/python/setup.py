@@ -26,7 +26,7 @@ setuptools.setup(name='stardog-cluster-utils',
               "stardog-jstack=stardog.cluster.run_jstack:main"
           ],
       },
-      install_requires=["pyyaml == 3.10", "requests == 2.13.0"],
+      install_requires=["pyyaml == 5.1", "requests == 2.13.0"],
 
       package_data={"stardog.cluster": ["stardog/cluster/*"]},
 
