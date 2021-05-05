@@ -27,8 +27,9 @@ import (
 
 	"time"
 
-	"github.com/stardog-union/stardog-graviton"
 	"errors"
+
+	sdutils "github.com/stardog-union/stardog-graviton"
 )
 
 type awsDeploymentDescription struct {
@@ -54,7 +55,7 @@ type awsDeploymentDescription struct {
 }
 
 var (
-	TerraformVersion = "0.11.7"
+	TerraformVersion = "0.11.15"
 	PackerVersion    = "1.2.3"
 )
 
