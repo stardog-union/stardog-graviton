@@ -64,7 +64,7 @@
       "ls /usr/local/",
       "cd /usr/local/stardog-tools/python",
       "echo 'INSTALL PYTHON TOOLS'",
-      "sudo -E python3 setup.py install",
+      "sudo -E pip3 install -e .",
       "echo 'CONF ZK'",
       "sudo mkdir -p /etc/sv/zkmon",
       "sudo mv /tmp/zookeeper_sv /etc/sv/zkmon/run",
