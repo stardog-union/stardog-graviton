@@ -1,3 +1,9 @@
+# 1.0.11 (2021-06-09)
+
+Modifications:
+* Fixed python tools install
+* Updated terraform version
+
 # 1.0.10 (2019-08-23)
 
 Modifications:
