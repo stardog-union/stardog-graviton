@@ -1,3 +1,8 @@
+# Deprecated
+
+Graviton is currently deprecated.  Please see our [helm charts](https://github.com/stardog-union/helm-charts) for
+similar functionality on Kuberenetes.
+
 # Stardog Graviton: Virtual Appliance Manager
 
 This application creates and controls a stardog database cluster running in
