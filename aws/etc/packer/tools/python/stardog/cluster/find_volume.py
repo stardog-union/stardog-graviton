@@ -5,6 +5,8 @@ import sys
 import stardog.cluster.utils as utils
 
 
+OS_DEVICE="/dev/nvme1n1"
+
 def find_mount_iteration(deployment_name, device, instance_id, az):
     volume_id = utils.find_volume(deployment_name, az=az)
     if volume_id is None:
@@ -18,8 +20,8 @@ def find_mount_iteration(deployment_name, device, instance_id, az):
 
     # wait for the device to appear
     def wait_for_file():
-        logging.info("Checking for the file %s" % device)
-        return os.path.exists(device)
+        logging.info("Checking for the file %s" % OS_DEVICE)
+        return os.path.exists(OS_DEVICE)
     rc = utils.wait_for_func(10, 10, wait_for_file)
     if not rc:
         return False
@@ -86,7 +88,7 @@ def main():
             raise Exception(e_msg)
 
         logging.info("Successfully attached the volume, now mounting...")
-        mount_format(device, mount_point)
+        mount_format(OS_DEVICE, mount_point)
         logging.info("Success")
     except Exception as ex:
         logging.error("An error occured %s")

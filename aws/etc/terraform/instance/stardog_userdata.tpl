@@ -7,7 +7,7 @@ date > /tmp/boottime
 export STARDOG_HOME=/mnt/data/stardog-home
 ${environment_variables}
 echo '${environment_variables}' > /etc/stardog.env.sh
-/usr/local/bin/stardog-find-volume ${deployment_name} /mnt/data /dev/xvdh
+/usr/local/bin/stardog-find-volume ${deployment_name} /mnt/data /dev/xvdf
 
 echo '${stardog_conf}' > $STARDOG_HOME/stardog.properties
 MY_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`

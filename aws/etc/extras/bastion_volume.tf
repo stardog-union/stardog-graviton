@@ -36,7 +36,7 @@ resource "null_resource" "bastion_volume_provisioner" {
 	  inline = [
 		"set -e",
 		"sudo mkdir -p /mnt/data",
-		"sudo mount /dev/xvdh /mnt/data",
+		"sudo mount /dev/nvme1n1 /mnt/data",
 		"sudo chown -R ubuntu /mnt/data/"
 	  ]
 	}

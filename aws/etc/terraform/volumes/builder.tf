@@ -82,7 +82,7 @@ resource "aws_instance" "stardog_data" {
 
 resource "aws_volume_attachment" "stardog_data" {
   count = "${var.cluster_size}"
-  device_name = "/dev/xvdh"
+  device_name = "/dev/xvdf"
   volume_id = "${element(aws_ebs_volume.stardog_data.*.id, count.index)}"
   instance_id = "${element(aws_instance.stardog_data.*.id, count.index)}"
 }
@@ -102,9 +102,9 @@ resource "null_resource" "stardog_data" {
   provisioner "remote-exec" {
     inline = [
       "set -e",
-      "sudo mkfs -t ext4 /dev/xvdh",
+      "sudo mkfs -t ext4 /dev/nvme1n1",
       "sudo mkdir -p /mnt/data",
-      "sudo mount /dev/xvdh /mnt/data",
+      "sudo mount /dev/nvme1n1 /mnt/data",
       "sudo mkdir -p /mnt/data/stardog-home/logs",
       "sudo chown -R ubuntu /mnt/data/"
     ]
