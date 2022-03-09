@@ -1,5 +1,7 @@
 # Graviton Release Process
 
+The graviton build process must use go `go version go1.15.15`.
+
 1. Make the release branch from `develop`, e.g.: `release/1.0.9`
 1. Update `CHANGELOG.md` manually with a helpful description of any commits that have landed since the last release.
 1. Tag the release: `git tag 1.0.9`
