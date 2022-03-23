@@ -53,7 +53,7 @@ sudo chown -R ubuntu /usr/local/bin
 
 echo "Installing Zookeeper"
 # Install ZooKeeper
-zookeeper_version=3.5.9
+zookeeper_version=3.6.3
 sudo wget --no-check-certificate https://dlcdn.apache.org/zookeeper/zookeeper-${zookeeper_version}/apache-zookeeper-${zookeeper_version}-bin.tar.gz && ls -alh && sudo tar -xvzf apache-zookeeper-${zookeeper_version}-bin.tar.gz
 sudo mv apache-zookeeper-${zookeeper_version}-bin/ /usr/local/zookeeper-${zookeeper_version}
 sudo chgrp -R ubuntu /usr/local/zookeeper-${zookeeper_version}
