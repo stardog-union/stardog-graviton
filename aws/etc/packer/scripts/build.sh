@@ -7,7 +7,10 @@ IMAGE_VERSION=${2}
 
 echo "Getting dependencies"
 sudo apt-get update
+sudo add-apt-repository -yu ppa:openjdk-r/ppa
 sudo apt-get install python3-psutil unzip openjdk-8-jdk awscli python3 python3-pip jq libyaml-dev python3-yaml runit python3-boto3 -y
+sudo apt-get install openjdk-11-jdk -y
+sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
 
 # Make some directories writable for the main user
 sudo chmod 775 -R /usr/local
