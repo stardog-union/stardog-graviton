@@ -7,8 +7,10 @@ IMAGE_VERSION=${2}
 
 echo "Getting dependencies"
 sudo apt-get update
-sudo add-apt-repository -yu ppa:openjdk-r/ppa
 sudo apt-get install python3-psutil unzip openjdk-8-jdk awscli python3 python3-pip jq libyaml-dev python3-yaml runit python3-boto3 -y
+echo "deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu xenial main" | sudo tee -a /etc/apt/sources.list.d/openjdk-r-ubuntu-ppa-xenial.list
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
+sudo apt-get update
 sudo apt-get install openjdk-11-jdk -y
 sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
 
